@@ -1,50 +1,50 @@
 # Tensor Generation
 
-This page defines a reproducible workflow for converting multistream time-series data into 2D tensors for Kirk.
+**The engine builds the tensor. You supply the observation.**
 
-## Canonical shape
+This is the most common integration mistake, so it is worth stating before anything
+else: you do not construct a tensor and send it. You send a snapshot in the shape the
+model expects, and the sealed engine renders it.
+
+## The live contract (L2 order book)
+
+`kirk_render_book` takes two arrays and returns the rendered tensor for inspection:
 
 ```text
-tensor shape = window_length × feature_count
+bid_px   10 bid prices, level 1 first
+ask_px   10 ask prices, level 1 first
 ```
 
-Example:
+The engine renders these into a **20 × 20 complex128** tensor whose rows are
+`Bid1..Bid10` and `Ask1..Ask10`.
 
-```text
-256 time steps × 10 features
+You can confirm this yourself without spending anything — `kirk_render_book` costs
+0 IU and does not invoke the sealed engine:
+
+```json
+{"shape": [20, 20], "dtype": "complex128", "non_zero_cells": 50,
+ "mid_price": 223.095, "spread_ticks": 1.0}
 ```
 
-## Required decisions
+See [`examples/quickstart`](../examples/quickstart/README.md) for a runnable version.
 
-Document each of the following:
+## Decisions that remain yours
 
-1. Sampling interval
-2. Feature order
-3. Window length
-4. Window stride
-5. Normalisation
-6. Missing-data policy
-7. Clipping or winsorisation
-8. Timestamp alignment
-9. Warm-up period
-10. Metadata attached to each tensor
+The rendering is fixed, but everything upstream of it is your experiment and must be
+documented:
 
-## Suggested pipeline
-
-```mermaid
-flowchart LR
-    A[Raw streams] --> B[Align timestamps]
-    B --> C[Handle missing values]
-    C --> D[Derive features]
-    D --> E[Normalise]
-    E --> F[Create sliding windows]
-    F --> G[Send tensors to Kirk]
-    G --> H[Store outputs and metadata]
-```
+1. Sampling interval and snapshot cadence
+2. Which book levels you capture, and what you do when fewer than 10 are quoted
+3. Timestamp alignment across streams
+4. Missing-data policy
+5. Warm-up period before the first scored snapshot
+6. Metadata attached to each observation
 
 ## Avoid leakage
 
-For online evaluation, normalisation at time `t` must not use future observations. Use rolling or pre-defined statistics.
+For online evaluation, nothing you derive at time `t` may use observations after `t`.
+This applies to any normalisation, scaling or standardisation you perform before
+submitting a snapshot — use rolling or pre-defined statistics, never full-sample ones.
 
 ## Preserve provenance
 
@@ -52,8 +52,17 @@ Each output should be traceable to:
 
 - source data range
 - feature schema version
-- tensor index
+- observation index
 - start and end timestamps
 - preprocessing configuration
-- Kirk engine version
+- **Kirk engine sha** (`kirk_version`, stamped on every response)
 - run parameters
+
+The engine sha matters more than the rest: results from different engine builds are not
+interchangeable, and a result without its sha cannot be placed in a lineage later.
+
+## Other input shapes
+
+The 10+10 book contract above is what the public MCP surface accepts today. Other
+observation shapes exist for other integration paths; contact Kavara rather than
+inferring a contract from this page.
