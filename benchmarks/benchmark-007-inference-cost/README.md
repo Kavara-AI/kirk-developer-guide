@@ -11,7 +11,7 @@ shaped output, and leaves detection quality to Benchmark 001.
 
 ## Why this is not a like-for-like race
 
-The two systems do structurally different amounts of work per unit of output, and any
+The two systems do different amounts of work per unit of output, and any
 honest comparison has to state that up front:
 
 - **Kirk** consumes a cross-sectional panel and emits **one scalar per window**. The

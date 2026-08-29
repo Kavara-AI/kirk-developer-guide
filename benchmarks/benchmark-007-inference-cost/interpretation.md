@@ -3,12 +3,12 @@
 ## The number that matters
 
 **Joules per unit of output signal.** Not joules per call. The per-call figure flatters
-whichever system does less work per call, and the two do structurally different amounts.
+whichever system does less work per call, and the two do different amounts.
 
 ## Four ways to get this wrong
 
 **1. Reporting without an idle baseline.** `power/energy-pkg/` is system-wide across the
-socket. On the reference machine, idle alone was ~193 W while the entire structural
+socket. On the reference machine, idle alone was ~193 W while the entire measured
 workload added under 6 W. Report the raw workload figure and you have reported the idle
 power of the machine, accurate to about 3%.
 
@@ -24,18 +24,17 @@ workload on nominally free cores. If the machine is shared, either own it for th
 or state that you did not.
 
 **4. Comparing a CPU number with a GPU number.** These do not transfer. Package RAPL does
-not observe accelerator power, and the two systems do not port to a GPU equally — a dense
-batched forecaster is close to ideal for one, an online sequential update is not. A GPU
+not observe accelerator power, and the two systems do not port to a GPU equally. A GPU
 column is a *different benchmark*, not a faster version of this one.
 
 ## What a large gap does and does not mean
 
-A large cost gap says the structural method produces the same shaped output far more
+A large cost gap says one method produces the same shaped output far more
 cheaply. It says nothing about whether that output is *better*. The honest reading is:
 
 > at equal output shape, method A costs Nx less; whether A's output is as useful is
 > Benchmark 001's question, and must be answered before the cost figure means anything.
 
-If your structural run is cheaper and its signal does not track the injected break in
+If your Kirk run is cheaper and its signal does not track the injected break in
 `MOMENT_MATCHED`, you have measured the cost of a detector that does not detect. Report
 that outcome — it is a real finding, and the more useful one.

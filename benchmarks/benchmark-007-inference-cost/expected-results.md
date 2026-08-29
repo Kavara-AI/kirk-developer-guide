@@ -6,7 +6,7 @@ These are pre-registered evaluation targets, not reported results.
 
 | | calls / output window | throughput (windows/s) | threads | attributable W | J / output window |
 |---|---|---|---|---|---|
-| structural (Kirk) | | | | | |
+| Kirk | | | | | |
 | forecaster (TimesFM, CPU) | | | | | |
 
 Plus: idle baseline W, idle drift %, data `sha256`, channel count N, window W, context length.
@@ -14,17 +14,17 @@ Plus: idle baseline W, idle drift %, data `sha256`, channel count N, window W, c
 ## Primary expectation
 
 The cost gap should be **driven mainly by calls per output window, not by per-call speed**.
-Since the forecaster needs N calls per output scalar and the structural method needs O(1),
-the gap should widen roughly linearly in N. If it does not, something in the harness is
-wrong — most likely batching is hiding per-call cost, or the forecaster is not actually
+If the per-call figures are close while the per-output-window figures diverge, that is the
+expected shape. If instead the gap tracks per-call speed, something in the harness is wrong
+— most likely call aggregation is hiding per-call cost, or the forecaster is not actually
 producing one scalar per window.
 
 ## Secondary expectations
 
 - Forecaster throughput saturates well below the machine's core count; beyond that, more
   threads reduce throughput.
-- The structural method's cost grows super-linearly in panel dimension (between N² and N³),
-  so at small N the gap narrows and may invert on a per-call basis.
+- The gap varies with panel dimension N, and at small N it narrows; report every N you ran
+  rather than only the most favourable one.
 - Energy ordering matches time ordering at fixed thread count; if they disagree, suspect
   frequency-licence effects (see `interpretation.md`).
 

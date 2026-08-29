@@ -2,7 +2,7 @@
 
 The two sides consume the same stream, shaped to each model's native contract.
 
-## Structural path (Kirk)
+## Kirk path
 
 ```text
 window_length W = 16
@@ -33,5 +33,5 @@ signal(t)       = mean_c |residual(c, t)| / trailing_std(residual(c, ...))
 Standardisation must be **trailing-only** (rolling std of prior residuals, shifted by one).
 Using a full-sample std leaks future information into the signal and inflates the result.
 
-Note the asymmetry this makes explicit: one output scalar costs **1** structural call and
-**N** forecaster calls. That ratio, not raw per-call speed, dominates the comparison.
+Each side is shaped to its own native contract, so the per-call columns are not
+comparable; the per-output-window unit is.

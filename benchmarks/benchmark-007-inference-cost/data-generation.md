@@ -20,8 +20,8 @@ installed at the midpoint in one of three modes:
 | `VARIANCE` | variance x1.7 | a second-moment change any method should see |
 | `MOMENT_MATCHED` | three-way sign-parity dependency within each group; every mean, variance and covariance preserved | a dependency change that second-moment methods are blind to |
 
-`MOMENT_MATCHED` is the interesting one for cost: it is the case where you would want a
-structural method, so it is the case where its cost matters.
+`MOMENT_MATCHED` is the interesting one for cost: it is the case where a dependency-aware
+detector earns its keep, so it is the case where its cost matters.
 
 ## Reproducibility
 

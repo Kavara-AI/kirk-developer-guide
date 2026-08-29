@@ -82,4 +82,4 @@ Fill in `expected-results.md`'s table, and always include:
 - idle baseline W and the drift between the two idle brackets
 - thread count and the scaling curve
 - the data `sha256`
-- calls per output window for each side (this is the number that drives the result)
+- calls per output window for each side
