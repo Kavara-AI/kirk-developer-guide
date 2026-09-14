@@ -24,6 +24,13 @@ flowchart LR
     E --> F[Evaluate on your system]
 ```
 
+## Connect first, if you want to follow along live
+
+[Connect your Claude](docs/connect-your-claude.md) puts the Kirk tools into a
+Claude conversation, or use the [quickstart](examples/quickstart/README.md) for
+a Python client. Both need a credential from Kavara. The orientation tools cost
+nothing to call.
+
 ## Recommended reading order
 
 1. [What is Kirk?](docs/what-is-kirk.md)
