@@ -8,8 +8,10 @@ For the client, see the [quickstart](../examples/quickstart/README.md).
 
 A credential, in one of two forms:
 
-- **Personal connector URL** — `https://kirk-mcp.kavara.ai/mcp/k_...`. Carries
-  its own authentication, so no headers are needed.
+- **Personal key** — a `k_...` key issued to you. It can be presented either as
+  a connector URL (`https://kirk-mcp.kavara.ai/mcp/k_...`) or as a header
+  (`Authorization: Bearer k_...`) against the bare `/mcp` path. Same key, same
+  account; use whichever form the client supports.
 - **Cloudflare Access service token** — a client id and secret, used against the
   bare `/mcp` path.
 
@@ -18,7 +20,16 @@ do not commit it, paste it into an issue, or share it in chat.
 
 ## Claude Code
 
-With a connector URL:
+Prefer the header form. A key in a URL ends up in shell history, process
+listings and any log that records the request line; a header does not.
+
+```sh
+claude mcp add --transport http kirk https://kirk-mcp.kavara.ai/mcp \
+  -H "Authorization: Bearer k_..."
+```
+
+The URL form works too, and is the one to use where a client only accepts a
+URL:
 
 ```sh
 claude mcp add --transport http kirk 'https://kirk-mcp.kavara.ai/mcp/k_...'
@@ -36,8 +47,9 @@ Confirm with `claude mcp list`.
 
 ## Claude Desktop and claude.ai
 
-Settings → Connectors → Add custom connector, then paste the connector URL. A
-connector URL is the simpler form here because it authenticates on its own.
+Settings → Connectors → Add custom connector, then paste the connector URL.
+These interfaces take a URL and no headers, so the connector-URL form is the
+one to use here.
 
 ## Check it worked
 
@@ -95,6 +107,10 @@ authentication starts failing, check the variable names before the credential.
   a 1010 "browser signature banned" error that surfaces as a 403. Set an
   explicit `User-Agent` before debugging credentials.
 - **A 402.** The account balance is exhausted. `kirk_billing_show` confirms it.
+- **A key that stops working.** Keys can be revoked. An unknown or revoked key
+  is refused outright rather than being silently downgraded to an
+  unattributed account, so this surfaces as a hard failure, not as odd
+  behaviour. Ask for a new one; keys are per-person and are not shared.
 - **A model appears in `kirk_list_models` but errors when called.** The
   catalogue lists registered models; it is not a liveness check. Report it
   rather than assuming the call was malformed.
