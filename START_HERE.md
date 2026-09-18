@@ -13,6 +13,11 @@ The important distinction is between:
 
 A single stream can look ordinary while its relationship with other streams becomes abnormal.
 
+Start with [phenomena discovery](docs/phenomena-discovery.md): build an inspectable record
+of what changes and recurs, including behaviours you cannot yet name. Evaluate the value
+of acting on those observations separately. Known event labels help validation, but a
+predefined taxonomy is not a prerequisite for exploration.
+
 ## The developer journey
 
 ```mermaid

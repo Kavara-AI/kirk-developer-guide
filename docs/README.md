@@ -3,6 +3,7 @@
 ## Orientation
 
 - [What is Kirk?](what-is-kirk.md)
+- [Phenomena discovery: from observations to value](phenomena-discovery.md)
 - [Capability fit](capability-fit.md)
 - [Choosing the right tool](choosing-the-right-tool.md)
 
