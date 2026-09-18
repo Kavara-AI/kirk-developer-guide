@@ -99,6 +99,29 @@ customer's existing analysis. A specialist detector may recognise a phenomenon o
 it is known; discovering it and maintaining detection as conditions change are also
 part of the comparison. Alternative methods may adapt online too.
 
+## A stateful sensing unit
+
+**"Stateful machine neuron" is an architectural analogy:** an individual model retains
+state, responds to incoming observations and contributes measurements to a larger
+system. It is not evidence that Kirk replicates a biological neuron or preserves the
+mechanisms of biological intelligence. Stateful processing is not unique to Kirk;
+other machine-learning architectures can retain and update state too.
+
+The practical question is whether each sensing unit is fast and inexpensive enough
+to run at the required cadence, across the intended number of streams. Report latency
+for the actual work being sold: one observation scored by a specified model, with its
+required state update and output. Record engine identity, configuration, input shape,
+hardware, thread count, batch size, timing boundary and latency distribution.
+
+Keep solver-only timings, complete model steps and end-to-end API latency separate.
+Amortized time per item in a batch is not necessarily single-observation latency.
+A microsecond timing on one configuration is not a universal model speed or a
+like-for-like comparison with neuronal signalling. Likewise, single-model latency
+does not establish concurrent capacity: measure throughput, memory, scheduling and
+data-movement costs at the intended scale. See
+[Benchmark 007](../benchmarks/benchmark-007-inference-cost/README.md) for the cost
+evaluation framework; its expected results are targets, not measured performance.
+
 ## A shared measurement language
 
 The composition proposition is that independently running Kirk models can expose
