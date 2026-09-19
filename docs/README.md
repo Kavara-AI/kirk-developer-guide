@@ -2,6 +2,7 @@
 
 ## Orientation
 
+- [Connect your Claude](connect-your-claude.md)
 - [What is Kirk?](what-is-kirk.md)
 - [Capability fit](capability-fit.md)
 - [Choosing the right tool](choosing-the-right-tool.md)
