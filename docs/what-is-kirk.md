@@ -12,6 +12,18 @@ For this guide, that means systems with:
 
 Kirk should be evaluated on its ability to characterise changes in joint system behaviour. It is not enough to show that one feature crossed a threshold.
 
+## Discovery before application
+
+The aim is to discover phenomena without needing a predefined label for every behaviour.
+A phenomenon can be a transition, a persistent state or a recurring relationship, and
+its cause may remain unknown. Preserve its input context and measured outputs before
+assigning an explanation.
+
+Evaluate two questions separately: **what does Kirk reveal in this data?** and **does
+acting on those discoveries improve the customer's outcome?** The first produces an
+evidence-backed catalogue; the second needs an application-specific evaluation. See
+[Phenomena discovery](phenomena-discovery.md) for the workflow and commercial framing.
+
 ## A useful mental model
 
 Traditional point-anomaly logic asks:

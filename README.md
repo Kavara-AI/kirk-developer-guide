@@ -2,6 +2,12 @@
 
 Kirk is intended for analysing complex, non-stationary systems in which relationships between data streams may change over time.
 
+The proposition is **continuous discovery of phenomena in your data, without requiring
+you to name every behaviour beforehand**. First establish what the chosen model and
+data representation reveal; then evaluate whether a response creates value. Read
+[Phenomena discovery](docs/phenomena-discovery.md) for the catalogue workflow, the shared
+measurement language proposition, and the evidence needed to support each claim.
+
 This repository helps developers answer three practical questions:
 
 1. Is Kirk a plausible fit for this problem?

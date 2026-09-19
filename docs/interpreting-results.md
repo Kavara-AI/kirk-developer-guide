@@ -2,6 +2,15 @@
 
 Kirk outputs must be interpreted in the context of the input tensor sequence and the operational question.
 
+## Discovery and confirmation
+
+When the behaviours of interest are not known in advance, use the
+[phenomena catalogue workflow](phenomena-discovery.md) to preserve observations and
+develop provisional descriptions. Keep unexplained cases. Record how examples were
+selected and distinguish retrospective descriptions from detections available at the
+time. Later tests should evaluate recurrence, existing-method comparisons and useful
+responses on fresh evidence rather than treating exploratory labels as established truth.
+
 ## Questions to ask
 
 - Does the output change near a known regime boundary?
