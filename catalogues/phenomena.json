@@ -1,0 +1,1470 @@
+{
+  "schema_version": 1,
+  "claim_status": "Hypothesis",
+  "purpose": "Exploration prompts and preparation questions; not validated capabilities, phenomenon labels, model selection or an admission contract.",
+  "data_shapes": {
+    "time-series": {
+      "title": "Measurements over time",
+      "questions": [
+        "What does each observation measure, in which units, and for which entity?",
+        "Are timestamps regular, irregular or asynchronous across channels?",
+        "Which gaps, exact zeros, resets and changes in collection practice must remain distinguishable?"
+      ],
+      "preparation": "Preserve timestamps and channel identities. Document alignment, units and missingness before choosing any resampling or scaling."
+    },
+    "event-sequences": {
+      "title": "Timestamped events",
+      "questions": [
+        "What defines an event, its identity and its occurrence time versus its arrival time?",
+        "Are repeated events duplicates or genuine repetitions?",
+        "Which entity and session boundaries must be preserved?"
+      ],
+      "preparation": "Keep event order, elapsed time and entity boundaries. Any binning or aggregation needs a stated rule and a check that it preserves the phenomena of interest."
+    },
+    "relationships": {
+      "title": "Relationships and networks",
+      "questions": [
+        "What do nodes, edges, directions and weights mean?",
+        "Do entities or relationships appear, disappear or change identity?",
+        "Are observations individual events or network snapshots?"
+      ],
+      "preparation": "Preserve entity mappings and relationship semantics. A graph-to-observation representation requires its own documented and tested input contract."
+    },
+    "spatial-panels": {
+      "title": "Measurements across locations",
+      "questions": [
+        "What are the coordinates, coordinate system, resolution and any depth or altitude axes?",
+        "Are locations fixed, moving or sampled unevenly?",
+        "Which observations are simultaneous and which only appear in the same file?"
+      ],
+      "preparation": "Retain coordinates, measurement support, time and coverage. Do not treat arbitrary row or location order as chronology."
+    },
+    "repeated-runs": {
+      "title": "Repeated experiments or operating cycles",
+      "questions": [
+        "What defines a run, cycle, subject or batch boundary?",
+        "Do sampling rates, durations or experimental conditions differ?",
+        "Which measurements were available at each point within a run?"
+      ],
+      "preparation": "Retain run boundaries and conditions. Specify alignment and state reset policy; do not concatenate independent runs into an invented continuous history."
+    },
+    "encoded-media": {
+      "title": "Numerical representations of text, images or audio",
+      "questions": [
+        "Which numerical representation or feature extractor is proposed, and what is its version?",
+        "Which temporal, spatial or semantic relationships does that representation preserve or discard?",
+        "Are feature definitions stable across the proposed dataset?"
+      ],
+      "preparation": "Record representation provenance and retained axes. A numerical encoding is not proof of Kirk compatibility or a useful embedding; verify a matching input contract."
+    },
+    "unordered-samples": {
+      "title": "Unordered samples or static tables",
+      "questions": [
+        "Are rows independent samples, or is there a genuine temporal or spatial order?",
+        "Which sample, batch and feature identities matter?",
+        "Would the proposed representation introduce an artificial ordering?"
+      ],
+      "preparation": "Preserve sample and batch identities. Do not invent a time axis or interpret an inferred ordering as observed chronology; suitability needs separate assessment."
+    }
+  },
+  "domains": [
+    {
+      "id": "financial-markets",
+      "title": "Financial markets",
+      "data_shapes": [
+        "time-series",
+        "event-sequences"
+      ],
+      "example_observations": "Timestamped prices, volumes, quotes or other market measurements with instrument identities and units.",
+      "phenomena": [
+        {
+          "id": "financial-markets-001",
+          "description": "Assets beginning to move together after historically behaving independently."
+        },
+        {
+          "id": "financial-markets-002",
+          "description": "Previously correlated assets separating."
+        },
+        {
+          "id": "financial-markets-003",
+          "description": "Recurring sequences of volatility, volume and price movement."
+        },
+        {
+          "id": "financial-markets-004",
+          "description": "Relationships that appear only during unusually large movements."
+        },
+        {
+          "id": "financial-markets-005",
+          "description": "Patterns recurring at different timescales."
+        },
+        {
+          "id": "financial-markets-006",
+          "description": "Changes in which instruments lead or lag others."
+        },
+        {
+          "id": "financial-markets-007",
+          "description": "Groups of securities exhibiting a shared pattern hidden in market averages."
+        },
+        {
+          "id": "financial-markets-008",
+          "description": "Similar market configurations recurring years apart."
+        }
+      ]
+    },
+    {
+      "id": "payments",
+      "title": "Payments and transaction networks",
+      "data_shapes": [
+        "event-sequences",
+        "relationships"
+      ],
+      "example_observations": "Dated transactions, account or entity identifiers, amounts and directed relationships, with sensitive identifiers handled appropriately.",
+      "phenomena": [
+        {
+          "id": "payments-001",
+          "description": "Recurring sequences of transfers between groups of accounts."
+        },
+        {
+          "id": "payments-002",
+          "description": "Changes in the timing between receiving and sending funds."
+        },
+        {
+          "id": "payments-003",
+          "description": "Transaction clusters that appear and disappear together."
+        },
+        {
+          "id": "payments-004",
+          "description": "Payment behavior with unexpected periodicity."
+        },
+        {
+          "id": "payments-005",
+          "description": "Relationships between transaction size, frequency and destination."
+        },
+        {
+          "id": "payments-006",
+          "description": "Different accounts developing similar transaction signatures."
+        },
+        {
+          "id": "payments-007",
+          "description": "Network structures that recur across otherwise unrelated groups."
+        },
+        {
+          "id": "payments-008",
+          "description": "Changes in how activity is distributed across a payment network."
+        }
+      ]
+    },
+    {
+      "id": "insurance",
+      "title": "Insurance",
+      "data_shapes": [
+        "event-sequences",
+        "time-series",
+        "spatial-panels"
+      ],
+      "example_observations": "Claim and policy event histories, exposure measurements, locations and clearly defined observation times.",
+      "phenomena": [
+        {
+          "id": "insurance-001",
+          "description": "Claims arriving in recurring temporal clusters."
+        },
+        {
+          "id": "insurance-002",
+          "description": "Changes in relationships between claim frequency and claim size."
+        },
+        {
+          "id": "insurance-003",
+          "description": "Similar claim trajectories across different policy populations."
+        },
+        {
+          "id": "insurance-004",
+          "description": "Geographic patterns in claims that emerge or dissolve."
+        },
+        {
+          "id": "insurance-005",
+          "description": "Unusual sequences of policy changes and subsequent claims."
+        },
+        {
+          "id": "insurance-006",
+          "description": "Changes in how long claims remain in different processing states."
+        },
+        {
+          "id": "insurance-007",
+          "description": "Groups of claims sharing previously unrecognized numerical characteristics."
+        },
+        {
+          "id": "insurance-008",
+          "description": "Recurring patterns across combinations of exposure, weather and reported loss."
+        }
+      ]
+    },
+    {
+      "id": "retail",
+      "title": "Retail and commerce",
+      "data_shapes": [
+        "event-sequences",
+        "time-series"
+      ],
+      "example_observations": "Product, store or customer event histories with timestamps, quantities, prices and availability.",
+      "phenomena": [
+        {
+          "id": "retail-001",
+          "description": "Products that begin being purchased together."
+        },
+        {
+          "id": "retail-002",
+          "description": "Purchasing sequences that recur across different customer groups."
+        },
+        {
+          "id": "retail-003",
+          "description": "Changes in relationships between browsing and purchasing."
+        },
+        {
+          "id": "retail-004",
+          "description": "Demand patterns shared across apparently unrelated products."
+        },
+        {
+          "id": "retail-005",
+          "description": "Differences between local store behavior and aggregate sales."
+        },
+        {
+          "id": "retail-006",
+          "description": "Recurring patterns in returns, exchanges and repeat purchases."
+        },
+        {
+          "id": "retail-007",
+          "description": "Changes in the timing between purchases."
+        },
+        {
+          "id": "retail-008",
+          "description": "Patterns that occur at particular combinations of price, availability and season."
+        }
+      ]
+    },
+    {
+      "id": "product-behavior",
+      "title": "Product and customer behavior",
+      "data_shapes": [
+        "event-sequences",
+        "time-series"
+      ],
+      "example_observations": "Timestamped interactions with stable feature and session definitions; identity and coverage policies recorded.",
+      "phenomena": [
+        {
+          "id": "product-behavior-001",
+          "description": "Recurring paths through an application."
+        },
+        {
+          "id": "product-behavior-002",
+          "description": "New sequences of feature usage."
+        },
+        {
+          "id": "product-behavior-003",
+          "description": "Groups of users developing similar activity rhythms."
+        },
+        {
+          "id": "product-behavior-004",
+          "description": "Changes in how features are used together."
+        },
+        {
+          "id": "product-behavior-005",
+          "description": "Periods when overall activity stays stable but its composition changes."
+        },
+        {
+          "id": "product-behavior-006",
+          "description": "Repeated transitions between intensive and intermittent use."
+        },
+        {
+          "id": "product-behavior-007",
+          "description": "Different user populations converging toward similar behavior."
+        },
+        {
+          "id": "product-behavior-008",
+          "description": "Previously common interaction patterns gradually disappearing."
+        }
+      ]
+    },
+    {
+      "id": "software",
+      "title": "Software systems",
+      "data_shapes": [
+        "time-series",
+        "event-sequences",
+        "relationships"
+      ],
+      "example_observations": "Service metrics, request histories and event counts with aligned clocks and service identities.",
+      "phenomena": [
+        {
+          "id": "software-001",
+          "description": "Recurring combinations of latency, traffic and resource consumption."
+        },
+        {
+          "id": "software-002",
+          "description": "Services whose performance begins moving together."
+        },
+        {
+          "id": "software-003",
+          "description": "Changes in the relationship between workload and response time."
+        },
+        {
+          "id": "software-004",
+          "description": "Repeated sequences of log-event counts."
+        },
+        {
+          "id": "software-005",
+          "description": "Latency patterns confined to particular request types."
+        },
+        {
+          "id": "software-006",
+          "description": "Resource oscillations at unexpected timescales."
+        },
+        {
+          "id": "software-007",
+          "description": "Different deployments producing similar operational signatures."
+        },
+        {
+          "id": "software-008",
+          "description": "Changes in how variability propagates between services."
+        }
+      ]
+    },
+    {
+      "id": "cybersecurity",
+      "title": "Cybersecurity",
+      "data_shapes": [
+        "event-sequences",
+        "relationships",
+        "time-series"
+      ],
+      "example_observations": "Authentication, host and network event histories with entity identities and documented collection coverage.",
+      "phenomena": [
+        {
+          "id": "cybersecurity-001",
+          "description": "Recurring sequences of authentication events."
+        },
+        {
+          "id": "cybersecurity-002",
+          "description": "Machines developing unusually similar activity patterns."
+        },
+        {
+          "id": "cybersecurity-003",
+          "description": "Changes in relationships between access frequency, timing and volume."
+        },
+        {
+          "id": "cybersecurity-004",
+          "description": "New patterns of communication between groups of hosts."
+        },
+        {
+          "id": "cybersecurity-005",
+          "description": "Low-volume activity with persistent temporal structure."
+        },
+        {
+          "id": "cybersecurity-006",
+          "description": "Different accounts exhibiting synchronized changes."
+        },
+        {
+          "id": "cybersecurity-007",
+          "description": "Recurring combinations of endpoint and network events."
+        },
+        {
+          "id": "cybersecurity-008",
+          "description": "Activity structures that differ from a system's established background."
+        }
+      ]
+    },
+    {
+      "id": "telecommunications",
+      "title": "Telecommunications and networks",
+      "data_shapes": [
+        "time-series",
+        "relationships",
+        "spatial-panels"
+      ],
+      "example_observations": "Time-indexed traffic, connection-quality and network-location measurements with topology context.",
+      "phenomena": [
+        {
+          "id": "telecommunications-001",
+          "description": "Changes in relationships between traffic, latency and packet loss."
+        },
+        {
+          "id": "telecommunications-002",
+          "description": "Recurring congestion patterns across network segments."
+        },
+        {
+          "id": "telecommunications-003",
+          "description": "Groups of cells exhibiting synchronized load changes."
+        },
+        {
+          "id": "telecommunications-004",
+          "description": "Unexpected periodicity in connection quality."
+        },
+        {
+          "id": "telecommunications-005",
+          "description": "Changes in traffic composition despite stable total volume."
+        },
+        {
+          "id": "telecommunications-006",
+          "description": "Repeated patterns in handovers between mobile cells."
+        },
+        {
+          "id": "telecommunications-007",
+          "description": "Geographic clusters of similar signal behavior."
+        },
+        {
+          "id": "telecommunications-008",
+          "description": "Changes in which network measurements lead or lag others."
+        }
+      ]
+    },
+    {
+      "id": "computing-hardware",
+      "title": "Computing hardware and data centres",
+      "data_shapes": [
+        "time-series",
+        "repeated-runs"
+      ],
+      "example_observations": "Power, thermal and performance telemetry with workload, device and run identities.",
+      "phenomena": [
+        {
+          "id": "computing-hardware-001",
+          "description": "Recurring relationships between power, temperature and workload."
+        },
+        {
+          "id": "computing-hardware-002",
+          "description": "Different machines developing similar performance signatures."
+        },
+        {
+          "id": "computing-hardware-003",
+          "description": "Changes in the relationship between memory traffic and execution time."
+        },
+        {
+          "id": "computing-hardware-004",
+          "description": "Thermal oscillations across groups of components."
+        },
+        {
+          "id": "computing-hardware-005",
+          "description": "Workloads with recurring resource-consumption shapes."
+        },
+        {
+          "id": "computing-hardware-006",
+          "description": "Changes in the distribution of performance across nominally identical hardware."
+        },
+        {
+          "id": "computing-hardware-007",
+          "description": "Coupled behavior between cooling systems and compute equipment."
+        },
+        {
+          "id": "computing-hardware-008",
+          "description": "Repeated transitions between distinct operating patterns."
+        }
+      ]
+    },
+    {
+      "id": "manufacturing",
+      "title": "Manufacturing",
+      "data_shapes": [
+        "time-series",
+        "repeated-runs",
+        "event-sequences"
+      ],
+      "example_observations": "Process measurements and output observations with batch, line, stage and time identities.",
+      "phenomena": [
+        {
+          "id": "manufacturing-001",
+          "description": "Recurring combinations of pressure, temperature, speed and output measurements."
+        },
+        {
+          "id": "manufacturing-002",
+          "description": "Differences between production lines processing the same product."
+        },
+        {
+          "id": "manufacturing-003",
+          "description": "Batch patterns hidden by average quality measurements."
+        },
+        {
+          "id": "manufacturing-004",
+          "description": "Changes in relationships between process stages."
+        },
+        {
+          "id": "manufacturing-005",
+          "description": "Repeated sequences preceding measurable changes in output."
+        },
+        {
+          "id": "manufacturing-006",
+          "description": "Production cycles that gradually change shape."
+        },
+        {
+          "id": "manufacturing-007",
+          "description": "Groups of sensors moving together only under particular operating conditions."
+        },
+        {
+          "id": "manufacturing-008",
+          "description": "Similar process signatures appearing across different factories."
+        }
+      ]
+    },
+    {
+      "id": "machinery",
+      "title": "Machinery and industrial equipment",
+      "data_shapes": [
+        "time-series",
+        "repeated-runs"
+      ],
+      "example_observations": "Vibration, load and thermal measurements with sampling rates and machine or cycle identities.",
+      "phenomena": [
+        {
+          "id": "machinery-001",
+          "description": "Recurring vibration signatures."
+        },
+        {
+          "id": "machinery-002",
+          "description": "Changes in relationships between vibration, load and temperature."
+        },
+        {
+          "id": "machinery-003",
+          "description": "Operating patterns shared by different machines."
+        },
+        {
+          "id": "machinery-004",
+          "description": "New periodic components in sensor streams."
+        },
+        {
+          "id": "machinery-005",
+          "description": "Repeated transitions between stable operating patterns."
+        },
+        {
+          "id": "machinery-006",
+          "description": "Changes in how equipment responds to similar loads."
+        },
+        {
+          "id": "machinery-007",
+          "description": "Brief events that recur with a consistent internal sequence."
+        },
+        {
+          "id": "machinery-008",
+          "description": "Differences between apparently identical operating cycles."
+        }
+      ]
+    },
+    {
+      "id": "materials-chemistry",
+      "title": "Materials and chemistry",
+      "data_shapes": [
+        "repeated-runs",
+        "time-series",
+        "spatial-panels"
+      ],
+      "example_observations": "Spectra, process trajectories or spatial measurements with sample identities, units and experimental conditions.",
+      "phenomena": [
+        {
+          "id": "materials-chemistry-001",
+          "description": "Recurring structures in spectroscopy measurements."
+        },
+        {
+          "id": "materials-chemistry-002",
+          "description": "Changes in relationships between temperature, pressure and measured properties."
+        },
+        {
+          "id": "materials-chemistry-003",
+          "description": "Distinct reaction-trajectory shapes."
+        },
+        {
+          "id": "materials-chemistry-004",
+          "description": "Repeated sequences during heating and cooling cycles."
+        },
+        {
+          "id": "materials-chemistry-005",
+          "description": "Groups of material samples sharing unusual measurement signatures."
+        },
+        {
+          "id": "materials-chemistry-006",
+          "description": "Changes in relationships between composition and observed response."
+        },
+        {
+          "id": "materials-chemistry-007",
+          "description": "Spatial patterns in material measurements."
+        },
+        {
+          "id": "materials-chemistry-008",
+          "description": "Similar experimental trajectories arising from different starting conditions."
+        }
+      ]
+    },
+    {
+      "id": "energy",
+      "title": "Energy generation and electricity grids",
+      "data_shapes": [
+        "time-series",
+        "relationships",
+        "spatial-panels"
+      ],
+      "example_observations": "Demand, generation and grid measurements with location, cadence and equipment context.",
+      "phenomena": [
+        {
+          "id": "energy-001",
+          "description": "Recurring combinations of demand, generation and frequency measurements."
+        },
+        {
+          "id": "energy-002",
+          "description": "Regions whose electricity consumption begins moving together."
+        },
+        {
+          "id": "energy-003",
+          "description": "Changes in relationships between weather and generation output."
+        },
+        {
+          "id": "energy-004",
+          "description": "Repeated oscillations across grid measurements."
+        },
+        {
+          "id": "energy-005",
+          "description": "Local patterns hidden within system-wide demand."
+        },
+        {
+          "id": "energy-006",
+          "description": "Changes in the timing between demand and generation movements."
+        },
+        {
+          "id": "energy-007",
+          "description": "Distinct operating patterns across renewable-generation sites."
+        },
+        {
+          "id": "energy-008",
+          "description": "Similar grid configurations recurring under different calendar conditions."
+        }
+      ]
+    },
+    {
+      "id": "batteries",
+      "title": "Batteries and electrochemical systems",
+      "data_shapes": [
+        "time-series",
+        "repeated-runs"
+      ],
+      "example_observations": "Voltage, current and temperature histories with cell, pack and charge-cycle identifiers.",
+      "phenomena": [
+        {
+          "id": "batteries-001",
+          "description": "Recurring charge and discharge curve shapes."
+        },
+        {
+          "id": "batteries-002",
+          "description": "Changes in relationships between voltage, current and temperature."
+        },
+        {
+          "id": "batteries-003",
+          "description": "Cells diverging from others within the same pack."
+        },
+        {
+          "id": "batteries-004",
+          "description": "Repeated transitions between different response patterns."
+        },
+        {
+          "id": "batteries-005",
+          "description": "Changes in recovery behavior after load removal."
+        },
+        {
+          "id": "batteries-006",
+          "description": "Similar trajectories across batteries with different usage histories."
+        },
+        {
+          "id": "batteries-007",
+          "description": "Differences between short-term and long-term cycling patterns."
+        },
+        {
+          "id": "batteries-008",
+          "description": "Groups of cells exhibiting synchronized variability."
+        }
+      ]
+    },
+    {
+      "id": "buildings-cities",
+      "title": "Buildings and cities",
+      "data_shapes": [
+        "time-series",
+        "spatial-panels",
+        "event-sequences"
+      ],
+      "example_observations": "Occupancy, utility, environmental or movement observations with time and location context.",
+      "phenomena": [
+        {
+          "id": "buildings-cities-001",
+          "description": "Recurring relationships between occupancy, temperature and energy use."
+        },
+        {
+          "id": "buildings-cities-002",
+          "description": "Buildings with similar daily operating signatures."
+        },
+        {
+          "id": "buildings-cities-003",
+          "description": "Changes in how indoor conditions respond to outdoor conditions."
+        },
+        {
+          "id": "buildings-cities-004",
+          "description": "Neighborhood activity patterns at different timescales."
+        },
+        {
+          "id": "buildings-cities-005",
+          "description": "Repeated interactions between ventilation, humidity and air-quality measurements."
+        },
+        {
+          "id": "buildings-cities-006",
+          "description": "Water-consumption patterns shared across locations."
+        },
+        {
+          "id": "buildings-cities-007",
+          "description": "Distinct combinations of transport, electricity and pedestrian activity."
+        },
+        {
+          "id": "buildings-cities-008",
+          "description": "Changes in the synchronization of activity across parts of a city."
+        }
+      ]
+    },
+    {
+      "id": "road-transport",
+      "title": "Road transport and mobility",
+      "data_shapes": [
+        "time-series",
+        "spatial-panels",
+        "event-sequences"
+      ],
+      "example_observations": "Time-indexed movement, road-segment or journey observations with spatial and sampling definitions.",
+      "phenomena": [
+        {
+          "id": "road-transport-001",
+          "description": "Recurring traffic-flow shapes."
+        },
+        {
+          "id": "road-transport-002",
+          "description": "Locations whose congestion patterns become coupled."
+        },
+        {
+          "id": "road-transport-003",
+          "description": "Changes in relationships between speed, density and travel time."
+        },
+        {
+          "id": "road-transport-004",
+          "description": "Repeated sequences of congestion spreading between road segments."
+        },
+        {
+          "id": "road-transport-005",
+          "description": "Travel patterns that recur across different cities."
+        },
+        {
+          "id": "road-transport-006",
+          "description": "Differences between aggregate traffic and individual route behavior."
+        },
+        {
+          "id": "road-transport-007",
+          "description": "Changes in journey-time variability without changes in the average."
+        },
+        {
+          "id": "road-transport-008",
+          "description": "New temporal patterns in charging, parking or vehicle movement."
+        }
+      ]
+    },
+    {
+      "id": "logistics",
+      "title": "Logistics and supply chains",
+      "data_shapes": [
+        "event-sequences",
+        "relationships",
+        "time-series"
+      ],
+      "example_observations": "Shipment, inventory and order histories with item, route, stage and event-time identities.",
+      "phenomena": [
+        {
+          "id": "logistics-001",
+          "description": "Recurring sequences of delays across transport stages."
+        },
+        {
+          "id": "logistics-002",
+          "description": "Suppliers whose delivery patterns begin moving together."
+        },
+        {
+          "id": "logistics-003",
+          "description": "Changes in relationships between order volume and fulfillment time."
+        },
+        {
+          "id": "logistics-004",
+          "description": "Repeated shapes in inventory accumulation and depletion."
+        },
+        {
+          "id": "logistics-005",
+          "description": "Routes exhibiting similar timing signatures."
+        },
+        {
+          "id": "logistics-006",
+          "description": "Differences between individual-item flows and aggregate shipment volumes."
+        },
+        {
+          "id": "logistics-007",
+          "description": "Changes in the timing between demand, ordering and replenishment."
+        },
+        {
+          "id": "logistics-008",
+          "description": "Network-wide patterns emerging from otherwise ordinary local events."
+        }
+      ]
+    },
+    {
+      "id": "aviation-maritime",
+      "title": "Aviation and maritime operations",
+      "data_shapes": [
+        "time-series",
+        "repeated-runs",
+        "spatial-panels"
+      ],
+      "example_observations": "Vehicle telemetry, journey histories and environmental observations with equipment and location context.",
+      "phenomena": [
+        {
+          "id": "aviation-maritime-001",
+          "description": "Recurring combinations of engine and environmental measurements."
+        },
+        {
+          "id": "aviation-maritime-002",
+          "description": "Changes in relationships between fuel use, speed and operating conditions."
+        },
+        {
+          "id": "aviation-maritime-003",
+          "description": "Similar trajectories across different aircraft or vessels."
+        },
+        {
+          "id": "aviation-maritime-004",
+          "description": "Repeated patterns in port or airport congestion."
+        },
+        {
+          "id": "aviation-maritime-005",
+          "description": "Changes in the timing between successive operational stages."
+        },
+        {
+          "id": "aviation-maritime-006",
+          "description": "Distinct sensor patterns during apparently similar journeys."
+        },
+        {
+          "id": "aviation-maritime-007",
+          "description": "Coordinated changes across fleets."
+        },
+        {
+          "id": "aviation-maritime-008",
+          "description": "Recurring combinations of movement, weather and equipment behavior."
+        }
+      ]
+    },
+    {
+      "id": "space-astronomy",
+      "title": "Space systems and astronomy",
+      "data_shapes": [
+        "time-series",
+        "spatial-panels",
+        "encoded-media"
+      ],
+      "example_observations": "Instrument measurements, light curves or telemetry with cadence, calibration and observation identities.",
+      "phenomena": [
+        {
+          "id": "space-astronomy-001",
+          "description": "Repeating structures in light curves."
+        },
+        {
+          "id": "space-astronomy-002",
+          "description": "Unusual sequences in spacecraft telemetry."
+        },
+        {
+          "id": "space-astronomy-003",
+          "description": "Changes in relationships between onboard measurements."
+        },
+        {
+          "id": "space-astronomy-004",
+          "description": "Similar observational signatures across different astronomical objects."
+        },
+        {
+          "id": "space-astronomy-005",
+          "description": "Patterns recurring at multiple observation timescales."
+        },
+        {
+          "id": "space-astronomy-006",
+          "description": "Groups of signals varying together across instruments."
+        },
+        {
+          "id": "space-astronomy-007",
+          "description": "Transient observations with recurring numerical shapes."
+        },
+        {
+          "id": "space-astronomy-008",
+          "description": "Changes in background measurement distributions."
+        }
+      ]
+    },
+    {
+      "id": "weather-climate",
+      "title": "Weather and climate",
+      "data_shapes": [
+        "time-series",
+        "spatial-panels"
+      ],
+      "example_observations": "Atmospheric measurements with station or grid coordinates, units, cadence and coverage.",
+      "phenomena": [
+        {
+          "id": "weather-climate-001",
+          "description": "Recurring combinations of atmospheric measurements."
+        },
+        {
+          "id": "weather-climate-002",
+          "description": "Distant locations exhibiting similar temporal patterns."
+        },
+        {
+          "id": "weather-climate-003",
+          "description": "Changes in relationships between temperature, humidity, pressure and wind."
+        },
+        {
+          "id": "weather-climate-004",
+          "description": "Seasonal patterns changing in timing or shape."
+        },
+        {
+          "id": "weather-climate-005",
+          "description": "Persistent configurations within multivariate weather data."
+        },
+        {
+          "id": "weather-climate-006",
+          "description": "Repeated sequences across transitions between weather conditions."
+        },
+        {
+          "id": "weather-climate-007",
+          "description": "Local patterns obscured by regional averages."
+        },
+        {
+          "id": "weather-climate-008",
+          "description": "Relationships appearing mainly during extreme observations."
+        }
+      ]
+    },
+    {
+      "id": "oceans-water",
+      "title": "Oceans and water systems",
+      "data_shapes": [
+        "time-series",
+        "spatial-panels"
+      ],
+      "example_observations": "Flow, level, temperature, salinity or quality observations with station, depth and timestamp metadata.",
+      "phenomena": [
+        {
+          "id": "oceans-water-001",
+          "description": "Recurring combinations of temperature, salinity and current measurements."
+        },
+        {
+          "id": "oceans-water-002",
+          "description": "Changes in relationships between river flow and water-quality measurements."
+        },
+        {
+          "id": "oceans-water-003",
+          "description": "Similar water-system behavior across different catchments."
+        },
+        {
+          "id": "oceans-water-004",
+          "description": "Repeated sequences in reservoir levels and inflows."
+        },
+        {
+          "id": "oceans-water-005",
+          "description": "Spatially coordinated changes across monitoring stations."
+        },
+        {
+          "id": "oceans-water-006",
+          "description": "New periodicity in tidal or coastal measurements."
+        },
+        {
+          "id": "oceans-water-007",
+          "description": "Different layers of a water column beginning to behave similarly."
+        },
+        {
+          "id": "oceans-water-008",
+          "description": "Persistent patterns within otherwise variable sensor streams."
+        }
+      ]
+    },
+    {
+      "id": "geology",
+      "title": "Geology and the subsurface",
+      "data_shapes": [
+        "time-series",
+        "spatial-panels",
+        "repeated-runs"
+      ],
+      "example_observations": "Geophysical, well or survey measurements with location, depth, cadence and instrument context.",
+      "phenomena": [
+        {
+          "id": "geology-001",
+          "description": "Recurring seismic waveform structures."
+        },
+        {
+          "id": "geology-002",
+          "description": "Changes in relationships between deformation and other measurements."
+        },
+        {
+          "id": "geology-003",
+          "description": "Spatial clusters of similar geophysical signals."
+        },
+        {
+          "id": "geology-004",
+          "description": "Repeated combinations of pressure, flow and temperature in wells."
+        },
+        {
+          "id": "geology-005",
+          "description": "Distinct patterns within borehole measurements."
+        },
+        {
+          "id": "geology-006",
+          "description": "Similar event sequences across different locations."
+        },
+        {
+          "id": "geology-007",
+          "description": "Changes in background vibration or acoustic activity."
+        },
+        {
+          "id": "geology-008",
+          "description": "Multiscale structures within geological survey data."
+        }
+      ]
+    },
+    {
+      "id": "ecology",
+      "title": "Ecology and biodiversity",
+      "data_shapes": [
+        "time-series",
+        "spatial-panels",
+        "relationships"
+      ],
+      "example_observations": "Species, habitat or movement observations with survey effort, location and timestamp context.",
+      "phenomena": [
+        {
+          "id": "ecology-001",
+          "description": "Species populations developing synchronized patterns."
+        },
+        {
+          "id": "ecology-002",
+          "description": "Changes in relationships between species counts and environmental measurements."
+        },
+        {
+          "id": "ecology-003",
+          "description": "Recurring structures in animal movement."
+        },
+        {
+          "id": "ecology-004",
+          "description": "Seasonal activity patterns changing in timing."
+        },
+        {
+          "id": "ecology-005",
+          "description": "Groups of habitats exhibiting similar dynamics."
+        },
+        {
+          "id": "ecology-006",
+          "description": "Repeated combinations of abundance, diversity and environmental conditions."
+        },
+        {
+          "id": "ecology-007",
+          "description": "Spatial patterns in ecosystem observations."
+        },
+        {
+          "id": "ecology-008",
+          "description": "Previously stable relationships between ecological measurements weakening."
+        }
+      ]
+    },
+    {
+      "id": "agriculture",
+      "title": "Agriculture and food production",
+      "data_shapes": [
+        "time-series",
+        "spatial-panels",
+        "repeated-runs"
+      ],
+      "example_observations": "Field, livestock or production measurements with location, batch, season and sampling context.",
+      "phenomena": [
+        {
+          "id": "agriculture-001",
+          "description": "Recurring combinations of soil moisture, temperature and crop measurements."
+        },
+        {
+          "id": "agriculture-002",
+          "description": "Fields developing similar growth trajectories."
+        },
+        {
+          "id": "agriculture-003",
+          "description": "Differences within a field that persist across observations."
+        },
+        {
+          "id": "agriculture-004",
+          "description": "Changes in relationships between environmental conditions and plant measurements."
+        },
+        {
+          "id": "agriculture-005",
+          "description": "Repeated sensor patterns across growing seasons."
+        },
+        {
+          "id": "agriculture-006",
+          "description": "Livestock groups exhibiting shared activity rhythms."
+        },
+        {
+          "id": "agriculture-007",
+          "description": "Distinct trajectories in fermentation or food-processing measurements."
+        },
+        {
+          "id": "agriculture-008",
+          "description": "Similar patterns across different crops, locations or production systems."
+        }
+      ]
+    },
+    {
+      "id": "physiology",
+      "title": "Human physiology",
+      "data_shapes": [
+        "time-series",
+        "repeated-runs"
+      ],
+      "example_observations": "Consented multichannel physiological measurements with units, cadence, activity context and subject boundaries.",
+      "phenomena": [
+        {
+          "id": "physiology-001",
+          "description": "Recurring combinations of heart rate, movement and temperature."
+        },
+        {
+          "id": "physiology-002",
+          "description": "Changes in relationships between physiological measurements."
+        },
+        {
+          "id": "physiology-003",
+          "description": "Individual rhythms that differ from population averages."
+        },
+        {
+          "id": "physiology-004",
+          "description": "Repeated response shapes following similar activities."
+        },
+        {
+          "id": "physiology-005",
+          "description": "Changes in coordination between different physiological signals."
+        },
+        {
+          "id": "physiology-006",
+          "description": "Patterns that appear only during particular combinations of activity and rest."
+        },
+        {
+          "id": "physiology-007",
+          "description": "Similar physiological trajectories across different individuals."
+        },
+        {
+          "id": "physiology-008",
+          "description": "Short-lived events with repeatable multichannel signatures."
+        }
+      ]
+    },
+    {
+      "id": "neuroscience",
+      "title": "Neuroscience and behavior",
+      "data_shapes": [
+        "time-series",
+        "repeated-runs",
+        "relationships"
+      ],
+      "example_observations": "Recorded neural or behavioral measurements with channel identities, trial boundaries and sampling context.",
+      "phenomena": [
+        {
+          "id": "neuroscience-001",
+          "description": "Recurring patterns of neural activity."
+        },
+        {
+          "id": "neuroscience-002",
+          "description": "Changes in synchronization between recorded channels."
+        },
+        {
+          "id": "neuroscience-003",
+          "description": "Repeated transitions between numerical activity patterns."
+        },
+        {
+          "id": "neuroscience-004",
+          "description": "Relationships between movement and neural measurements."
+        },
+        {
+          "id": "neuroscience-005",
+          "description": "Similar response trajectories across different experimental conditions."
+        },
+        {
+          "id": "neuroscience-006",
+          "description": "Changes in the timing between signals from different regions."
+        },
+        {
+          "id": "neuroscience-007",
+          "description": "Multiscale structures in electrophysiological recordings."
+        },
+        {
+          "id": "neuroscience-008",
+          "description": "Stable patterns embedded within otherwise variable activity."
+        }
+      ]
+    },
+    {
+      "id": "genomics",
+      "title": "Genomics and cellular biology",
+      "data_shapes": [
+        "unordered-samples",
+        "time-series",
+        "repeated-runs"
+      ],
+      "example_observations": "Molecular or cellular measurements with sample identities, batch context and genuine time labels where available.",
+      "phenomena": [
+        {
+          "id": "genomics-001",
+          "description": "Groups of genes whose expression varies together."
+        },
+        {
+          "id": "genomics-002",
+          "description": "Changes in relationships between molecular measurements."
+        },
+        {
+          "id": "genomics-003",
+          "description": "Repeated trajectories through measured cellular states."
+        },
+        {
+          "id": "genomics-004",
+          "description": "Rare numerical profiles within large cell populations."
+        },
+        {
+          "id": "genomics-005",
+          "description": "Similar response patterns across different experimental conditions."
+        },
+        {
+          "id": "genomics-006",
+          "description": "Relationships that appear only within particular cell populations."
+        },
+        {
+          "id": "genomics-007",
+          "description": "Recurring temporal structures in protein or metabolite measurements."
+        },
+        {
+          "id": "genomics-008",
+          "description": "Differences between population averages and subgroup behavior."
+        }
+      ]
+    },
+    {
+      "id": "public-health",
+      "title": "Public health and population dynamics",
+      "data_shapes": [
+        "time-series",
+        "spatial-panels",
+        "event-sequences"
+      ],
+      "example_observations": "Population-level observations with denominators, region identities, observation dates and reporting delays.",
+      "phenomena": [
+        {
+          "id": "public-health-001",
+          "description": "Recurring geographic patterns in recorded events."
+        },
+        {
+          "id": "public-health-002",
+          "description": "Regions with similar time-dependent trajectories."
+        },
+        {
+          "id": "public-health-003",
+          "description": "Changes in relationships between environmental and population measurements."
+        },
+        {
+          "id": "public-health-004",
+          "description": "Repeated sequences in healthcare demand."
+        },
+        {
+          "id": "public-health-005",
+          "description": "Differences between local patterns and national aggregates."
+        },
+        {
+          "id": "public-health-006",
+          "description": "Changes in the synchronization of observations across regions."
+        },
+        {
+          "id": "public-health-007",
+          "description": "Seasonal structures shifting in timing or intensity."
+        },
+        {
+          "id": "public-health-008",
+          "description": "Groups of indicators exhibiting shared patterns across different populations."
+        }
+      ]
+    },
+    {
+      "id": "language-information",
+      "title": "Language, communication and information",
+      "data_shapes": [
+        "encoded-media",
+        "event-sequences",
+        "relationships"
+      ],
+      "example_observations": "Numerical content representations or communication metadata with source, ordering and representation versions.",
+      "phenomena": [
+        {
+          "id": "language-information-001",
+          "description": "Recurring trajectories through numerical representations of topics."
+        },
+        {
+          "id": "language-information-002",
+          "description": "Changes in relationships between topics across document streams."
+        },
+        {
+          "id": "language-information-003",
+          "description": "Groups of sources developing similar publication patterns."
+        },
+        {
+          "id": "language-information-004",
+          "description": "Repeated structures in conversation timing and turn-taking."
+        },
+        {
+          "id": "language-information-005",
+          "description": "Changes in how information propagates through a network."
+        },
+        {
+          "id": "language-information-006",
+          "description": "Similar document-sequence patterns across different communities."
+        },
+        {
+          "id": "language-information-007",
+          "description": "Persistent numerical structures within otherwise changing content."
+        },
+        {
+          "id": "language-information-008",
+          "description": "Differences between aggregate discourse and smaller community patterns."
+        }
+      ]
+    },
+    {
+      "id": "education",
+      "title": "Education and learning",
+      "data_shapes": [
+        "event-sequences",
+        "time-series",
+        "repeated-runs"
+      ],
+      "example_observations": "Learning interactions and task measurements with session, task-version and learner boundaries.",
+      "phenomena": [
+        {
+          "id": "education-001",
+          "description": "Recurring sequences of problem-solving attempts."
+        },
+        {
+          "id": "education-002",
+          "description": "Groups of learners exhibiting similar learning trajectories."
+        },
+        {
+          "id": "education-003",
+          "description": "Changes in relationships between time spent and observed task performance."
+        },
+        {
+          "id": "education-004",
+          "description": "Repeated transitions between different interaction patterns."
+        },
+        {
+          "id": "education-005",
+          "description": "Distinct response-time patterns across task types."
+        },
+        {
+          "id": "education-006",
+          "description": "Similar learning sequences appearing in different subjects."
+        },
+        {
+          "id": "education-007",
+          "description": "Patterns in revisiting, skipping and repeating material."
+        },
+        {
+          "id": "education-008",
+          "description": "Differences between group averages and individual progress shapes."
+        }
+      ]
+    },
+    {
+      "id": "sport-movement",
+      "title": "Sport, movement and performance",
+      "data_shapes": [
+        "time-series",
+        "repeated-runs",
+        "spatial-panels"
+      ],
+      "example_observations": "Movement, activity and performance measurements with participant, session and spatial context.",
+      "phenomena": [
+        {
+          "id": "sport-movement-001",
+          "description": "Recurring movement sequences."
+        },
+        {
+          "id": "sport-movement-002",
+          "description": "Changes in coordination between measured body segments."
+        },
+        {
+          "id": "sport-movement-003",
+          "description": "Athletes exhibiting similar workload-response trajectories."
+        },
+        {
+          "id": "sport-movement-004",
+          "description": "Repeated patterns in team movement."
+        },
+        {
+          "id": "sport-movement-005",
+          "description": "Relationships between pace, effort and environmental conditions."
+        },
+        {
+          "id": "sport-movement-006",
+          "description": "Changes in performance variability despite stable averages."
+        },
+        {
+          "id": "sport-movement-007",
+          "description": "Distinct patterns across repeated training sessions."
+        },
+        {
+          "id": "sport-movement-008",
+          "description": "Similar tactical configurations appearing in different matches."
+        }
+      ]
+    },
+    {
+      "id": "music-media",
+      "title": "Music, sound and creative media",
+      "data_shapes": [
+        "encoded-media",
+        "time-series",
+        "repeated-runs"
+      ],
+      "example_observations": "Numerical audio, image or motion representations with sample rates, sequence boundaries and extractor versions.",
+      "phenomena": [
+        {
+          "id": "music-media-001",
+          "description": "Recurring structures in numerical audio representations."
+        },
+        {
+          "id": "music-media-002",
+          "description": "Relationships between rhythm, intensity and spectral measurements."
+        },
+        {
+          "id": "music-media-003",
+          "description": "Similar temporal shapes across different recordings."
+        },
+        {
+          "id": "music-media-004",
+          "description": "Changes in coordination between musical parts."
+        },
+        {
+          "id": "music-media-005",
+          "description": "Repeated visual patterns across image or video sequences."
+        },
+        {
+          "id": "music-media-006",
+          "description": "Multiscale structures in motion, color or composition measurements."
+        },
+        {
+          "id": "music-media-007",
+          "description": "Unusual combinations of otherwise familiar features."
+        },
+        {
+          "id": "music-media-008",
+          "description": "Patterns shared across works that belong to different labeled genres."
+        }
+      ]
+    }
+  ]
+}

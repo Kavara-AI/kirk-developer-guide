@@ -4,6 +4,7 @@
 
 - [Connect your Claude](connect-your-claude.md)
 - [What is Kirk?](what-is-kirk.md)
+- [What does your data look like? 256 exploration prompts](phenomena-catalogue.md)
 - [Phenomena discovery: from observations to value](phenomena-discovery.md)
 - [Capability fit](capability-fit.md)
 - [Choosing the right tool](choosing-the-right-tool.md)

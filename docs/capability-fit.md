@@ -2,6 +2,11 @@
 
 This guide helps determine whether a problem is suitable for evaluation with Kirk.
 
+Find a familiar example in the [cross-domain exploration catalogue](phenomena-catalogue.md).
+Its examples and source-data profiles are **Hypotheses** and navigation aids, not
+validated domain coverage. Use the actual data and a selected model's input contract
+to assess fit; a matching domain name or array shape is insufficient.
+
 ## Strong fit indicators
 
 Kirk is worth evaluating when several of these are true:
@@ -32,7 +37,7 @@ Kirk may not be the first tool to choose when:
 2. Which streams jointly describe its state?
 3. What relationships could change?
 4. How quickly must a change be detected?
-5. What will an operator or application do with the signal?
+5. What would make a discovered pattern worth investigating? A downstream action may remain unknown.
 6. How will false positives and false negatives be measured?
 7. Is a known ground-truth event available for validation?
 
@@ -48,3 +53,8 @@ Kirk may not be the first tool to choose when:
 | Deterministic threshold control | Low |
 
 This table is a triage tool, not a performance guarantee.
+
+For the proposed intake/preprocessing flow, follow the
+[upload-and-data-fit handoff](tensor-generation.md#proposed-upload-and-data-fit-handoff).
+Keep source geometry, contract compatibility and demonstrated discovery usefulness
+as separate findings.

@@ -2,6 +2,12 @@
 
 Use this page to decide what to read and what to run.
 
+Start with [What does your data look like?](docs/phenomena-catalogue.md): 256
+exploration prompts across 32 domains, linked to preparation questions for common
+data structures. Every example is a **Hypothesis**, not an established capability.
+Choose several categories or none; naming the phenomenon or its eventual use is
+not required. Domain recognition leads to data-fit assessment, not automatic admission.
+
 ## The core problem shape
 
 Kirk may be relevant when a system contains multiple streams whose relationships change over time. Examples include market microstructure, industrial telemetry, patient monitoring, cyber telemetry and fusion diagnostics.
@@ -65,8 +71,13 @@ Write down:
 - the streams available
 - their units and sampling rates
 - missing-data behaviour
-- known regime changes
-- the operational decision Kirk should support
-- the cost of false positives and missed changes
+- known events, if available; predefined phenomenon labels are optional
+- what structure you want to explore, or that the exploration is open-ended
+- the review budget and how discoveries will be checked
+- any later operational decision, if one is already known
 
 Without that context, an output curve is easy to over-interpret.
+
+The [proposed upload-and-data-fit handoff](docs/tensor-generation.md#proposed-upload-and-data-fit-handoff)
+connects the catalogue to source-data inspection and an explicit input contract.
+It describes a future intake flow, not an upload service shipped by this repository.

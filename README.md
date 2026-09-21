@@ -14,15 +14,16 @@ This repository helps developers answer three practical questions:
 2. How should the source data be represented?
 3. How can Kirk's behaviour be evaluated with reproducible benchmarks?
 
-> Kirk does not merely ask whether one measurement is unusual. The central evaluation question is whether the behaviour of the system has changed.
+> The discovery question is what structure, recurrence, persistence or relationship
+> is observable in the data. Deciding what to do with it is a separate question.
 
 ## Start here
 
-1. Read [Start Here](START_HERE.md).
-2. Review the [Capability Fit Guide](docs/capability-fit.md).
+1. Find familiar data in [256 exploration prompts across 32 domains](docs/phenomena-catalogue.md).
+2. Read [Start Here](START_HERE.md) and the [Capability Fit Guide](docs/capability-fit.md).
 3. Run [Benchmark 001](benchmarks/benchmark-001-l2-order-book/README.md).
-4. Learn the [tensor-generation workflow](docs/tensor-generation.md).
-5. Replace the synthetic benchmark data with data from your own system.
+4. Learn the [tensor-generation workflow](docs/tensor-generation.md), including the proposed upload-and-data-fit handoff.
+5. Evaluate your own data under a matching input contract. Catalogue examples are hypotheses, not validated capabilities.
 
 ## Repository structure
 
@@ -40,7 +41,7 @@ This repository helps developers answer three practical questions:
 
 ## Documentation principles
 
-- **Problem first:** define the system and decision before discussing the engine.
+- **Problem first:** define the system and discovery question before discussing the engine; a downstream decision can follow later.
 - **Evidence over assertion:** connect material claims to runnable examples.
 - **Capability before architecture:** establish fit before explaining internals.
 - **Transparent limitations:** distinguish demonstrated behaviour from intended behaviour.
