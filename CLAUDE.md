@@ -4,7 +4,9 @@ This is the **Kirk developer guide** — documentation and benchmarks that help 
 developer decide whether Kirk fits a problem, how to represent their data, and
 how to evaluate the result reproducibly.
 
-Read [START_HERE.md](START_HERE.md) first. It sets the reading order.
+For dataset intake, discovery, runtime connection or a Jev handoff, follow
+[the agent guide](docs/agent-guide.md). For repository orientation, read
+[START_HERE.md](START_HERE.md).
 
 ## Ground rules that matter most here
 

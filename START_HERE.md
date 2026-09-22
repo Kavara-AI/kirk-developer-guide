@@ -2,6 +2,11 @@
 
 Use this page to decide what to read and what to run.
 
+**Agents:** follow [the agent guide](docs/agent-guide.md) for the task sequence,
+machine-readable sources, output artifacts and completion criteria. Use the
+[offline intake example](examples/agent-intake/README.md) to prepare a brief
+without browser access or credentials.
+
 Start with [What does your data look like?](docs/phenomena-catalogue.md): 256
 exploration prompts across 32 domains, linked to preparation questions for common
 data structures. Every example is a **Hypothesis**, not an established capability.
@@ -33,9 +38,9 @@ predefined taxonomy is not a prerequisite for exploration.
 ```mermaid
 flowchart LR
     A[Define the system] --> B[Check capability fit]
-    B --> C[Run Benchmark 001]
-    C --> D[Inspect Kirk outputs]
-    D --> E[Build tensors from your data]
+    B --> C[Establish a matching input contract]
+    C --> D[Prepare a reproducible experiment]
+    D --> E[Inspect Kirk outputs and comparisons]
     E --> F[Evaluate on your system]
 ```
 
@@ -56,9 +61,9 @@ nothing to call.
 6. [Interpreting results](docs/interpreting-results.md)
 7. [Benchmark 001](benchmarks/benchmark-001-l2-order-book/README.md)
 
-## The first practical test
+## An existing practical test
 
-Run Benchmark 001. It creates synthetic L2 order-book data containing deliberately introduced operating regimes:
+For L2 data, use Benchmark 001. It creates synthetic L2 order-book data containing deliberately introduced operating regimes:
 
 - stable market
 - gradual order imbalance
@@ -67,6 +72,10 @@ Run Benchmark 001. It creates synthetic L2 order-book data containing deliberate
 - recovery
 
 The experiment is designed to test whether Kirk's outputs change near known regime boundaries. The expected-results page describes an evaluation target, not a pre-existing result.
+
+For another dataset, begin with its source geometry and a matching input contract
+using the [agent workflow](docs/agent-guide.md). The book experiment is not a
+required preprocessing step or a supported representation for unrelated data.
 
 ## Before using your own data
 

@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-09-22T00:00:00.000Z",
+  "purpose": "Kirk discovery intake; preparation for a data-fit review",
+  "source": {
+    "url": "https://github.com/Kavara-AI/kirk-developer-guide",
+    "revision": "9d2e119",
+    "catalogue_claim_status": "Hypothesis"
+  },
+  "status": {
+    "input_contract": "Not established",
+    "model_selection": "Not established",
+    "admission": "Not assessed",
+    "engine_run": "Not performed",
+    "payment": "Not collected"
+  },
+  "customer_declarations": {
+    "dataset_description": "Synthetic description-only example: temperature, vibration and power measurements from multiple machines. No customer data or sample file has been supplied.",
+    "exploration_question": null,
+    "domains": [
+      {
+        "id": "manufacturing",
+        "title": "Manufacturing"
+      }
+    ],
+    "data_shapes": [
+      "time-series"
+    ],
+    "preparation_answers": [
+      {
+        "profile": "time-series",
+        "question": "What does each observation measure, in which units, and for which entity?",
+        "answer": null
+      },
+      {
+        "profile": "time-series",
+        "question": "Are timestamps regular, irregular or asynchronous across channels?",
+        "answer": null
+      },
+      {
+        "profile": "time-series",
+        "question": "Which gaps, exact zeros, resets and changes in collection practice must remain distinguishable?",
+        "answer": null
+      }
+    ],
+    "time_column": null,
+    "row_order": "unknown"
+  },
+  "optional_exploration_prompts": [],
+  "measured_sample": null,
+  "proposed_preparation": [
+    {
+      "profile": "time-series",
+      "guidance": "Preserve timestamps and channel identities. Document alignment, units and missingness before choosing any resampling or scaling."
+    }
+  ],
+  "unknowns": [
+    "Full-history coverage, cadence and provenance",
+    "Meaning of gaps, exact zeros and collection changes",
+    "Applicable model and input contract",
+    "State, warmup, reset and replay policy",
+    "Evidence comparison, scope and commercial terms"
+  ],
+  "evidence_catalogue": {
+    "entries": [],
+    "reason": "No Kirk run has been performed. Exploration prompts are not findings."
+  },
+  "privacy": "No raw rows are included. This report includes your written answers, filename, column names and sample statistics. Review before sharing."
+}

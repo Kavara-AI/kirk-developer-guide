@@ -2,6 +2,10 @@
 
 [Open the Kirk discovery portal](https://kirk-discovery-portal.vercel.app/)
 
+**For agents:** start with [the agent guide](agent-guide.md). It gives the ordered
+procedure, structured catalogue, JSON intake example and runtime prerequisites.
+This page is the reference for visible browser controls.
+
 Use the portal to recognise your data, prepare a sample for a data-fit review,
 and explore how Kirk evidence could feed a Jev decision workflow. You can begin
 without a predefined phenomenon, domain selection or file.
