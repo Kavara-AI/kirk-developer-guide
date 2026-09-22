@@ -11,6 +11,11 @@ the evidence labels defined in [Contributing](../CONTRIBUTING.md#claims).
 
 ## What counts as a phenomenon?
 
+For starting ideas, browse [256 candidate phenomena across 32 domains](phenomena-catalogue.md).
+That list helps developers recognize their data and reach preparation questions.
+All entries are **Hypotheses**; they are neither observed results nor a required
+set of classes that Kirk must assign.
+
 A phenomenon is an observed behaviour worth investigating: a transition, a persistent
 state, a recurring sequence, or a change in relationships among streams. It can remain
 unexplained. A score excursion is a candidate observation; a descriptive label and a
