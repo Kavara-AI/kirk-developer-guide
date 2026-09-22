@@ -10,6 +10,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "catalogues/phenomena.json"
 OUTPUT = ROOT / "docs/phenomena-catalogue.md"
+# Keep these aligned with the fixed counts in the guide's orientation pages.
+EXPECTED_DOMAINS = 32
+EXPECTED_PROMPTS = 256
 
 
 def validate(catalogue):
@@ -57,6 +60,11 @@ def validate(catalogue):
         for phenomenon in phenomena:
             identifier(phenomenon.get("id"))
             text(phenomenon.get("description"))
+    if len(domains) != EXPECTED_DOMAINS:
+        raise ValueError(f"Expected exactly {EXPECTED_DOMAINS} domains; got {len(domains)}")
+    count = sum(len(domain["phenomena"]) for domain in domains)
+    if count != EXPECTED_PROMPTS:
+        raise ValueError(f"Expected exactly {EXPECTED_PROMPTS} exploration prompts; got {count}")
 
 
 def render(catalogue):
