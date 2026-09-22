@@ -8,6 +8,10 @@ data structures. Every example is a **Hypothesis**, not an established capabilit
 Choose several categories or none; naming the phenomenon or its eventual use is
 not required. Domain recognition leads to data-fit assessment, not automatic admission.
 
+For a guided browser workflow, use the [discovery portal user guide](docs/discovery-portal-user-guide.md).
+It covers catalogue exploration, local sample inspection and downloading a brief;
+it does not run Kirk or Jev inference.
+
 ## The core problem shape
 
 Kirk may be relevant when a system contains multiple streams whose relationships change over time. Examples include market microstructure, industrial telemetry, patient monitoring, cyber telemetry and fusion diagnostics.
@@ -80,4 +84,6 @@ Without that context, an output curve is easy to over-interpret.
 
 The [proposed upload-and-data-fit handoff](docs/tensor-generation.md#proposed-upload-and-data-fit-handoff)
 connects the catalogue to source-data inspection and an explicit input contract.
-It describes a future intake flow, not an upload service shipped by this repository.
+The [separate discovery portal](docs/discovery-portal-user-guide.md) now provides
+local preparation and sample inspection. It does not upload data to a model;
+contract admission and production inference remain outside that flow.

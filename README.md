@@ -25,6 +25,13 @@ This repository helps developers answer three practical questions:
 4. Learn the [tensor-generation workflow](docs/tensor-generation.md), including the proposed upload-and-data-fit handoff.
 5. Evaluate your own data under a matching input contract. Catalogue examples are hypotheses, not validated capabilities.
 
+## Use the discovery portal
+
+Open the [Kirk discovery portal](https://kirk-discovery-portal.vercel.app/) and follow
+the [portal user guide](docs/discovery-portal-user-guide.md) to explore the catalogue,
+inspect a sample locally and download a discovery brief. The portal also includes
+an illustrative Kirk → Jev handoff; live inference and payments are not enabled.
+
 ## Repository structure
 
 ```text
