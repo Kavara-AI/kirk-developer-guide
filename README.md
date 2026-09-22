@@ -19,11 +19,23 @@ This repository helps developers answer three practical questions:
 
 ## Start here
 
+**Using an agent? Start with [Kirk: guide for agents](docs/agent-guide.md).** It
+provides an ordered workflow from source data to a discovery brief, runtime
+contract checks, reproducible evidence and an optional Jev handoff. The agent can
+read the catalogue and prepare the JSON artifact without operating a browser.
+
 1. Find familiar data in [256 exploration prompts across 32 domains](docs/phenomena-catalogue.md).
 2. Read [Start Here](START_HERE.md) and the [Capability Fit Guide](docs/capability-fit.md).
-3. Run [Benchmark 001](benchmarks/benchmark-001-l2-order-book/README.md).
+3. Choose a matching experiment; [Benchmark 001](benchmarks/benchmark-001-l2-order-book/README.md) is the existing L2 example, not a required format for other data.
 4. Learn the [tensor-generation workflow](docs/tensor-generation.md), including the proposed upload-and-data-fit handoff.
 5. Evaluate your own data under a matching input contract. Catalogue examples are hypotheses, not validated capabilities.
+
+## Use the discovery portal
+
+Open the [Kirk discovery portal](https://kirk-discovery-portal.vercel.app/) and follow
+the [portal user guide](docs/discovery-portal-user-guide.md) to explore the catalogue,
+inspect a sample locally and download a discovery brief. The portal also includes
+an illustrative Kirk → Jev handoff; live inference and payments are not enabled.
 
 ## Repository structure
 
