@@ -17,6 +17,7 @@ discovery and the required evidence.
 | “Could Kirk help with this data?” | Steps 1–3 below; [capability fit](capability-fit.md) | Discovery brief and unresolved fit questions |
 | “Prepare this sample” | Steps 1–3; [sample inspection](discovery-portal-user-guide.md#3-inspect-a-sample-if-useful) | Brief with measured sample facts separated from declarations |
 | “Run Kirk” | Steps 1–5; [connection guide](connect-your-claude.md), live tool schemas and input contract | Reproducible run and evidence, or a precise unmet prerequisite |
+| “Sweep hyperparameters” | Steps 1–5; the sweep boundary below and the runtime's own parameter catalogue | Bounded, comparable experiment receipts or a precise unmet runtime binding |
 | “Use Kirk before Jev” | Steps 1–6 | Evidence handoff and separately recorded decision, or an explicitly illustrative request |
 | “Drive the website” | [Portal user guide](discovery-portal-user-guide.md); browser tool section below | Downloaded preparation artifacts |
 
@@ -140,6 +141,50 @@ Do not convert unrelated columns into bid/ask fields to make a call fit.
 data access and spend scope are recorded. If any prerequisite is missing, return
 the completed brief plus the exact missing item and who must provide it. Preparation
 can be complete while requested inference remains blocked.
+
+### Agent-driven configuration sweeps
+
+**Observed — GitHub source checked 2 October 2026:** the canonical
+[Kavara Visual Studio](https://github.com/Kavara-AI/visual-studio) has an agent
+CLI that plans sweeps against an owned Studio workspace. Its `start` command
+permits bounded **local synthetic Kirk stub** sweeps only. The hosted customer
+Gateway currently exposes a fixed price-book score contract, not raw Kirk
+hyperparameter overrides. A Studio plan or stub result is not a hosted Kirk
+run or a credit quote. The Studio stub's `cooling_rate` decays tau
+multiplicatively, while the measured
+[PyKirk operating-envelope work](https://github.com/Kavara-AI/kirk-operating-envelope)
+describes an additive tau increment. Do not transfer a tuned value between them.
+
+For an authorised local Studio experiment, read that repository's `README.md`,
+`docs/MODELS.md` and CLI help. The CLI reads `KVS_STUDIO_TOKEN`; supply the
+current Studio session token through a
+secret mechanism, never a committed file or command argument. Put the bounded
+axes and seeds in a JSON request file and plan before starting:
+
+```sh
+python -m kvs sweep plan --studio-url https://YOUR_STUDIO_ORIGIN \
+  --workspace YOUR_WORKSPACE_ID --request sweep.json
+python -m kvs sweep start --studio-url https://YOUR_STUDIO_ORIGIN \
+  --workspace YOUR_WORKSPACE_ID --request sweep.json \
+  --max-runs 8 --execute
+```
+
+The `start` command replans, caps the expanded run count and binds execution
+to the workspace digest. It refuses a live Kirk backend. The CLI also provides
+`status`, `list`, `result` and `cancel`; inspect results after an uncertain
+start rather than silently starting a second sweep. Label all stub outputs as
+synthetic. They are useful for checking pipeline wiring and agent procedure,
+not for claiming Kirk's performance.
+
+For a **hosted** sweep, first obtain a server-declared catalogue bound to the
+serving engine digest and the supported Uhura representation. It must specify
+the admitted field names and ranges, matrix/input envelope, state and reset
+semantics, maximum combinations, timeout/capacity, the customer's identity and
+spending phase, and a receipt for each run. Ask the server for the quote and
+explicit paid activation before any charged series. If these are unavailable,
+deliver the proposed experiment grid and the missing prerequisite; do not
+guess values from Studio's form, call an arbitrary `/create` endpoint, or use
+new idempotency keys to retry an uncertain execution.
 
 ## 5. Run a reproducible discovery evaluation
 
