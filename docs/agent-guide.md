@@ -159,9 +159,13 @@ For an authorised local Studio experiment, read that repository's `README.md`,
 `docs/MODELS.md` and CLI help. The CLI reads `KVS_STUDIO_TOKEN`; supply the
 current Studio session token through a
 secret mechanism, never a committed file or command argument. Put the bounded
-axes and seeds in a JSON request file and plan before starting:
+axes and seeds in a JSON request file and plan before starting. Inspect the
+internal schema first and retain its digest with the request:
 
 ```sh
+python -m kvs config list --studio-url https://YOUR_STUDIO_ORIGIN
+python -m kvs config show --studio-url https://YOUR_STUDIO_ORIGIN \
+  --processor kirk_model
 python -m kvs sweep plan --studio-url https://YOUR_STUDIO_ORIGIN \
   --workspace YOUR_WORKSPACE_ID --request sweep.json
 python -m kvs sweep start --studio-url https://YOUR_STUDIO_ORIGIN \
@@ -173,6 +177,12 @@ python -m kvs sweep compare --studio-url https://YOUR_STUDIO_ORIGIN \
   --workspace YOUR_WORKSPACE_ID --sweep-id YOUR_SWEEP_ID \
   --baseline-run-id YOUR_BASELINE_RUN_ID --metric YOUR_METRIC_KEY
 ```
+
+`config list/show` read Studio's own processor registry. The Kirk result says
+`agent_sweep_policy: "stub-only"` and
+`hosted_kirk_raw_hp_admission: false`; its field names and defaults are **not**
+a hosted engine catalogue. Save `schema_sha256` so later readers know which
+internal form the agent inspected.
 
 The `start` command replans, caps the expanded run count and binds execution
 to the workspace digest. It refuses a live Kirk backend. The CLI also provides
