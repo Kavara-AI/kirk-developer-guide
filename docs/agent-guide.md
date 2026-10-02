@@ -160,17 +160,18 @@ For an authorised local Studio experiment, read that repository's `README.md`,
 current Studio session token through a
 secret mechanism, never a committed file or command argument. Put the bounded
 axes and seeds in a JSON request file and plan before starting. Inspect the
-internal schema first and retain its digest with the request:
+internal schema first and retain its digest alongside the request:
 
 ```sh
 python -m kvs config list --studio-url https://YOUR_STUDIO_ORIGIN
 python -m kvs config show --studio-url https://YOUR_STUDIO_ORIGIN \
   --processor kirk_model
 python -m kvs sweep plan --studio-url https://YOUR_STUDIO_ORIGIN \
-  --workspace YOUR_WORKSPACE_ID --request sweep.json
+  --workspace YOUR_WORKSPACE_ID --request sweep.json \
+  --expect-kirk-schema-sha256 YOUR_SAVED_SCHEMA_SHA256
 python -m kvs sweep start --studio-url https://YOUR_STUDIO_ORIGIN \
   --workspace YOUR_WORKSPACE_ID --request sweep.json \
-  --max-runs 8 --execute
+  --expect-kirk-schema-sha256 YOUR_SAVED_SCHEMA_SHA256 --max-runs 8 --execute
 python -m kvs sweep result --studio-url https://YOUR_STUDIO_ORIGIN \
   --workspace YOUR_WORKSPACE_ID --sweep-id YOUR_SWEEP_ID
 python -m kvs sweep compare --studio-url https://YOUR_STUDIO_ORIGIN \
@@ -182,7 +183,9 @@ python -m kvs sweep compare --studio-url https://YOUR_STUDIO_ORIGIN \
 `agent_sweep_policy: "stub-only"` and
 `hosted_kirk_raw_hp_admission: false`; its field names and defaults are **not**
 a hosted engine catalogue. Save `schema_sha256` so later readers know which
-internal form the agent inspected.
+internal form the agent inspected. The optional pin stops a new plan or start
+when that form changes; it does not verify the sealed engine. Recovery of an
+existing sweep intent remains available after a form change.
 
 The `start` command replans, caps the expanded run count and binds execution
 to the workspace digest. It refuses a live Kirk backend. The CLI also provides
