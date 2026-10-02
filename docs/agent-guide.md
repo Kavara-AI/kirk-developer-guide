@@ -167,14 +167,22 @@ python -m kvs sweep plan --studio-url https://YOUR_STUDIO_ORIGIN \
 python -m kvs sweep start --studio-url https://YOUR_STUDIO_ORIGIN \
   --workspace YOUR_WORKSPACE_ID --request sweep.json \
   --max-runs 8 --execute
+python -m kvs sweep result --studio-url https://YOUR_STUDIO_ORIGIN \
+  --workspace YOUR_WORKSPACE_ID --sweep-id YOUR_SWEEP_ID
+python -m kvs sweep compare --studio-url https://YOUR_STUDIO_ORIGIN \
+  --workspace YOUR_WORKSPACE_ID --sweep-id YOUR_SWEEP_ID \
+  --baseline-run-id YOUR_BASELINE_RUN_ID --metric YOUR_METRIC_KEY
 ```
 
 The `start` command replans, caps the expanded run count and binds execution
 to the workspace digest. It refuses a live Kirk backend. The CLI also provides
-`status`, `list`, `result` and `cancel`; inspect results after an uncertain
-start rather than silently starting a second sweep. Label all stub outputs as
-synthetic. They are useful for checking pipeline wiring and agent procedure,
-not for claiming Kirk's performance.
+`status`, `list`, `recover` and `cancel`; recover the saved intent and inspect
+results after an uncertain start rather than silently starting a second sweep.
+`compare` reads one completed sweep and reports observed metric differences
+from the named baseline run's parameter group; it does not choose a winner or
+establish a causal effect. Label all stub outputs as synthetic. They are useful
+for checking pipeline wiring and agent procedure, not for claiming Kirk's
+performance.
 
 For a **hosted** sweep, first obtain a server-declared catalogue bound to the
 serving engine digest and the supported Uhura representation. It must specify
