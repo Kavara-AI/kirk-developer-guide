@@ -46,6 +46,13 @@ flowchart LR
 
 ## Connect first, if you want to follow along live
 
+For customer REST access from code, Postman or an agent, follow the
+[REST quickstart](docs/customer-rest-api.md) at **`https://api.kavara.ai`**. It
+includes account/key setup, a [machine-readable specification](docs/customer-rest-api.openapi.json)
+and the Postman download. This is the fixed ten-level price-book data-fit path.
+
+For the separate MCP tool surface:
+
 [Connect your Claude](docs/connect-your-claude.md) puts the Kirk tools into a
 Claude conversation, or use the [quickstart](examples/quickstart/README.md) for
 a Python client. Both need a credential from Kavara. The orientation tools cost

@@ -16,6 +16,7 @@ discovery and the required evidence.
 | --- | --- | --- |
 | “Could Kirk help with this data?” | Steps 1–3 below; [capability fit](capability-fit.md) | Discovery brief and unresolved fit questions |
 | “Prepare this sample” | Steps 1–3; [sample inspection](discovery-portal-user-guide.md#3-inspect-a-sample-if-useful) | Brief with measured sample facts separated from declarations |
+| “Connect the customer API / use Postman” | [Customer REST API](customer-rest-api.md) and [OpenAPI specification](customer-rest-api.openapi.json) | Three verified responses using a customer key, or an exact access error |
 | “Run Kirk” | Steps 1–5; [connection guide](connect-your-claude.md), live tool schemas and input contract | Reproducible run and evidence, or a precise unmet prerequisite |
 | “Use Kirk before Jev” | Steps 1–6 | Evidence handoff and separately recorded decision, or an explicitly illustrative request |
 | “Drive the website” | [Portal user guide](discovery-portal-user-guide.md); browser tool section below | Downloaded preparation artifacts |
@@ -110,7 +111,15 @@ was requested, continue to contract discovery rather than claiming a run occurre
 
 ## 4. Discover and match the runtime contract
 
-For a live run, use the [connection guide](connect-your-claude.md) or the
+Choose the surface first. For the customer fixed-book REST service at
+**`https://api.kavara.ai`**, follow [Customer REST API](customer-rest-api.md):
+account/key setup, engine identity, model listing and one compatible score.
+Its input, authentication and idempotency requirements are defined in the
+[OpenAPI specification](customer-rest-api.openapi.json). This path needs no MCP
+client or Claude connector. Keep its data-fit credit policy separate from MCP
+metering. Supply credentials through the environment's secret controls.
+
+For a live MCP run, use the [connection guide](connect-your-claude.md) or the
 [Python quickstart](../examples/quickstart/README.md). Configure credentials through
 the client's secret mechanism. The hosted MCP endpoint is
 `https://kirk-mcp.kavara.ai/mcp`; it is separate from the Vercel portal.

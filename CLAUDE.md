@@ -26,7 +26,13 @@ and its outputs are committed.
 
 ## Running anything against the live engine
 
-Calling Kirk needs a credential and costs real balance on the metered tools.
+For customer REST calls at `https://api.kavara.ai`, use
+[Customer REST API](docs/customer-rest-api.md) and its
+[OpenAPI specification](docs/customer-rest-api.openapi.json). The current fixed-book
+customer data-fit path is zero credits; paid workflow activation is separate.
+
+For the separate MCP surface, calling Kirk needs a credential and costs real
+balance on the metered tools.
 See [Connect your Claude](docs/connect-your-claude.md) for the connector, or
 the [quickstart](examples/quickstart/README.md) for a Python client. Free tools
 (`kirk_verify_engine`, `kirk_list_models`, `kirk_render_book`,

@@ -17,6 +17,19 @@ This repository helps developers answer three practical questions:
 > The discovery question is what structure, recurrence, persistence or relationship
 > is observable in the data. Deciding what to do with it is a separate question.
 
+## Customer API access
+
+For a working customer API connection, use **`https://api.kavara.ai`** with an
+`X-Kavara-Key` header. Start with the [REST quickstart](docs/customer-rest-api.md),
+[OpenAPI specification](docs/customer-rest-api.openapi.json), or
+[Postman starter](https://kavara.ai/console/downloads/Kirk-Engineer-Starter.zip).
+Create an account and key at [kavara.ai/console](https://kavara.ai/console).
+
+The REST service supports engine identity, model listing and ten-level price-book
+scoring. The separate [MCP quickstart](examples/quickstart/README.md) uses
+`https://kirk-mcp.kavara.ai/mcp`. Neither requires Claude; choose the matching
+contract and credential instructions.
+
 ## Start here
 
 **Using an agent? Start with [Kirk: guide for agents](docs/agent-guide.md).** It
