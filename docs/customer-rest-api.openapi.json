@@ -1,0 +1,247 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Kirk Customer REST API",
+    "version": "1.0.0",
+    "description": "Three customer routes for engine identity, model discovery and fixed ten-level price-book data fit. Separate from the hosted MCP service. Supply a customer key through local secret controls."
+  },
+  "servers": [
+    {
+      "url": "https://api.kavara.ai"
+    }
+  ],
+  "security": [
+    {
+      "KavaraKey": []
+    }
+  ],
+  "paths": {
+    "/v1/engine": {
+      "get": {
+        "operationId": "getEngine",
+        "summary": "Read engine identity",
+        "responses": {
+          "200": {
+            "description": "Successful Kirk result. Preserve model-specific returned fields.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "result"
+                  ],
+                  "properties": {
+                    "result": {}
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Adapter error; infrastructure-generated errors can use a different envelope. See customer-rest-api.md for status/code mapping.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "No query strings. Do not send Idempotency-Key on GET requests."
+      }
+    },
+    "/v1/models": {
+      "get": {
+        "operationId": "listModels",
+        "summary": "Read available models",
+        "responses": {
+          "200": {
+            "description": "Successful Kirk result. Preserve model-specific returned fields.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "result"
+                  ],
+                  "properties": {
+                    "result": {}
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Adapter error; infrastructure-generated errors can use a different envelope. See customer-rest-api.md for status/code mapping.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "No query strings. Do not send Idempotency-Key on GET requests."
+      }
+    },
+    "/v1/score-book": {
+      "post": {
+        "operationId": "scoreBook",
+        "summary": "Score one ten-level price book",
+        "responses": {
+          "200": {
+            "description": "Successful Kirk result. Preserve model-specific returned fields.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "result"
+                  ],
+                  "properties": {
+                    "result": {}
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Adapter error; infrastructure-generated errors can use a different envelope. See customer-rest-api.md for status/code mapping.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "No query strings. Maximum body 256 KiB. Use an available compatible model. Current customer data-fit scoring is zero credits; paid workflow activation is separate. Reuse the same UUID and identical body for an uncertain retry.",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "description": "Canonical lowercase UUID v4, unique per logical score operation.",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "bid_px",
+                  "ask_px",
+                  "model_id"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "bid_px": {
+                    "type": "array",
+                    "minItems": 10,
+                    "maxItems": 10,
+                    "items": {
+                      "type": "number",
+                      "minimum": 0,
+                      "exclusiveMinimum": true
+                    },
+                    "description": "Finite positive prices, level 1 first. Descending bids; ascending asks."
+                  },
+                  "ask_px": {
+                    "type": "array",
+                    "minItems": 10,
+                    "maxItems": 10,
+                    "items": {
+                      "type": "number",
+                      "minimum": 0,
+                      "exclusiveMinimum": true
+                    },
+                    "description": "Finite positive prices, level 1 first. Descending bids; ascending asks."
+                  },
+                  "model_id": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9][a-z0-9_-]{0,127}$",
+                    "maxLength": 128
+                  }
+                }
+              },
+              "example": {
+                "bid_px": [
+                  99.99,
+                  99.98,
+                  99.97,
+                  99.96,
+                  99.95,
+                  99.94,
+                  99.93,
+                  99.92,
+                  99.91,
+                  99.9
+                ],
+                "ask_px": [
+                  100.01,
+                  100.02,
+                  100.03,
+                  100.04,
+                  100.05,
+                  100.06,
+                  100.07,
+                  100.08,
+                  100.09,
+                  100.1
+                ],
+                "model_id": "kirk-test1-binary-threshold-v1"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "KavaraKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Kavara-Key",
+        "description": "Exactly one customer key header: k_ followed by 32 lowercase hex characters."
+      }
+    }
+  }
+}

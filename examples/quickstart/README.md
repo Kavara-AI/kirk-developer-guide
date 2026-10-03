@@ -1,4 +1,9 @@
-# Quickstart
+# MCP quickstart
+
+Looking for the customer REST API at **`https://api.kavara.ai`**, customer keys or
+Postman? Use [Customer REST API](../../docs/customer-rest-api.md) and its
+[OpenAPI specification](../../docs/customer-rest-api.openapi.json). This page
+describes the separate MCP surface and its own credentials.
 
 Three calls against the live Kirk MCP endpoint. All are **0 IU** — nothing here
 scores, so the script can be run as often as you like while wiring up a client.
