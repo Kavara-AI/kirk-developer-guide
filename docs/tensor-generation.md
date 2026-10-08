@@ -1,71 +1,128 @@
 # Tensor Generation
 
-**The engine builds the tensor. You supply the observation.**
+**You build one square matrix per step.**
 
-This is the most common integration mistake, so it is worth stating before anything
-else: you do not construct a tensor and send it. You send a snapshot in the shape the
-model expects, and the sealed engine renders it.
+Each step, Kirk takes one square matrix of real or complex values. Typical sizes
+are 16 × 16 and 32 × 32. Non-square input is not accepted.
 
-## The live contract (L2 order book)
+You decide what the rows and columns represent, and you do any windowing
+yourself. Window length and stride are choices in that construction. Three
+examples:
 
-`kirk_render_book` takes two arrays and returns the rendered tensor for inspection:
+- **Recent lags of one stream.** A Hankel-style lag matrix: recent lags of a
+  single series, arranged so the matrix is square.
+- **Channels against recent time.** One axis is streams, the other is the most
+  recent time steps, with the window chosen so both axes have the same length.
+- **Channel-by-channel products.** Over a recent interval, products — or another
+  pairwise summary you record — between streams. The result is square because
+  both axes are the same set of streams.
+
+A rectangular panel of source observations, such as 256 time steps by 10
+channels, is material you may draw from when you build these matrices. Record
+the rule, including units.
+
+## One matrix per time step
+
+Send one matrix per time step, in time order. Kirk learns on every step, so
+ordering, chain length, and splitting a sequence across calls change the
+results. Choose a warm-up period and record how many steps you treat as warm-up
+before comparing outputs.
+
+## Scale causally, and keep gaps visible
+
+For online evaluation, nothing derived at time `t` may use observations after
+`t`. Scale with rolling or pre-defined statistics. Do not silently replace gaps
+with zero. Record what each row and column means, the units, and the
+missing-data rule.
+
+## Outputs per step
+
+With evaluation access, a step can return:
+
+- an embedding of the evolving structure
+- an entropy score (a surprise measure)
+- a prediction of masked input
+
+Some existing public routes return the entropy score only. Keep the field names
+that route actually returns. This page does not define a response schema.
+
+## Suitable data
+
+A strong fit is several streams that describe one evolving system, arriving
+continuously, where relationships between streams matter and the distribution
+drifts. Static, independently sampled data is a weak fit. The longer triage is
+in [capability fit](capability-fit.md).
+
+## An existing public route: ten-level price book
+
+The public routes documented in this repository accept a fixed ten-level price
+book. You send two arrays:
 
 ```text
 bid_px   10 bid prices, level 1 first
 ask_px   10 ask prices, level 1 first
 ```
 
-The engine renders these into a **20 × 20 complex128** tensor whose rows are
-`Bid1..Bid10` and `Ask1..Ask10`.
-
-You can confirm this yourself without spending anything — `kirk_render_book` costs
-0 IU and does not invoke the sealed engine:
+`kirk_render_book` inspects that route without scoring and costs 0 IU. A typical
+inspection result:
 
 ```json
 {"shape": [20, 20], "dtype": "complex128", "non_zero_cells": 50,
  "mid_price": 223.095, "spread_ticks": 1.0}
 ```
 
-See [`examples/quickstart`](../examples/quickstart/README.md) for a runnable version.
+On this route the inspection result is a **20 × 20 complex128** tensor whose
+rows are `Bid1..Bid10` and `Ask1..Ask10`. That result belongs to the book
+route. See [`examples/quickstart`](../examples/quickstart/README.md)
+and [Customer REST API](customer-rest-api.md). The customer REST score is
+`POST /v1/score-book` with the same ten-and-ten prices.
+
+Documented call behaviour differs by tool. `kirk_score_l2_book` scores books
+as one ordered chain. `kirk_score_book_batch` scores many snapshots
+independently. Read [Connect your Claude](connect-your-claude.md) for the
+current tool list before assuming state crosses a call boundary.
+
+Do not reshape unrelated columns into bid and ask prices. Where a surface has
+no documented way to submit the square matrices you built, contact Kavara.
+This repository does not define that request body.
 
 ## Decisions that remain yours
 
-The rendering is fixed, but everything upstream of it is your experiment and must be
-documented:
+The matrix you send is your experiment and must be documented:
 
-1. Sampling interval and snapshot cadence
-2. Which book levels you capture, and what you do when fewer than 10 are quoted
-3. Timestamp alignment across streams
-4. Missing-data policy
-5. Warm-up period before the first scored snapshot
-6. Metadata attached to each observation
+1. What the rows and columns represent
+2. Window length and stride, through the construction above
+3. Sampling interval and how often you emit a matrix
+4. Timestamp alignment across streams
+5. Missing-data policy
+6. Causal scaling
+7. Warm-up length
+8. Metadata attached to each matrix
+
+On the ten-level book route, also record which levels you capture and what you
+do when fewer than 10 are quoted.
 
 ## Avoid leakage
 
-For online evaluation, nothing you derive at time `t` may use observations after `t`.
-This applies to any normalisation, scaling or standardisation you perform before
-submitting a snapshot — use rolling or pre-defined statistics, never full-sample ones.
+The scaling rule above is the leakage rule. Full-sample normalisation,
+standardisation or other statistics computed over later observations are not
+valid for an online run. Use rolling or pre-defined statistics only.
 
 ## Preserve provenance
 
 Each output should be traceable to:
 
 - source data range
+- row and column meaning, with units
 - feature schema version
 - observation index
 - start and end timestamps
-- preprocessing configuration
+- preprocessing configuration, including window, stride and missing-data rule
 - **Kirk engine sha** (`kirk_version`, stamped on every response)
-- run parameters
+- run parameters, including chain length and warm-up
 
 The engine sha matters more than the rest: results from different engine builds are not
 interchangeable, and a result without its sha cannot be placed in a lineage later.
-
-## Other input shapes
-
-The 10+10 book contract above is what the public MCP surface accepts today. Other
-observation shapes exist for other integration paths; contact Kavara rather than
-inferring a contract from this page.
 
 ## Proposed upload-and-data-fit handoff
 
@@ -92,14 +149,16 @@ examples, not preprocessing instructions or a model choice.
    relevant relationships. Distinguish measured facts about the submitted sample
    from user declarations and unknowns about the full dataset. File size and shape
    alone do not establish fit. A small sample cannot establish full-history coverage.
-3. **Propose preparation.** Document timestamp alignment, entity mapping, feature
-   representation, units, windowing, missingness and any scaling. Explain which
-   structure each transformation retains or removes; do not apply a universal
-   normalizer or silently replace missing values with zero. Preserve original data
-   references and transformation provenance. Online processing must remain causal.
-4. **Check the data envelope.** Match the proposed observations to the selected
+3. **Propose preparation.** Document timestamp alignment, entity mapping, how each
+   square matrix is built, what its rows and columns mean, units, windowing,
+   stride, missingness and any scaling. Explain which structure each
+   transformation retains or removes; do not apply a universal normalizer or
+   silently replace missing values with zero. Preserve original data references
+   and transformation provenance. Online processing must remain causal.
+4. **Check the data envelope.** Match the proposed matrices to the selected
    model's documented input contract and configuration, including state, warm-up
-   and reset requirements. Record the exact contract identity/version and any
+   and reset requirements. For Kirk, that contract is one square matrix per
+   time step, sent in order. Record the exact contract identity/version and any
    unresolved requirements. Source-data profiles below are not new data envelopes.
    If no applicable contract is established, report that and stop before scoring;
    contact Kavara rather than forcing the data into the L2 book interface.

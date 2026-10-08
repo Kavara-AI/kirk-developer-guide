@@ -7,6 +7,13 @@ Its examples and source-data profiles are **Hypotheses** and navigation aids, no
 validated domain coverage. Use the actual data and a selected model's input contract
 to assess fit; a matching domain name or array shape is insufficient.
 
+## Input contract
+
+Kirk takes one square real- or complex-valued matrix per time step, typically
+16 × 16 or 32 × 32. You build that matrix and choose what the rows and columns
+mean. [Tensor generation](tensor-generation.md) covers windowing, causal scaling,
+warm-up, ordering and the outputs a step can return.
+
 ## Strong fit indicators
 
 Kirk is worth evaluating when several of these are true:

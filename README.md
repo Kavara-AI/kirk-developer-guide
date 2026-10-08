@@ -40,8 +40,8 @@ read the catalogue and prepare the JSON artifact without operating a browser.
 1. Find familiar data in [256 exploration prompts across 32 domains](docs/phenomena-catalogue.md).
 2. Read [Start Here](START_HERE.md) and the [Capability Fit Guide](docs/capability-fit.md).
 3. Choose a matching experiment; [Benchmark 001](benchmarks/benchmark-001-l2-order-book/README.md) is the existing L2 example, not a required format for other data.
-4. Learn the [tensor-generation workflow](docs/tensor-generation.md), including the proposed upload-and-data-fit handoff.
-5. Evaluate your own data under a matching input contract. Catalogue examples are hypotheses, not validated capabilities.
+4. Learn the [tensor-generation workflow](docs/tensor-generation.md): you build one square matrix per step. The page includes the proposed upload-and-data-fit handoff.
+5. Evaluate your own data under that contract. Catalogue examples are hypotheses, not validated capabilities.
 
 ## Use the discovery portal
 
@@ -70,7 +70,7 @@ an illustrative Kirk → Jev handoff; live inference and payments are not enable
 - **Evidence over assertion:** connect material claims to runnable examples.
 - **Capability before architecture:** establish fit before explaining internals.
 - **Transparent limitations:** distinguish demonstrated behaviour from intended behaviour.
-- **Reproducibility:** record data generation, tensor construction, parameters, outputs and interpretation.
+- **Reproducibility:** record data generation, how each square matrix was built, parameters, outputs and interpretation.
 
 ## Current status
 

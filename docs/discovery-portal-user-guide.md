@@ -73,7 +73,9 @@ The catalogue contains 32 domains and 256 prompts, drawn from this guide's
 **Hypothesis:** every catalogue prompt is an idea to investigate, not a validated
 Kirk detection or a required label. Selecting a domain does not choose a model,
 select preparation profiles or establish an input contract. An **input contract**
-specifies the representation and constraints a particular model accepts.
+specifies the representation and constraints a particular model accepts. For
+Kirk, that is one square matrix per time step, which you build; see
+[tensor generation](tensor-generation.md).
 
 ## 2. Describe the source and its structure
 

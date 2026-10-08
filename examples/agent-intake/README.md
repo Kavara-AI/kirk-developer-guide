@@ -62,4 +62,6 @@ network access or model calls are needed.
 
 **Expected completion:** a valid preparation brief, with model/input contract
 unestablished and engine run not performed. To request live equipment analysis,
-the next step is an applicable contract and runtime access, not a book-scoring call.
+the next step is the square-matrix contract in
+[tensor generation](../../docs/tensor-generation.md) and runtime access that
+accepts it. The ten-level book-scoring call is a separate fixed route.

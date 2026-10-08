@@ -132,18 +132,24 @@ the client's secret mechanism. The hosted MCP endpoint is
    and `kirk_list_models`) to record engine identity and candidate model IDs. Follow
    the current advertised schema if names differ. A listing alone is not liveness
    or data compatibility; an identity hash alone is not verified enclave attestation.
-3. Match the source representation to an explicit model/input contract: axes,
-   feature order, units, missingness, limits, ordering, state, warm-up and reset
-   behaviour. Record the contract reference and version. Obtain the applicable
+3. Match the source representation to an explicit model/input contract. Kirk
+   takes one square real- or complex-valued matrix per time step, typically
+   16 × 16 or 32 × 32. You choose what the rows and columns represent and you
+   do any windowing. Record axes, units, missingness, causal scaling, limits,
+   ordering, chain length, warm-up and reset behaviour. Kirk learns on every
+   step, so ordering and splitting a sequence across calls change results.
+   Record the contract reference and version. Obtain the applicable
    security/attestation verification procedure if the workload requires it.
 4. Establish the requested execution scope and authorised spend using current
    runtime instructions and pricing. Use a bulk path where advertised, rather
    than a per-observation chat loop. Scope, credential and contract gaps are
    prerequisites to resolve, not grounds to fabricate a successful run.
 
-The repository's existing runnable example uses an L2 price-book contract. It is
-one example, not a representation to impose on equipment, climate, event, graph
-or other data. For another shape, obtain its documented contract from Kavara.
+The repository's existing runnable example uses a fixed ten-level price-book
+route: 10 bid prices and 10 ask prices. That route is documented in
+[tensor generation](tensor-generation.md). It is one public adapter. For
+equipment, climate, event, graph or other data, build the square matrices the
+general contract describes, and obtain a documented way to submit them.
 Do not convert unrelated columns into bid/ask fields to make a call fit.
 
 **Done when:** model, contract, configuration, state semantics, runtime identity,

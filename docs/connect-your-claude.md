@@ -76,6 +76,9 @@ questions.
 | `kirk_score_book_batch` | 1 IU per 50 books | score many independent snapshots |
 | `kirk_score_l2_book` | 1 IU per call | score full L2 books as one ordered chain |
 
+These book tools are fixed routes. Kirk's general input is one square matrix
+per step, which you build; see [tensor generation](tensor-generation.md).
+
 Every response carries a `_cost` envelope, so a client can account for spend
 without inferring it. The connector also ships its own usage policy in its
 instructions — read that before calling the metered tools.
@@ -118,6 +121,6 @@ authentication starts failing, check the variable names before the credential.
 ## Next
 
 - [Start Here](../START_HERE.md) for the reading order.
-- [Tensor generation](tensor-generation.md) for what the engine expects.
+- [Tensor generation](tensor-generation.md) for the input contract.
 - [Benchmark 001](../benchmarks/benchmark-001-l2-order-book/README.md) for the
   first practical test.

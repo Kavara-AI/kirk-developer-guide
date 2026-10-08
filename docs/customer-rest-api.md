@@ -25,7 +25,9 @@ Claude. These surfaces have different contracts. Do not send MCP JSON-RPC to
 
 The REST service currently admits a fixed, ten-level price-book input. It does
 not expose arbitrary file upload, tensor rendering, batch scoring, billing or
-MCP routes. For other data, start with the [agent intake workflow](agent-guide.md).
+MCP routes. The general input contract — one square matrix per step, built by
+you — is described in [tensor generation](tensor-generation.md). For other data,
+start with the [agent intake workflow](agent-guide.md).
 
 ## Account, key and network access
 

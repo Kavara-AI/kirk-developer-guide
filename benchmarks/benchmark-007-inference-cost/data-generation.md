@@ -27,4 +27,5 @@ detector earns its keep, so it is the case where its cost matters.
 
 `code/generate_data.py` writes `stream.npy` (float64, shape `N_WINDOWS x N_CHANNELS`) and
 prints a SHA-256. Two runs on the same seed must produce identical digests. Report the
-digest with your results.
+digest with your results. That array is the source stream. The square matrices
+built from it are described in [tensor generation](tensor-generation.md).

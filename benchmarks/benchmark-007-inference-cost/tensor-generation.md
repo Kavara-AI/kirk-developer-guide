@@ -4,17 +4,25 @@ The two sides consume the same stream, shaped to each model's native contract.
 
 ## Kirk path
 
-```text
-window_length W = 16
-per window: take the W x N slice, transpose to channels-major, cast to complex128
-```
+The source stream is a window of length W by N channels. `stream.npy` stores
+that panel as float64. Kirk accepts one square real- or complex-valued matrix
+per step. You build it.
 
-Channels are grouped so each tensor is square. Group size and any layer topology are
-deployment choices; this benchmark fixes only that **one window yields one output
-scalar**, which is what makes the per-minute unit well defined.
+With this benchmark's default W = 16 and group size 16, one construction is a
+16 × 16 matrix per channel group: one axis is the window's time steps, the
+other is the 16 channels in the group. Record which axis is which.
+Channel-by-channel products inside the group are another square construction.
+The group size is also the width used when `generate_data.py` installs the
+`MOMENT_MATCHED` dependency.
 
-Precision is complex128 throughout. Do not use float32 — the contract is float64/complex128
-and a narrower type changes the result, not just its speed.
+This benchmark's reported unit remains **one output scalar per source window**.
+If a window produces more than one matrix, record how you reduce those scores
+to the one scalar the table counts. A non-square W × N slice is source data
+for that construction.
+
+Entries may be real or complex. Record the numeric type you send. This
+benchmark's source file is float64. A complex matrix in this benchmark is
+complex128. A different precision is a different preparation.
 
 > Hyperparameters are a property of your deployment and are not published here. Use your
 > endpoint's defaults, or the public model id exposed by your Kirk surface. Report which

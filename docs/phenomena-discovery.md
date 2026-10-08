@@ -37,8 +37,9 @@ established; do not silently equate zero with missing data or with an inactive m
 ### 1. Discover and document behaviour
 
 Establish whether the data can be represented so Kirk surfaces reproducible phenomena.
-Follow the selected model's [input and rendering contract](tensor-generation.md);
-arbitrary groupings are research choices, not automatically supported API inputs.
+Follow the selected model's [input contract](tensor-generation.md). For Kirk,
+you build one square matrix per step and send those matrices in time order.
+Arbitrary groupings are research choices, not automatically supported API inputs.
 Record ordering, units, sampling, information cutoff, missingness and state policy.
 
 The deliverable is an inspectable phenomena catalogue. Retain the input context and

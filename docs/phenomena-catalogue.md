@@ -14,8 +14,9 @@ unclassified discoveries. Kirk's role is identifying phenomena; interpretation
 and action are separate. No example establishes diagnosis, prediction or causality.
 
 A domain match does not establish model fit. The actual representation must match
-the selected model's documented **data envelope** (input contract). This page
-does not expand the currently documented API to arbitrary files or data shapes.
+the selected model's documented **data envelope** (input contract). For Kirk,
+you build one square matrix per step; see [tensor generation](tensor-generation.md).
+This page does not expand the currently documented API to arbitrary files or data shapes.
 Read [capability fit](capability-fit.md) and the
 [proposed upload-and-data-fit handoff](tensor-generation.md#proposed-upload-and-data-fit-handoff).
 
