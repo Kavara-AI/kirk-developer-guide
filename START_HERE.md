@@ -44,6 +44,10 @@ flowchart LR
     E --> F[Evaluate on your system]
 ```
 
+The input contract is one square matrix per time step, typically 16 × 16 or
+32 × 32, which you build. [Tensor generation](docs/tensor-generation.md) describes
+the axes, ordering, scaling and outputs.
+
 ## Connect first, if you want to follow along live
 
 For customer REST access from code, Postman or an agent, follow the
@@ -90,6 +94,7 @@ Write down:
 
 - the streams available
 - their units and sampling rates
+- how you will build one square matrix per step, and what its rows and columns mean
 - missing-data behaviour
 - known events, if available; predefined phenomenon labels are optional
 - what structure you want to explore, or that the exploration is open-ended

@@ -4,8 +4,9 @@
 
 You have a live multi-channel stream — order books, sensors, telemetry — and you want a
 continuous scalar that tells you when the system's structure has changed. You will run
-this every window, forever. Cost is therefore not a footnote; it is the deployment
-constraint.
+this on every source window. For Kirk, each step is a square matrix you build from
+that window; see [tensor generation](tensor-generation.md). Cost is therefore not a
+footnote; it is the deployment constraint.
 
 ## What is measured
 

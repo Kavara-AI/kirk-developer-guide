@@ -126,8 +126,9 @@ def main():
     ids = models.get("models") or models.get("model_ids") or models
     print(f"models   {ids}")
 
-    # 3. Render a book snapshot. The ENGINE builds the tensor -- you supply
-    #    10 bid and 10 ask prices, level 1 first. Nothing is scored here.
+    # 3. Inspect a book snapshot on the fixed ten-level route. You supply
+    #    10 bid and 10 ask prices, level 1 first. The 20 x 20 result is
+    #    specific to this route. Nothing is scored here.
     bid = [223.09 - 0.01 * i for i in range(10)]
     ask = [223.10 + 0.01 * i for i in range(10)]
     t = kirk.call("kirk_render_book", {"bid_px": bid, "ask_px": ask})

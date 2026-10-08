@@ -29,15 +29,21 @@ A candidate ten-feature schema:
 9. cancellation rate
 10. rolling volatility
 
-## Tensor shape
+## Model input
 
-Initial configuration:
+Kirk takes one square matrix per step. This benchmark's source data is the
+ten-feature stream above. An initial preparation uses a sliding window of 256
+observations and a stride of 16 to choose which recent rows go into each
+matrix. The matrix itself is square. Two constructions that use only these
+features:
 
-```text
-window length: 256 observations
-feature count: 10
-stride: 16 observations
-```
+- a 10 × 10 channel-by-channel summary over the window (square, so it meets
+  the contract)
+- a square lag matrix, or channels against an equal number of recent steps,
+  with side length typically 16 or 32, and the chosen series recorded
+
+Keep the regime label out of the matrix. Window length and stride are choices
+in that construction. See [tensor generation](tensor-generation.md).
 
 ## Evaluation question
 

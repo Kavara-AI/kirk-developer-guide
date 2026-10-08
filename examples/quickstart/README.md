@@ -34,9 +34,10 @@ Three things worth taking from that output:
 1. **Record the engine sha.** Results from different engine builds are not
    interchangeable. A result kept without its `kirk_version` cannot be placed in a
    lineage afterwards.
-2. **The engine builds the tensor.** You send 10 bid and 10 ask prices, level 1
-   first; the 20 x 20 complex128 rendering happens engine-side. See
-   [tensor generation](../../docs/tensor-generation.md).
+2. **This call uses the fixed book route.** You send 10 bid and 10 ask prices,
+   level 1 first. The 20 × 20 complex128 inspection result is what this route
+   returns. The general input is one square matrix per step, which you build.
+   See [tensor generation](../../docs/tensor-generation.md).
 3. **Cost is reported per call.** Every response carries a `_cost` envelope, so a
    client can account for spend without inferring it.
 

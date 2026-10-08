@@ -13,18 +13,22 @@ Relevant structures may include:
 - changes in joint variance
 - changes in transition dynamics
 
-## Why a 2D representation is useful
+## Why a square matrix is useful
 
-A two-dimensional tensor can represent a time window by features:
+Each step, Kirk takes one square matrix. You choose the axes. For example:
 
 ```text
-rows    = observations through time
-columns = ordered features or streams
+rows    = recent lags of one stream
+columns = the same lags, as a Hankel-style matrix
 ```
 
-For example, a `256 × 10` tensor contains 256 consecutive observations for 10 features.
+Other constructions that stay square: channels against an equal number of recent
+time steps, or channel-by-channel products over a recent interval. A rectangular
+panel — many time steps by a different number of features — is source data you
+window yourself into one of those matrices. See
+[tensor generation](tensor-generation.md).
 
-The feature order, units, normalisation and missing-data treatment are part of the experiment and must be documented.
+Row and column meaning, units, scaling and missing-data treatment are part of the experiment and must be documented.
 
 ## Caution
 

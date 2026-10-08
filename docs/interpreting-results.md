@@ -1,6 +1,6 @@
 # Interpreting Results
 
-Kirk outputs must be interpreted in the context of the input tensor sequence and the operational question.
+Kirk outputs must be interpreted in the context of the ordered sequence of square matrices sent at each step, and the operational question.
 
 ## Discovery and confirmation
 
@@ -28,7 +28,7 @@ responses on fresh evidence rather than treating exploratory labels as establish
 - missed-transition rate
 - stability within a regime
 - separation between regimes
-- sensitivity to window size
+- sensitivity to the window and stride used to build each matrix
 - sensitivity to feature removal
 - reproducibility across random seeds
 

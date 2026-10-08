@@ -6,7 +6,7 @@ Contributions should make Kirk easier to evaluate, reproduce or apply.
 
 1. Separate observed results from hypotheses.
 2. Do not publish benchmark claims without the run configuration and output artifacts.
-3. Explain tensor shape, feature order, windowing and normalisation.
+3. Explain the square matrix, what its rows and columns mean, windowing, stride and scaling.
 4. Prefer small, reviewable pull requests.
 5. Keep terminology consistent with the [glossary](docs/glossary.md).
 

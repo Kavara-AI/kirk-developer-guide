@@ -12,9 +12,12 @@ Not necessarily. A state-change output can indicate that behaviour changed witho
 
 The intended evaluation focuses on settings where labels may be absent, incomplete or delayed. Ground-truth events remain useful for benchmark evaluation.
 
-## Why use tensors?
+## Why a square matrix?
 
-A 2D tensor preserves a window of observations across an ordered set of features.
+Each step, Kirk takes one square matrix of real or complex values, and you build
+it. Rows and columns might be recent lags of one stream, channels against an
+equal number of recent time steps, or channel-by-channel products over a recent
+interval. See [tensor generation](tensor-generation.md).
 
 ## Is Benchmark 001 a validated result?
 

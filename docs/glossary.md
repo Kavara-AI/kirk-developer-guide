@@ -13,20 +13,21 @@ A system whose behaviour depends on interactions among multiple components or va
 
 **Configuration**  
 The parameter set and state policy under which a model is served. Not exposed on this
-surface: two models can share a binary and a render and differ only in configuration, and
-they will score the same input to different values.
+surface: two models can share a binary and the same input contract and differ only in
+configuration, and they will score the same input to different values.
 
 **Data envelope**  
-The input-shape contract a model accepts, identified by `envelope_hash` together with a
-contract version. A model may report a null envelope, which means no contract has been
-derived for it yet — that is stated rather than omitted.
+The input-shape contract a model accepts. For Kirk, that is one square real- or
+complex-valued matrix per step. A published envelope is identified by `envelope_hash`
+together with a contract version. A model may report a null envelope, which means no
+contract has been derived for it yet — that is stated rather than omitted.
 
 **Engine**  
 The term used for a **binary** throughout the API: `engine_sha`, `engine_name`, and the
 `kirk_verify_engine` tool. Same object, API spelling.
 
 **Feature**  
-One input variable supplied to the tensor-generation process.
+One measured stream you may place on an axis when you build the square matrix for a step.
 
 **Model**  
 A registered model id, servable by a binary, and the thing you name when you call a tool.
@@ -47,13 +48,18 @@ An individual observation considered unusual relative to a reference.
 A change in how two or more variables behave together.
 
 **Score**  
-One entropy value returned for one input, carrying the binary identity that produced it.
+An entropy (surprise) value returned for one step, carrying the binary identity that
+produced it. Evaluation access can also return an embedding of the evolving structure
+or a prediction of masked input. Some public routes return the entropy score only.
 
 **Stride**  
-The number of observations by which a sliding window advances.
+How many source observations the next matrix advances. You choose it when you build
+the matrices.
 
 **Tensor**  
-An ordered multidimensional array. This guide primarily uses 2D time-by-feature tensors.
+The square real- or complex-valued matrix Kirk takes at one time step. Typical sizes
+are 16 × 16 and 32 × 32.
 
 **Window**  
-A contiguous segment of observations converted into one tensor.
+The recent source observations you summarise into one square matrix. You choose the
+length of that window.
