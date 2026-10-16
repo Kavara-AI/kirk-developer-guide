@@ -8,8 +8,8 @@ Start from the user's data; a domain label or known phenomenon is optional.
 For customer REST access, Postman setup or the `api.kavara.ai` contract, follow
 [Customer REST API](docs/customer-rest-api.md) and its
 [OpenAPI specification](docs/customer-rest-api.openapi.json). The MCP quickstart
-is a separate surface, not the only direct API. Use the client's secret mechanism
-for credentials; do not assume a user must paste a key into chat.
+is a separate surface, not the only direct API. For REST, supply credentials through the environment's secret controls; for MCP,
+use the client's secret mechanism. Never ask a user to paste a key into chat.
 
 For repository changes, read [CONTRIBUTING.md](CONTRIBUTING.md) and
 [CLAUDE.md](CLAUDE.md). For catalogue changes, edit
@@ -34,5 +34,5 @@ python3 -m unittest test_render_phenomena_catalogue.py
 ```
 
 These commands check the generated catalogue page and the offline intake
-example. They do not call Kirk. Live REST or MCP access uses the client's own
-credential store; see [the agent guide](docs/agent-guide.md).
+example. They do not call Kirk. Live REST access uses environment secret controls; MCP access uses the
+client's secret mechanism. See [the agent guide](docs/agent-guide.md).
