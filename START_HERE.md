@@ -58,9 +58,8 @@ and the Postman download. This is the fixed ten-level price-book data-fit path.
 For the separate MCP tool surface:
 
 [Connect your Claude](docs/connect-your-claude.md) puts the Kirk tools into a
-Claude conversation, or use the [quickstart](examples/quickstart/README.md) for
-a Python client. Both need a credential from Kavara. The orientation tools cost
-nothing to call.
+Claude conversation. It uses the same self-service key: sign in at [kavara.ai/login](https://kavara.ai/login) with Google or GitHub, open **API keys** in the [console](https://kavara.ai/console) and create a key. The
+orientation tools cost nothing to call.
 
 ## Recommended reading order
 

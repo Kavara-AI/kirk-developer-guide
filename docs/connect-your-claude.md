@@ -1,55 +1,36 @@
 # Connect your Claude
 
-There are two ways to reach Kirk: a Python client, or a connector that puts the
-Kirk tools directly into a Claude conversation. This page covers the connector.
-For the client, see the [quickstart](../examples/quickstart/README.md).
+This page covers the connector that puts the Kirk MCP tools directly into a
+Claude conversation. For calls from code, Postman or an agent, use the
+[Customer REST API](customer-rest-api.md).
 
 ## What you need
 
-A credential, in one of two forms:
+A customer API key. Key creation is self-service: sign in at
+[kavara.ai/login](https://kavara.ai/login) with Google or GitHub, open **API keys**
+in the [console](https://kavara.ai/console) and create a key. The key is bound to
+your Kavara account. Present it as a header (`Authorization: Bearer k_...`)
+against the bare `/mcp` path. Never put a key in a URL.
 
-- **Personal key** — a `k_...` key issued to you. It can be presented either as
-  a connector URL (`https://kirk-mcp.kavara.ai/mcp/k_...`) or as a header
-  (`Authorization: Bearer k_...`) against the bare `/mcp` path. Same key, same
-  account; use whichever form the client supports.
-- **Cloudflare Access service token** — a client id and secret, used against the
-  bare `/mcp` path.
-
-Kavara issues these. Either form spends real balance, so treat it as a secret:
-do not commit it, paste it into an issue, or share it in chat.
+A key can spend real balance on metered tools, so treat it as a secret: do not
+commit it, paste it into an issue, or share it in chat.
 
 ## Claude Code
 
-Prefer the header form. A key in a URL ends up in shell history, process
-listings and any log that records the request line; a header does not.
+Pass the key as a header:
 
 ```sh
 claude mcp add --transport http kirk https://kirk-mcp.kavara.ai/mcp \
   -H "Authorization: Bearer k_..."
 ```
 
-The URL form works too, and is the one to use where a client only accepts a
-URL:
-
-```sh
-claude mcp add --transport http kirk 'https://kirk-mcp.kavara.ai/mcp/k_...'
-```
-
-With a service token:
-
-```sh
-claude mcp add --transport http kirk https://kirk-mcp.kavara.ai/mcp \
-  -H "CF-Access-Client-Id: ..." \
-  -H "CF-Access-Client-Secret: ..."
-```
-
 Confirm with `claude mcp list`.
 
 ## Claude Desktop and claude.ai
 
-Settings → Connectors → Add custom connector, then paste the connector URL.
-These interfaces take a URL and no headers, so the connector-URL form is the
-one to use here.
+These interfaces add custom connectors by URL only and cannot send a key
+header. Do not put a key in a connector URL. Use Claude Code with the header
+form above until an account sign-in (OAuth) connection is available.
 
 ## Check it worked
 
@@ -90,19 +71,6 @@ Python client that scores with zero model tokens per book. Both scoring tools
 are capped by design, and driving them in a per-book loop from a chat model is
 the expensive way to do the same work.
 
-## If you also write scripts: one naming trap
-
-The same credential appears under different environment-variable names
-depending on which client you started from:
-
-| Source | Variables |
-| --- | --- |
-| [quickstart](../examples/quickstart/README.md) | `KIRK_CF_CLIENT_ID`, `KIRK_CF_CLIENT_SECRET` |
-| client returned by `kirk_bulk_howto` | `CF_ACCESS_CLIENT_ID`, `CF_ACCESS_CLIENT_SECRET` |
-
-`KIRK_MCP_URL` means the same thing in both. If you move between the two and
-authentication starts failing, check the variable names before the credential.
-
 ## Troubleshooting
 
 - **A 403 that looks like an authentication failure.** Often it is the
@@ -113,7 +81,7 @@ authentication starts failing, check the variable names before the credential.
 - **A key that stops working.** Keys can be revoked. An unknown or revoked key
   is refused outright rather than being silently downgraded to an
   unattributed account, so this surfaces as a hard failure, not as odd
-  behaviour. Ask for a new one; keys are per-person and are not shared.
+  behaviour. Create a new key in the [console](https://kavara.ai/console); keys are per-account and are not shared.
 - **A model appears in `kirk_list_models` but errors when called.** The
   catalogue lists registered models; it is not a liveness check. Report it
   rather than assuming the call was malformed.

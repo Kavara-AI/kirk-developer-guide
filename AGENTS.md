@@ -7,7 +7,7 @@ Start from the user's data; a domain label or known phenomenon is optional.
 
 For customer REST access, Postman setup or the `api.kavara.ai` contract, follow
 [Customer REST API](docs/customer-rest-api.md) and its
-[OpenAPI specification](docs/customer-rest-api.openapi.json). The MCP quickstart
+[OpenAPI specification](docs/customer-rest-api.openapi.json). Hosted MCP
 is a separate surface, not the only direct API. For REST, supply credentials through the environment's secret controls; for MCP,
 use the client's secret mechanism. Never ask a user to paste a key into chat.
 

@@ -23,12 +23,11 @@ For a working customer API connection, use **`https://api.kavara.ai`** with an
 `X-Kavara-Key` header. Start with the [REST quickstart](docs/customer-rest-api.md),
 [OpenAPI specification](docs/customer-rest-api.openapi.json), or
 [Postman starter](https://kavara.ai/console/downloads/Kirk-Engineer-Starter.zip).
-Create an account and key at [kavara.ai/console](https://kavara.ai/console).
+To get a key, sign in at [kavara.ai/login](https://kavara.ai/login) with Google or GitHub, open **API keys** in the [console](https://kavara.ai/console) and create a key. Keys are self-service and bound to your account.
 
 The REST service supports engine identity, model listing and ten-level price-book
-scoring. The separate [MCP quickstart](examples/quickstart/README.md) uses
-`https://kirk-mcp.kavara.ai/mcp`. Neither requires Claude; choose the matching
-contract and credential instructions.
+scoring. It does not require Claude. The separate hosted MCP surface is described in
+[Connect your Claude](docs/connect-your-claude.md).
 
 ## Start here
 
