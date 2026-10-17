@@ -5,6 +5,7 @@
 - [Kirk: guide for agents](agent-guide.md)
 - [Kirk discovery portal: user guide](discovery-portal-user-guide.md)
 - [Connect your Claude](connect-your-claude.md)
+- [MCP auth contract](mcp-auth-contract.md)
 - [What is Kirk?](what-is-kirk.md)
 - [What does your data look like? 256 exploration prompts](phenomena-catalogue.md)
 - [Phenomena discovery: from observations to value](phenomena-discovery.md)
