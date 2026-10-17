@@ -49,3 +49,17 @@ Short sections. Define domain terms on first use. Prefer a concrete example to
 an assertion. State limitations and alternative explanations rather than
 implying another approach is always inferior. Keep terminology consistent with
 the [glossary](docs/glossary.md).
+
+## Agent skills
+
+### Issue tracker
+
+Issues and specs live in Jira project EN at https://kavara.atlassian.net, not in GitHub Issues. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default mattpocock triage roles; each tracker label equals its role name. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+single-context. See `docs/agents/domain.md`.
