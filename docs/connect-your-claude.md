@@ -34,10 +34,11 @@ connector URL.
 
 Some organizations have a Request headers section in the Add custom connector
 dialog. This is a beta. If that section is there, choose the header
-`authorization`, set sign-in to **No sign in**, and enter the value as
+`authorization`, set sign-in to **No sign-in**, and enter the value as
 `Bearer k_...`. Claude sends the value as entered and does not add a scheme.
-On Team and Enterprise plans, everyone who uses the connector shares that one
-stored credential.
+On Team and Enterprise plans, only an Owner adds the org connector. Every
+member's metered calls spend that one Kavara account's balance. Use a
+dedicated, revocable key for the org connector.
 
 If the dialog has no Request headers section, the organization does not have
 this beta. Use Claude Code with the header form above.
@@ -98,7 +99,9 @@ the expensive way to do the same work.
 - **A key that stops working.** Keys can be revoked. An unknown or revoked key
   is refused outright rather than being silently downgraded to an
   unattributed account, so this surfaces as a hard failure, not as odd
-  behaviour. Create a new key in the [console](https://kavara.ai/console); keys are per-account and are not shared.
+  behaviour. Create a new key in the [console](https://kavara.ai/console). Each
+  key belongs to one account. On the org connector, members share that one
+  stored key, and their calls spend that account's balance.
 - **A model appears in `kirk_list_models` but errors when called.** The
   catalogue lists registered models; it is not a liveness check. Report it
   rather than assuming the call was malformed.
