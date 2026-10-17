@@ -32,10 +32,10 @@ start with the [agent intake workflow](agent-guide.md).
 ## Account, key and network access
 
 1. Sign in at [kavara.ai/login](https://kavara.ai/login) with Google or GitHub,
-   open **API keys** in the [customer console](https://kavara.ai/console), create a
-   customer API key and enable the read and score permissions needed for this
-   example. Keys are self-service and bound to your account; copy the key when it
-   is shown and store it in your secret manager.
+   open **API keys** in the [customer console](https://kavara.ai/console) and
+   create a customer API key. Console keys have fixed read-and-score access, so
+   there is nothing to enable. Keys are self-service and bound to your account;
+   copy the key when it is shown and store it in your secret manager.
 2. Supply the key through your client's secret controls. For code, inject it as
    `KIRK_API_KEY` through your environment's secret manager. Do not commit it, put
    it in a URL, or paste it into a shared transcript. Sandbox capabilities vary;
@@ -48,9 +48,8 @@ start with the [agent intake workflow](agent-guide.md).
    HTTPS to `api.kavara.ai`. Allow `kavara.ai` for account access or downloading the
    starter. Add `kirk-mcp.kavara.ai` only if using the separate MCP surface.
 
-For an agent, use a separate customer key with the required scopes and revoke it
-when no longer needed. Availability of a credential does not authorize unrelated
-workloads or spending.
+For an agent, use a separate customer key and revoke it when no longer needed.
+Availability of a credential does not authorize unrelated workloads or spending.
 
 ## Three supported calls
 

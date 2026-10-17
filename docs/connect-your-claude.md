@@ -1,8 +1,9 @@
 # Connect your Claude
 
 This page covers the connector that puts the Kirk MCP tools directly into a
-Claude conversation. For calls from code, Postman or an agent, use the
-[Customer REST API](customer-rest-api.md).
+Claude conversation. Hosted MCP (`https://kirk-mcp.kavara.ai/mcp`) can also
+be called directly from code. For REST calls from code, Postman or an agent,
+use the [Customer REST API](customer-rest-api.md).
 
 ## What you need
 
@@ -28,9 +29,25 @@ Confirm with `claude mcp list`.
 
 ## Claude Desktop and claude.ai
 
-These interfaces add custom connectors by URL only and cannot send a key
-header. Do not put a key in a connector URL. Use Claude Code with the header
-form above until an account sign-in (OAuth) connection is available.
+Add the connector at `https://kirk-mcp.kavara.ai/mcp`. Do not put a key in a
+connector URL.
+
+Some organizations have a Request headers section in the Add custom connector
+dialog. This is a beta. If that section is there, choose the header
+`authorization`, set sign-in to **No sign in**, and enter the value as
+`Bearer k_...`. Claude sends the value as entered and does not add a scheme.
+On Team and Enterprise plans, everyone who uses the connector shares that one
+stored credential.
+
+If the dialog has no Request headers section, the organization does not have
+this beta. Use Claude Code with the header form above.
+
+Anthropic describes the dialog in
+[Add a connector by URL](https://claude.com/docs/connectors/custom/remote-mcp)
+(also published as
+[add an unlisted connector](https://claude.com/docs/connectors/custom/add-unlisted))
+and in
+[Get started with custom connectors using remote MCP](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp).
 
 ## Check it worked
 
