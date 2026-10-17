@@ -3,20 +3,25 @@
 There are two ways to reach Kirk: a Python client, or a connector that puts the
 Kirk tools directly into a Claude conversation. This page covers the connector.
 For the client, see the [quickstart](../examples/quickstart/README.md).
+For which calls need a key, and how a refusal is returned, see the
+[MCP auth contract](mcp-auth-contract.md).
 
 ## What you need
 
-A credential, in one of two forms:
+The supported way to send an account key is a header against the bare `/mcp`
+path. The [auth contract](mcp-auth-contract.md) is the rule for the handshake,
+the demo tools, and a bad key.
 
-- **Personal key** — a `k_...` key issued to you. It can be presented either as
-  a connector URL (`https://kirk-mcp.kavara.ai/mcp/k_...`) or as a header
-  (`Authorization: Bearer k_...`) against the bare `/mcp` path. Same key, same
-  account; use whichever form the client supports.
+- **Header** — `Authorization: Bearer <key>`. `X-Kirk-Key: <key>` is the same
+  check. This is the supported route.
+- **Legacy URL** — a key in the path or query string is still accepted, and it
+  is deprecated for a new client. Use it only where the client cannot set a
+  header. If a URL key and a header are both present, the URL key wins.
 - **Cloudflare Access service token** — a client id and secret, used against the
   bare `/mcp` path.
 
-Kavara issues these. Either form spends real balance, so treat it as a secret:
-do not commit it, paste it into an issue, or share it in chat.
+Kavara issues these. Metered calls spend real balance, so treat the credential
+as a secret: do not commit it, paste it into an issue, or share it in chat.
 
 ## Claude Code
 
@@ -25,14 +30,14 @@ listings and any log that records the request line; a header does not.
 
 ```sh
 claude mcp add --transport http kirk https://kirk-mcp.kavara.ai/mcp \
-  -H "Authorization: Bearer k_..."
+  -H "Authorization: Bearer <key>"
 ```
 
-The URL form works too, and is the one to use where a client only accepts a
-URL:
+The legacy URL form still works where a client only accepts a URL. It is
+deprecated for a new client; see the [auth contract](mcp-auth-contract.md).
 
 ```sh
-claude mcp add --transport http kirk 'https://kirk-mcp.kavara.ai/mcp/k_...'
+claude mcp add --transport http kirk 'https://kirk-mcp.kavara.ai/mcp/<key>'
 ```
 
 With a service token:
@@ -48,8 +53,9 @@ Confirm with `claude mcp list`.
 ## Claude Desktop and claude.ai
 
 Settings → Connectors → Add custom connector, then paste the connector URL.
-These interfaces take a URL and no headers, so the connector-URL form is the
-one to use here.
+These interfaces take a URL and no headers, so they still use the legacy
+URL form. That form is deprecated for a new client. The server accepts it
+today; the [auth contract](mcp-auth-contract.md) records that.
 
 ## Check it worked
 
@@ -113,7 +119,9 @@ authentication starts failing, check the variable names before the credential.
 - **A key that stops working.** Keys can be revoked. An unknown or revoked key
   is refused outright rather than being silently downgraded to an
   unattributed account, so this surfaces as a hard failure, not as odd
-  behaviour. Ask for a new one; keys are per-person and are not shared.
+  behaviour. On this MCP server the refusal is a tool result with `isError`
+  set, not HTTP 401. See the [auth contract](mcp-auth-contract.md). Ask for a
+  new one; keys are per-person and are not shared.
 - **A model appears in `kirk_list_models` but errors when called.** The
   catalogue lists registered models; it is not a liveness check. Report it
   rather than assuming the call was malformed.
