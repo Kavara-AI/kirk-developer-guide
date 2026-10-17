@@ -73,8 +73,7 @@ inspection result:
 
 On this route the inspection result is a **20 × 20 complex128** tensor whose
 rows are `Bid1..Bid10` and `Ask1..Ask10`. That result belongs to the book
-route. See [`examples/quickstart`](../examples/quickstart/README.md)
-and [Customer REST API](customer-rest-api.md). The customer REST score is
+route. See [Customer REST API](customer-rest-api.md). The customer REST score is
 `POST /v1/score-book` with the same ten-and-ten prices.
 
 Documented call behaviour differs by tool. `kirk_score_l2_book` scores books

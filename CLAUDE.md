@@ -33,8 +33,8 @@ customer data-fit path is zero credits; paid workflow activation is separate.
 
 For the separate MCP surface, calling Kirk needs a credential and costs real
 balance on the metered tools.
-See [Connect your Claude](docs/connect-your-claude.md) for the connector, or
-the [quickstart](examples/quickstart/README.md) for a Python client. Free tools
+See [Connect your Claude](docs/connect-your-claude.md) for the connector and for
+creating a key in the console. Free tools
 (`kirk_verify_engine`, `kirk_list_models`, `kirk_render_book`,
 `kirk_bulk_howto`, `kirk_billing_*`) cost 0 IU and answer most questions.
 

@@ -120,9 +120,8 @@ Its input, authentication and idempotency requirements are defined in the
 client or Claude connector. Keep its data-fit credit policy separate from MCP
 metering. Supply credentials through the environment's secret controls.
 
-For a live MCP run, use the [connection guide](connect-your-claude.md) or the
-[Python quickstart](../examples/quickstart/README.md). Configure credentials through
-the client's secret mechanism. The hosted MCP endpoint is
+For a live MCP run, use the [connection guide](connect-your-claude.md). Configure
+credentials through the client's secret mechanism. The hosted MCP endpoint is
 `https://kirk-mcp.kavara.ai/mcp`; it is separate from the Vercel portal.
 
 1. Read server instructions and discover tools with MCP `tools/list` through your
