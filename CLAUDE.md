@@ -54,7 +54,7 @@ the [glossary](docs/glossary.md).
 
 ### Issue tracker
 
-Issues and specs live in Jira project EN at https://kavara.atlassian.net, not in GitHub Issues. See `docs/agents/issue-tracker.md`.
+Issues and specs live in Kavara Jira, project EN, not in GitHub Issues. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 

@@ -1,22 +1,21 @@
 # Issue tracker: Jira (project EN)
 
-Issues and specs for this repo live in Jira project **EN** on <https://kavara.atlassian.net>. This is not GitHub Issues. Do not call `gh issue`. The GitHub remote is only the code host.
+Issues and specs for this repo live in Kavara Jira, project **EN**. This is not GitHub Issues. Do not call `gh issue`. The GitHub remote is only the code host.
 
 ## Identity
 
-- **Site**: <https://kavara.atlassian.net>
+- **Tracker**: Kavara Jira, project EN
 - **Project key**: `EN`
 - **Issue key**: `EN-<number>` (for example `EN-1148`)
-- **Browse URL**: `https://kavara.atlassian.net/browse/EN-<number>`
 
-Resolve the Atlassian cloud id from the site at runtime. Do not store cloud ids, tokens, emails, account ids, or API keys in this repo or in issue bodies.
+Resolve the Jira site and cloud id at runtime from the Jira connection already available to the agent. Do not store cloud ids, tokens, emails, account ids, or API keys in this repo or in issue bodies.
 
 ## Conventions
 
 Use the Jira connection already available to the agent. Never invent credentials.
 
 - **Create an issue**: project `EN`, type **Task**, with a summary and a markdown description. Add a label from `docs/agents/triage-labels.md` when a skill names a triage role.
-- **Read an issue**: fetch `EN-<number>` including summary, description, status, labels, comments, parent, and issue links. A bare `#42`, or a GitHub `Closes #45`, is not an EN issue. Commit and PR references use `EN-<number>` or the browse URL.
+- **Read an issue**: fetch `EN-<number>` including summary, description, status, labels, comments, parent, and issue links. A bare `#42`, or a GitHub `Closes #45`, is not an EN issue. Commit and PR references use `EN-<number>`.
 - **List issues**: JQL scoped to this project. Example: `project = EN AND labels = "needs-triage" AND statusCategory != Done ORDER BY created ASC`.
 - **Make an issue a child of a parent**: Jira's parent field, matching the EN hierarchy. A Task, Story, Feature, or Bug can parent to an Epic. A Subtask can parent to a Task, Story, Feature, or Bug. If the parent is an Epic, create a Task. If the parent is a Task, Story, Feature, or Bug, create a Subtask. If the hierarchy rejects the parent, put `Part of EN-<number>` at the top of the child description.
 - **Comment on an issue**: add a Jira comment. Do not include tokens, emails, or secrets.
