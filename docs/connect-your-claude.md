@@ -1,61 +1,66 @@
 # Connect your Claude
 
-There are two ways to reach Kirk: a Python client, or a connector that puts the
-Kirk tools directly into a Claude conversation. This page covers the connector.
-For the client, see the [quickstart](../examples/quickstart/README.md).
-For which calls need a key, and how a refusal is returned, see the
-[MCP auth contract](mcp-auth-contract.md).
+This page covers the connector that puts the Kirk MCP tools directly into a
+Claude conversation. Hosted MCP (`https://kirk-mcp.kavara.ai/mcp`) can also
+be called directly from code. For REST calls from code, Postman or an agent,
+use the [Customer REST API](customer-rest-api.md). For which calls need a key,
+and how a refusal is returned, see the [MCP auth contract](mcp-auth-contract.md).
 
 ## What you need
 
-The supported way to send an account key is a header against the bare `/mcp`
-path. The [auth contract](mcp-auth-contract.md) is the rule for the handshake,
-the demo tools, and a bad key.
+A customer API key. Key creation is self-service: sign in at
+[kavara.ai/login](https://kavara.ai/login) with Google or GitHub, open **API keys**
+in the [console](https://kavara.ai/console) and create a key. The key is bound to
+your Kavara account.
 
-- **Header** — `Authorization: Bearer <key>`. `X-Kirk-Key: <key>` is the same
+Send the key against the bare `/mcp` path. The
+[auth contract](mcp-auth-contract.md) is the rule for the handshake, the demo
+tools, and a bad key.
+
+- **Header** — `Authorization: Bearer k_...`. `X-Kirk-Key: k_...` is the same
   check. This is the supported route.
-- **Legacy URL** — a key in the path or query string is still accepted, and it
-  is deprecated for a new client. Use it only where the client cannot set a
-  header. If a URL key and a header are both present, the URL key wins.
+- **Legacy URL** — a key in the path or query string is still accepted for
+  existing clients, and it is deprecated. Do not put a key in a URL for a new
+  client. If a URL key and a header are both present, the URL key wins.
 - **Cloudflare Access service token** — a client id and secret, used against the
-  bare `/mcp` path.
+  bare `/mcp` path. Kavara issues these.
 
-Kavara issues these. Metered calls spend real balance, so treat the credential
-as a secret: do not commit it, paste it into an issue, or share it in chat.
+A key can spend real balance on metered tools, so treat it as a secret: do not
+commit it, paste it into an issue, or share it in chat.
 
 ## Claude Code
 
-Prefer the header form. A key in a URL ends up in shell history, process
-listings and any log that records the request line; a header does not.
+Pass the key as a header:
 
 ```sh
 claude mcp add --transport http kirk https://kirk-mcp.kavara.ai/mcp \
   -H "Authorization: Bearer <key>"
 ```
 
-The legacy URL form still works where a client only accepts a URL. It is
-deprecated for a new client; see the [auth contract](mcp-auth-contract.md).
-
-```sh
-claude mcp add --transport http kirk 'https://kirk-mcp.kavara.ai/mcp/<key>'
-```
-
-With a service token:
-
-```sh
-claude mcp add --transport http kirk https://kirk-mcp.kavara.ai/mcp \
-  -H "CF-Access-Client-Id: ..." \
-  -H "CF-Access-Client-Secret: ..."
-```
-
 Confirm with `claude mcp list`.
 
 ## Claude Desktop and claude.ai
 
-Settings → Connectors → Add custom connector, then paste the connector URL.
-These interfaces take a URL and no headers, so they still use the legacy
-URL form. That form is deprecated for a new client. The server accepts it
-today; the [auth contract](mcp-auth-contract.md) records that.
+Add the connector at `https://kirk-mcp.kavara.ai/mcp`. Do not put a key in a
+connector URL.
+
+Some organizations have a Request headers section in the Add custom connector
+dialog. This is a beta. If that section is there, choose the header
+`authorization`, set sign-in to **No sign-in**, and enter the value as
+`Bearer k_...`. Claude sends the value as entered and does not add a scheme.
+On Team and Enterprise plans, only an Owner adds the org connector. Every
+member's metered calls spend that one Kavara account's balance. Use a
+dedicated, revocable key for the org connector.
+
+If the dialog has no Request headers section, the organization does not have
+this beta. Use Claude Code with the header form above.
+
+Anthropic describes the dialog in
+[Add a connector by URL](https://claude.com/docs/connectors/custom/remote-mcp)
+(also published as
+[add an unlisted connector](https://claude.com/docs/connectors/custom/add-unlisted))
+and in
+[Get started with custom connectors using remote MCP](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp).
 
 ## Check it worked
 
@@ -96,19 +101,6 @@ Python client that scores with zero model tokens per book. Both scoring tools
 are capped by design, and driving them in a per-book loop from a chat model is
 the expensive way to do the same work.
 
-## If you also write scripts: one naming trap
-
-The same credential appears under different environment-variable names
-depending on which client you started from:
-
-| Source | Variables |
-| --- | --- |
-| [quickstart](../examples/quickstart/README.md) | `KIRK_CF_CLIENT_ID`, `KIRK_CF_CLIENT_SECRET` |
-| client returned by `kirk_bulk_howto` | `CF_ACCESS_CLIENT_ID`, `CF_ACCESS_CLIENT_SECRET` |
-
-`KIRK_MCP_URL` means the same thing in both. If you move between the two and
-authentication starts failing, check the variable names before the credential.
-
 ## Troubleshooting
 
 - **A 403 that looks like an authentication failure.** Often it is the
@@ -120,8 +112,10 @@ authentication starts failing, check the variable names before the credential.
   is refused outright rather than being silently downgraded to an
   unattributed account, so this surfaces as a hard failure, not as odd
   behaviour. On this MCP server the refusal is a tool result with `isError`
-  set, not HTTP 401. See the [auth contract](mcp-auth-contract.md). Ask for a
-  new one; keys are per-person and are not shared.
+  set, not HTTP 401; see the [auth contract](mcp-auth-contract.md). Create a
+  new key in the [console](https://kavara.ai/console). Each key belongs to one
+  account. On the org connector, members share that one stored key, and their
+  calls spend that account's balance.
 - **A model appears in `kirk_list_models` but errors when called.** The
   catalogue lists registered models; it is not a liveness check. Report it
   rather than assuming the call was malformed.
