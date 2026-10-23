@@ -3,15 +3,27 @@
 This page covers the connector that puts the Kirk MCP tools directly into a
 Claude conversation. Hosted MCP (`https://kirk-mcp.kavara.ai/mcp`) can also
 be called directly from code. For REST calls from code, Postman or an agent,
-use the [Customer REST API](customer-rest-api.md).
+use the [Customer REST API](customer-rest-api.md). For which calls need a key,
+and how a refusal is returned, see the [MCP auth contract](mcp-auth-contract.md).
 
 ## What you need
 
 A customer API key. Key creation is self-service: sign in at
 [kavara.ai/login](https://kavara.ai/login) with Google or GitHub, open **API keys**
 in the [console](https://kavara.ai/console) and create a key. The key is bound to
-your Kavara account. Present it as a header (`Authorization: Bearer k_...`)
-against the bare `/mcp` path. Never put a key in a URL.
+your Kavara account.
+
+Send the key against the bare `/mcp` path. The
+[auth contract](mcp-auth-contract.md) is the rule for the handshake, the demo
+tools, and a bad key.
+
+- **Header** — `Authorization: Bearer k_...`. `X-Kirk-Key: k_...` is the same
+  check. This is the supported route.
+- **Legacy URL** — a key in the path or query string is still accepted for
+  existing clients, and it is deprecated. Do not put a key in a URL for a new
+  client. If a URL key and a header are both present, the URL key wins.
+- **Cloudflare Access service token** — a client id and secret, used against the
+  bare `/mcp` path. Kavara issues these.
 
 A key can spend real balance on metered tools, so treat it as a secret: do not
 commit it, paste it into an issue, or share it in chat.
@@ -22,7 +34,7 @@ Pass the key as a header:
 
 ```sh
 claude mcp add --transport http kirk https://kirk-mcp.kavara.ai/mcp \
-  -H "Authorization: Bearer k_..."
+  -H "Authorization: Bearer <key>"
 ```
 
 Confirm with `claude mcp list`.
@@ -99,9 +111,14 @@ the expensive way to do the same work.
 - **A key that stops working.** Keys can be revoked. An unknown or revoked key
   is refused outright rather than being silently downgraded to an
   unattributed account, so this surfaces as a hard failure, not as odd
-  behaviour. Create a new key in the [console](https://kavara.ai/console). Each
-  key belongs to one account. On the org connector, members share that one
-  stored key, and their calls spend that account's balance.
+  behaviour. Where it surfaces depends on the call. On `tools/list`, a bad key
+  fails the listing, so a connector can fail during discovery with no tool
+  result to inspect. On a tool call, the observed refusal is a tool result with
+  `isError` set. The key check does not send HTTP 401; see the
+  [auth contract](mcp-auth-contract.md). Create a new key in the
+  [console](https://kavara.ai/console). Each key belongs to one account. On the
+  org connector, members share that one stored key, and their calls spend that
+  account's balance.
 - **A model appears in `kirk_list_models` but errors when called.** The
   catalogue lists registered models; it is not a liveness check. Report it
   rather than assuming the call was malformed.
