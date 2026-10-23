@@ -52,9 +52,13 @@ new client. When more than one form is present, the first match wins, in
 this order: path, then query, then header. A leftover path or query key
 overrides the header.
 
-A header value that is not an account key is ignored. The request continues
-as a request with no key. It is not reported as an unknown key. An unrelated
-`Authorization` scheme is ignored the same way.
+The server first decides whether a header value is a candidate account key.
+A value that is not a candidate, including an unrelated `Authorization`
+scheme, is ignored. The request continues as a request with no key, and it
+is not reported as an unknown key. A value that is a candidate but matches no
+live key is an unknown key, and it is refused; see the next section. A
+mistyped key can land on either side: if it no longer reads as a candidate,
+the call runs with no key; if it still does, the call is refused.
 
 ## Unknown, revoked, or disallowed key
 
