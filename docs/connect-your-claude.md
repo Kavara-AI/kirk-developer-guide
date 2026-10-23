@@ -111,11 +111,14 @@ the expensive way to do the same work.
 - **A key that stops working.** Keys can be revoked. An unknown or revoked key
   is refused outright rather than being silently downgraded to an
   unattributed account, so this surfaces as a hard failure, not as odd
-  behaviour. On this MCP server the refusal is a tool result with `isError`
-  set, not HTTP 401; see the [auth contract](mcp-auth-contract.md). Create a
-  new key in the [console](https://kavara.ai/console). Each key belongs to one
-  account. On the org connector, members share that one stored key, and their
-  calls spend that account's balance.
+  behaviour. Where it surfaces depends on the call. On `tools/list`, a bad key
+  fails the listing, so a connector can fail during discovery with no tool
+  result to inspect. On a tool call, the observed refusal is a tool result with
+  `isError` set. The key check does not send HTTP 401; see the
+  [auth contract](mcp-auth-contract.md). Create a new key in the
+  [console](https://kavara.ai/console). Each key belongs to one account. On the
+  org connector, members share that one stored key, and their calls spend that
+  account's balance.
 - **A model appears in `kirk_list_models` but errors when called.** The
   catalogue lists registered models; it is not a liveness check. Report it
   rather than assuming the call was malformed.
