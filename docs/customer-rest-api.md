@@ -56,7 +56,7 @@ Availability of a credential does not authorize unrelated workloads or spending.
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| GET | `/v1/models` | Read available models and select a compatible model ID. Customer identity is `release_id`. |
+| GET | `/v1/models` | Read available models and select a compatible model ID |
 | POST | `/v1/score-book` | Score one ten-level bid/ask price book |
 
 `GET /v1/models` returns the model catalog. Customer identity on that response is `release_id`.
