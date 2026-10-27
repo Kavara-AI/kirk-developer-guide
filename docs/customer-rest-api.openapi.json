@@ -3,7 +3,7 @@
   "info": {
     "title": "Kirk Customer REST API",
     "version": "1.0.0",
-    "description": "Three customer routes for engine identity, model discovery and fixed ten-level price-book data fit. Separate from the hosted MCP service. Supply a customer key through local secret controls."
+    "description": "Customer routes for model discovery and fixed ten-level price-book data fit. Customer identity on the model catalog is release_id. Separate from the hosted MCP service. Supply a customer key through local secret controls."
   },
   "servers": [
     {
@@ -16,57 +16,13 @@
     }
   ],
   "paths": {
-    "/v1/engine": {
-      "get": {
-        "operationId": "getEngine",
-        "summary": "Read engine identity",
-        "responses": {
-          "200": {
-            "description": "Successful Kirk result. Preserve model-specific returned fields.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "result"
-                  ],
-                  "properties": {
-                    "result": {}
-                  },
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Adapter error; infrastructure-generated errors can use a different envelope. See customer-rest-api.md for status/code mapping.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "error"
-                  ],
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "description": "No query strings. Do not send Idempotency-Key on GET requests."
-      }
-    },
     "/v1/models": {
       "get": {
         "operationId": "listModels",
         "summary": "Read available models",
         "responses": {
           "200": {
-            "description": "Successful Kirk result. Preserve model-specific returned fields.",
+            "description": "Model catalog. Customer identity is release_id.",
             "content": {
               "application/json": {
                 "schema": {
@@ -75,9 +31,45 @@
                     "result"
                   ],
                   "properties": {
-                    "result": {}
+                    "result": {
+                      "type": "object",
+                      "description": "Available models. Customer identity is release_id.",
+                      "properties": {
+                        "release_id": {
+                          "type": "string",
+                          "description": "Customer identity for this catalog."
+                        },
+                        "models": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "description": "Model ID. Select one that is available and compatible."
+                              },
+                              "release_id": {
+                                "type": "string",
+                                "description": "Customer identity for this model when the row names its own release."
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
                   },
                   "additionalProperties": false
+                },
+                "example": {
+                  "result": {
+                    "release_id": "release-placeholder",
+                    "models": [
+                      {
+                        "id": "model-placeholder",
+                        "release_id": "release-placeholder"
+                      }
+                    ]
+                  }
                 }
               }
             }
@@ -101,7 +93,7 @@
             }
           }
         },
-        "description": "No query strings. Do not send Idempotency-Key on GET requests."
+        "description": "No query strings. Do not send Idempotency-Key on GET requests. Customer identity is release_id."
       }
     },
     "/v1/score-book": {
