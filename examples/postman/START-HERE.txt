@@ -1,0 +1,8 @@
+Kirk customer collection
+
+1. Create your own API key in the customer console. Copy it when shown and keep it private.
+2. Import the two JSON files into Postman.
+3. Select Kirk — My access. Set base_url and api_key as local, unshared values. The shipped environment stores neither a host nor a key.
+4. Send 1. List models, then 2. Score example book.
+
+Do not put a key in a shared collection or a shared environment value. Customer identity release_id comes with the next API release and is not part of these responses today. Engine and identity fields are not part of the contract.

@@ -6,7 +6,7 @@ Postman or an agent with HTTPS access. No Claude connector is required.
 - [OpenAPI specification](customer-rest-api.openapi.json)
 - [Customer collection runbook (draft)](customer-collection-runbook.md)
 - [Create an account or manage keys](https://kavara.ai/console)
-- [Download the Postman starter](https://kavara.ai/console/downloads/Kirk-Engineer-Starter.zip)
+- [Download the Postman starter](../examples/postman/Kirk-Engineer-Starter.zip)
 
 **Observed — 2 October 2026:** a customer account completed model-list and
 single-book score requests through this hostname in Postman. Both returned
@@ -59,20 +59,22 @@ Availability of a credential does not authorize unrelated workloads or spending.
 | GET | `/v1/models` | Read available models and select a compatible model ID |
 | POST | `/v1/score-book` | Score one ten-level bid/ask price book |
 
-`GET /v1/models` returns the model catalog. Customer identity on that response is `release_id`.
+`GET /v1/models` returns the model catalog. Customer identity `release_id` comes
+with the next API release and is not part of this response today.
 
 Do not append query strings. Successful responses have the envelope
-`{"result": ...}`. Keep the returned field names and raw result; model-specific
-output is not a universal response schema.
+`{"result": ...}`. The documented customer-visible field is `result`. Fields
+inside `result` are TBD. Engine and identity fields are not part of the contract.
 
 ### Fastest path: Postman
 
-Download and unzip the [starter](https://kavara.ai/console/downloads/Kirk-Engineer-Starter.zip).
+Download and unzip the [starter](../examples/postman/Kirk-Engineer-Starter.zip).
 Import both the collection and environment JSON files, select **Kirk — My access**,
-and set `api_key` through a local, unshared secret value or Postman Vault. The
-shipped environment contains no key. Do not publish or sync customer credentials.
+and set `base_url` and `api_key` through a local, unshared secret value or Postman
+Vault. The shipped environment contains no host and no key. Do not publish or sync
+customer credentials.
 
-Run **List models**, then **3. Score example book**. For a customer-safe collection
+Run **1. List models**, then **2. Score example book**. For a customer-safe collection
 that uses placeholders and `X-Kavara-Key`, follow the
 [draft runbook](customer-collection-runbook.md). Confirm the configured
 `model_id` is available before scoring. The starter generates a fresh UUID for
@@ -140,6 +142,10 @@ asks, with the best bid below the best ask, as in the synthetic example.
 `model_id` must match `[a-z0-9][a-z0-9_-]{0,127}` and name an available model.
 The maximum request body is 256 KiB. Use `Content-Type: application/json`.
 
+The score response uses that same envelope. The documented customer-visible
+field is `result`. Fields inside `result` are TBD. Engine and identity fields
+are not part of the contract.
+
 Every score POST requires **`Idempotency-Key`**, a canonical lowercase UUID v4.
 Generate one for each new logical score. If a response is lost, retain that UUID
 and the identical body for any retry; do not turn an uncertain request into a new
@@ -169,6 +175,7 @@ The adapter returns JSON errors as `{"error": "code"}`:
 Adapter responses include `Cache-Control: no-store` and `X-Request-Id`.
 Errors generated earlier by infrastructure can have a different envelope.
 For support, retain status, request ID and a redacted input description, never the
-key. A successful setup has real HTTP 200 responses for the supported calls, the
-catalog `release_id`, and a retained score result. A reachable login page or
+key. A successful setup has real HTTP 200 responses for the supported calls and
+a retained score result. Customer identity `release_id` comes with the next API
+release and is not part of those responses today. A reachable login page or
 imported collection alone does not establish working API access.

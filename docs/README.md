@@ -23,6 +23,7 @@
 
 ## Reference
 
+- [What this repository publishes](publishing.md)
 - [Customer REST API](customer-rest-api.md)
 - [Customer collection runbook (draft)](customer-collection-runbook.md)
 - [Frequently asked questions](faq.md)

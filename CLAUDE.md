@@ -35,11 +35,11 @@ For the separate MCP surface, calling Kirk needs a credential and costs real
 balance on the metered tools.
 See [Connect your Claude](docs/connect-your-claude.md) for the connector and for
 creating a key in the console. Free tools
-(`kirk_verify_engine`, `kirk_list_models`, `kirk_render_book`,
+(`kirk_list_models`, `kirk_render_book`,
 `kirk_bulk_howto`, `kirk_billing_*`) cost 0 IU and answer most questions.
 
-Record the `kirk_version` sha with any result you keep. Results from different
-engine builds are not interchangeable.
+Keep the model id with any result you record. Customer identity `release_id`
+comes with the next API release and is not part of a response today.
 
 Never commit a credential, and never put one in an example.
 
@@ -54,11 +54,11 @@ the [glossary](docs/glossary.md).
 
 ### Issue tracker
 
-Issues and specs live in Kavara Jira, project EN, not in GitHub Issues. See `docs/agents/issue-tracker.md`.
+Issues and specs live in Kavara Jira, project EN, not in GitHub Issues. See `.agents/issue-tracker.md`.
 
 ### Triage labels
 
-Default mattpocock triage roles; each tracker label equals its role name. See `docs/agents/triage-labels.md`.
+Default mattpocock triage roles; each tracker label equals its role name. See `.agents/triage-labels.md`.
 
 ### Domain docs
 

@@ -21,8 +21,8 @@ to the one scalar the table counts. A non-square W × N slice is source data
 for that construction.
 
 Entries may be real or complex. Record the numeric type you send. This
-benchmark's source file is float64. A complex matrix in this benchmark is
-complex128. A different precision is a different preparation.
+benchmark's source file is float64. Record when a matrix is complex-valued.
+A different precision is a different preparation.
 
 > Hyperparameters are a property of your deployment and are not published here. Use your
 > endpoint's defaults, or the public model id exposed by your Kirk surface. Report which

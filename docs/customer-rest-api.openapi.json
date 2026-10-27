@@ -3,7 +3,7 @@
   "info": {
     "title": "Kirk Customer REST API",
     "version": "1.0.0",
-    "description": "Customer routes for model discovery and fixed ten-level price-book data fit. Customer identity on the model catalog is release_id. Separate from the hosted MCP service. Supply a customer key through local secret controls."
+    "description": "Customer routes for model discovery and fixed ten-level price-book data fit. Customer identity release_id comes with the next API release and is not part of these responses until that change ships. Engine and identity fields are not part of the contract. Separate from the hosted MCP service. Supply a customer key through local secret controls."
   },
   "servers": [
     {
@@ -22,7 +22,7 @@
         "summary": "Read available models",
         "responses": {
           "200": {
-            "description": "Model catalog. Customer identity is release_id.",
+            "description": "Model catalog. The documented customer-visible field is result. Fields inside result are TBD. Engine and identity fields are not part of the contract. Customer identity release_id comes with the next API release and is not part of this response until that change ships.",
             "content": {
               "application/json": {
                 "schema": {
@@ -32,44 +32,10 @@
                   ],
                   "properties": {
                     "result": {
-                      "type": "object",
-                      "description": "Available models. Customer identity is release_id.",
-                      "properties": {
-                        "release_id": {
-                          "type": "string",
-                          "description": "Customer identity for this catalog."
-                        },
-                        "models": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "id": {
-                                "type": "string",
-                                "description": "Model ID. Select one that is available and compatible."
-                              },
-                              "release_id": {
-                                "type": "string",
-                                "description": "Customer identity for this model when the row names its own release."
-                              }
-                            }
-                          }
-                        }
-                      }
+                      "description": "Model catalog. Inner fields are TBD."
                     }
                   },
                   "additionalProperties": false
-                },
-                "example": {
-                  "result": {
-                    "release_id": "release-placeholder",
-                    "models": [
-                      {
-                        "id": "model-placeholder",
-                        "release_id": "release-placeholder"
-                      }
-                    ]
-                  }
                 }
               }
             }
@@ -93,7 +59,7 @@
             }
           }
         },
-        "description": "No query strings. Do not send Idempotency-Key on GET requests. Customer identity is release_id."
+        "description": "No query strings. Do not send Idempotency-Key on GET requests. Customer identity release_id comes with the next API release and is not part of this response until that change ships."
       }
     },
     "/v1/score-book": {
@@ -102,7 +68,7 @@
         "summary": "Score one ten-level price book",
         "responses": {
           "200": {
-            "description": "Successful Kirk result. Preserve model-specific returned fields.",
+            "description": "Score response. The documented customer-visible field is result. Fields inside result are TBD. Engine and identity fields are not part of the contract.",
             "content": {
               "application/json": {
                 "schema": {

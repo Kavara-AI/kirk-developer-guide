@@ -33,9 +33,11 @@ An `Authorization` header alone does not authenticate these routes.
 
 1. Set `{{base_url}}` and `{{api_key}}` outside the collection file.
 2. Send `GET {{base_url}}/v1/models` with the header above. Do not append a query string.
-3. From the `result` object, keep `release_id` with the model `id` you select.
+3. Read the `result` object. Fields inside `result` are TBD. Engine and identity
+   fields are not part of the contract.
 
-Customer identity on this response is `release_id`.
+Customer identity `release_id` comes with the next API release and is not part
+of this response today.
 
 ## Completion
 
