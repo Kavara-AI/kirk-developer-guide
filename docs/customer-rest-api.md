@@ -57,7 +57,7 @@ Availability of a credential does not authorize unrelated workloads or spending.
 | --- | --- | --- |
 | GET | `/v1/engine` | Read engine identity; retain its returned SHA with results |
 | GET | `/v1/models` | Read available models and select a compatible model ID |
-| POST | `/v1/score-book` | Score one ten-level bid/ask price book |
+| POST | `/v1/score-book` | Unavailable: this route is no longer offered. |
 
 Do not append query strings. Successful responses have the envelope
 `{"result": ...}`. Keep the returned field names and raw result; model-specific
@@ -85,7 +85,6 @@ import json
 import os
 import urllib.error
 import urllib.request
-import uuid
 
 BASE_URL = "https://api.kavara.ai"
 API_KEY = os.environ["KIRK_API_KEY"]
@@ -112,16 +111,9 @@ def call(path, payload=None, request_id=None):
 
 call("/v1/engine")
 call("/v1/models")
-# Choose a compatible model from the returned catalog before scoring.
-model_id = input("Available compatible model ID: ").strip()
-score_id = str(uuid.uuid4())
-print("Retain this score Idempotency-Key for any retry:", score_id)
-call("/v1/score-book", {
-    "bid_px": [99.99, 99.98, 99.97, 99.96, 99.95, 99.94, 99.93, 99.92, 99.91, 99.90],
-    "ask_px": [100.01, 100.02, 100.03, 100.04, 100.05, 100.06, 100.07, 100.08, 100.09, 100.10],
-    "model_id": model_id,
-}, request_id=score_id)
 ```
+
+A replacement scoring route is coming; this page will be updated when it is available.
 
 The starter's example model is `kirk-test1-binary-threshold-v1`; use it only while
 it remains available and compatible. An unattended agent should read the model

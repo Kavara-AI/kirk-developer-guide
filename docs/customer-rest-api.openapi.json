@@ -108,6 +108,7 @@
       "post": {
         "operationId": "scoreBook",
         "summary": "Score one ten-level price book",
+        "deprecated": true,
         "responses": {
           "200": {
             "description": "Successful Kirk result. Preserve model-specific returned fields.",
@@ -145,7 +146,7 @@
             }
           }
         },
-        "description": "No query strings. Maximum body 256 KiB. Use an available compatible model. Current customer data-fit scoring is zero credits; paid workflow activation is separate. Reuse the same UUID and identical body for an uncertain retry.",
+        "description": "Unavailable: this route is no longer offered.",
         "parameters": [
           {
             "name": "Idempotency-Key",
