@@ -20,9 +20,9 @@ This repository helps developers answer three practical questions:
 ## Customer API access
 
 For a working customer API connection, use **`https://api.kavara.ai`** with an
-`X-Kavara-Key` header. Start with the [REST quickstart](docs/customer-rest-api.md),
-[OpenAPI specification](docs/customer-rest-api.openapi.json), or
-[Postman starter](https://kavara.ai/console/downloads/Kirk-Engineer-Starter.zip).
+`X-Kavara-Key` header. Start with the [REST quickstart](docs/customer-rest-api.md)
+or the [OpenAPI specification](docs/customer-rest-api.openapi.json).
+A starter collection will be available shortly.
 To get a key, sign in at [kavara.ai/login](https://kavara.ai/login) with Google or GitHub, open **API keys** in the [console](https://kavara.ai/console) and create a key. Keys are self-service and bound to your account.
 
 The REST service supports engine identity, model listing and ten-level price-book

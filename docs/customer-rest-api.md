@@ -5,7 +5,6 @@ Postman or an agent with HTTPS access. No Claude connector is required.
 
 - [OpenAPI specification](customer-rest-api.openapi.json)
 - [Create an account or manage keys](https://kavara.ai/console)
-- [Download the Postman starter](https://kavara.ai/console/downloads/Kirk-Engineer-Starter.zip)
 
 **Observed — 2 October 2026:** a customer account completed engine, model-list and
 single-book score requests through this hostname in Postman. All three returned
@@ -45,8 +44,8 @@ start with the [agent intake workflow](agent-guide.md).
    `Authorization: Bearer ...` header alone does not authenticate these routes.
    Customer REST calls do not require Cloudflare service credentials.
 4. If your environment restricts outbound domains, have its administrator allow
-   HTTPS to `api.kavara.ai`. Allow `kavara.ai` for account access or downloading the
-   starter. Add `kirk-mcp.kavara.ai` only if using the separate MCP surface.
+   HTTPS to `api.kavara.ai`. Allow `kavara.ai` for account access.
+   Add `kirk-mcp.kavara.ai` only if using the separate MCP surface.
 
 For an agent, use a separate customer key and revoke it when no longer needed.
 Availability of a credential does not authorize unrelated workloads or spending.
@@ -65,15 +64,7 @@ output is not a universal response schema.
 
 ### Fastest path: Postman
 
-Download and unzip the [starter](https://kavara.ai/console/downloads/Kirk-Engineer-Starter.zip).
-Import both the collection and environment JSON files, select **Kirk — My access**,
-and set `api_key` through a local, unshared secret value or Postman Vault. The
-shipped environment contains no key. Do not publish or sync customer credentials.
-
-Run **1. Verify engine**, then **2. List models**, then **3. Score example book**. Confirm the configured
-`model_id` is available before scoring. The starter generates a fresh UUID for
-each score send; for a retry of the same logical operation, retain and reuse the
-original UUID instead.
+A starter collection will be available shortly.
 
 ### Python: the same three calls
 
@@ -123,7 +114,7 @@ call("/v1/score-book", {
 }, request_id=score_id)
 ```
 
-The starter's example model is `kirk-test1-binary-threshold-v1`; use it only while
+An example model is `kirk-test1-binary-threshold-v1`; use it only while
 it remains available and compatible. An unattended agent should read the model
 catalog and configure the compatible model explicitly instead of using `input()`.
 The script does not retry automatically.
