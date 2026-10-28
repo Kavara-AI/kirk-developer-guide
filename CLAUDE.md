@@ -24,7 +24,7 @@ Benchmark 001 currently defines an experiment. It does not claim validated
 performance, and nothing should describe it as though it does until a real run
 and its outputs are committed.
 
-## Running anything against the live engine
+## Running anything against the Kirk API
 
 For customer REST calls at `https://api.kavara.ai`, use
 [Customer REST API](docs/customer-rest-api.md) and its
