@@ -38,8 +38,7 @@ creating a key in the console. Free tools
 (`kirk_verify_engine`, `kirk_list_models`, `kirk_render_book`,
 `kirk_bulk_howto`, `kirk_billing_*`) cost 0 IU and answer most questions.
 
-Record the `kirk_version` sha with any result you keep. Results from different
-engine builds are not interchangeable.
+Record `release_id` (the release you're calling) with any result you keep.
 
 Never commit a credential, and never put one in an example.
 

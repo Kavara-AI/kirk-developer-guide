@@ -117,11 +117,8 @@ Each output should be traceable to:
 - observation index
 - start and end timestamps
 - preprocessing configuration, including window, stride and missing-data rule
-- **Kirk engine sha** (`kirk_version`, stamped on every response)
+- `release_id` (the release you're calling)
 - run parameters, including chain length and warm-up
-
-The engine sha matters more than the rest: results from different engine builds are not
-interchangeable, and a result without its sha cannot be placed in a lineage later.
 
 ## Proposed upload-and-data-fit handoff
 

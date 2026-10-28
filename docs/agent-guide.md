@@ -114,7 +114,7 @@ was requested, continue to contract discovery rather than claiming a run occurre
 
 Choose the surface first. For the customer fixed-book REST service at
 **`https://api.kavara.ai`**, follow [Customer REST API](customer-rest-api.md):
-account/key setup, engine identity, model listing and one compatible score.
+account/key setup, release_id (the release you're calling), model listing and one compatible score.
 Its input, authentication and idempotency requirements are defined in the
 [OpenAPI specification](customer-rest-api.openapi.json). This path needs no MCP
 client or Claude connector. Keep its data-fit credit policy separate from MCP
@@ -127,8 +127,8 @@ credentials through the client's secret mechanism. The hosted MCP endpoint is
 1. Read server instructions and discover tools with MCP `tools/list` through your
    client. Inspect schemas, cost policy and available resources. Tool names in
    prose are orientation, not permission to invent arguments.
-2. Use the advertised orientation tools (the guide documents `kirk_verify_engine`
-   and `kirk_list_models`) to record engine identity and candidate model IDs. Follow
+2. Use the advertised orientation tools (the guide documents `kirk_list_models`)
+   to record candidate model IDs and release_id (the release you're calling). Follow
    the current advertised schema if names differ. A listing alone is not liveness
    or data compatibility; an identity hash alone is not verified enclave attestation.
 3. Match the source representation to an explicit model/input contract. Kirk

@@ -77,7 +77,7 @@ Each entry should identify:
 - **Context:** input histories before and after the selected observation, missingness,
   exact-zero counts, warmup and reset information. Later observations are retrospective
   context and must not influence an earlier detection.
-- **Reproducibility:** data reference, model id, engine identity, effective configuration,
+- **Reproducibility:** data reference, model id, release_id (the release you're calling), effective configuration,
   input contract, state history or replay procedure, and analysis version.
 - **Recurrence and comparison:** distinct episodes separately from elevated observations;
   eligible non-event windows, selection rules and relevant existing-method results.
@@ -116,7 +116,7 @@ other machine-learning architectures can retain and update state too.
 The practical question is whether each sensing unit is fast and inexpensive enough
 to run at the required cadence, across the intended number of streams. Report latency
 for the actual work being sold: one observation scored by a specified model, with its
-required state update and output. Record engine identity, configuration, input shape,
+required state update and output. Record release_id (the release you're calling), configuration, input shape,
 hardware, thread count, batch size, timing boundary and latency distribution.
 
 Keep solver-only timings, complete model steps and end-to-end API latency separate.
