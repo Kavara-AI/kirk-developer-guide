@@ -209,7 +209,7 @@ for checking pipeline wiring and agent procedure, not for claiming Kirk's
 performance.
 
 For a **hosted** sweep, first obtain a server-declared catalogue bound to the
-release_id (the release you're calling) and the supported Uhura representation. It must specify
+release_id and the supported Uhura representation. It must specify
 the admitted field names and ranges, matrix/input envelope, state and reset
 semantics, maximum combinations, timeout/capacity, the customer's identity and
 spending phase, and a receipt for each run. Ask the server for the quote and
