@@ -18,7 +18,7 @@ request, JSON Schema, or inference response.
 | `schema_version` | Integer `1` for this brief format. Handle other versions explicitly. The catalogue's separately versioned schema is not an API version either. |
 | `created_at` | ISO 8601 creation time. Set it to the actual time for a new brief. |
 | `purpose` | Preparation for a data-fit review. |
-| `source` | Catalogue repository URL, revision actually read and `catalogue_claim_status: "Hypothesis"`. This example pins `9d2e119`; update for a different source revision. |
+| `source` | Catalogue repository URL, revision actually read and `catalogue_claim_status: "Hypothesis"`. This example uses catalogue dated 2026-09-21. |
 | `status` | Explicit preparation-only status. Preserve these values for a brief without contract review or execution. A later run has its own manifest/evidence. |
 | `customer_declarations.dataset_description` | Known source description, or null when unknown. Mark synthetic examples explicitly. |
 | `customer_declarations.exploration_question` | Optional question or null; open-ended discovery is valid. |
@@ -64,4 +64,4 @@ network access or model calls are needed.
 unestablished and engine run not performed. To request live equipment analysis,
 the next step is the square-matrix contract in
 [tensor generation](../../docs/tensor-generation.md) and runtime access that
-accepts it. The ten-level book-scoring call is a separate fixed route.
+accepts it.

@@ -60,7 +60,7 @@ Search the catalogue by domain, observation or behaviour. For example, try
 **Explore all … domains** reveals the remaining cards.
 
 The catalogue contains 32 domains and 256 prompts, drawn from this guide's
-[catalogue](phenomena-catalogue.md) at revision `9d2e119`.
+[catalogue dated 2026-09-21](phenomena-catalogue.md).
 
 - Choose **+ Add** to add a domain to your starting point. Choose **✓ Added** or
   its removal control in the summary to remove it.

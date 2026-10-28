@@ -31,4 +31,4 @@ Kirk should not replace certified controls, interlocks or human review solely on
 - test robustness to missing and delayed data
 - quantify detection delay and false alarms
 - document failure cases
-- reproduce results across engine versions
+- reproduce results across releases (release_id)

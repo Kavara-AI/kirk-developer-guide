@@ -75,7 +75,7 @@ questions.
 | Tool | Cost | What it does |
 | --- | --- | --- |
 | `kirk_verify_engine` | 0 IU | release_id (the release you're calling) |
-| `kirk_list_models` | 0 IU | registered model ids and their engines |
+| `kirk_list_models` | 0 IU | registered model ids |
 | `kirk_render_book` | 0 IU | inspect the rendered tensor without scoring |
 | `kirk_bulk_howto` | 0 IU | returns a stdlib Python client for bulk work |
 | `kirk_billing_show` / `kirk_billing_usage` | 0 IU | balance and usage |

@@ -67,14 +67,14 @@ ask_px   10 ask prices, level 1 first
 inspection result:
 
 ```json
-{"shape": [20, 20], "dtype": "complex128", "non_zero_cells": 50,
+{"shape": [20, 20], "dtype": "complex", "non_zero_cells": 50,
  "mid_price": 223.095, "spread_ticks": 1.0}
 ```
 
-On this route the inspection result is a **20 × 20 complex128** tensor whose
+On this route the inspection result is a **20 x 20 complex-valued tensor** whose
 rows are `Bid1..Bid10` and `Ask1..Ask10`. That result belongs to the book
-route. See [Customer REST API](customer-rest-api.md). The customer REST score is
-`POST /v1/score-book` with the same ten-and-ten prices.
+route. See [Customer REST API](customer-rest-api.md). Scoring is not
+available through this API.
 
 Documented call behaviour differs by tool. `kirk_score_l2_book` scores books
 as one ordered chain. `kirk_score_book_batch` scores many snapshots
