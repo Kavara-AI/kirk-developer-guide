@@ -7,9 +7,8 @@ Postman or an agent with HTTPS access. No Claude connector is required.
 - [Create an account or manage keys](https://kavara.ai/console)
 - [Download the Postman starter](https://kavara.ai/console/downloads/Kirk-Engineer-Starter.zip)
 
-**Observed — 2 October 2026:** a customer account completed model-list and
-single-book score requests through this hostname in Postman. Both returned
-HTTP 200; account receipts recorded zero credits for this data-fit path. This is
+**Observed — 2 October 2026:** a customer account completed a model-list
+request through this hostname in Postman. It returned HTTP 200. This is
 bounded customer-access validation, not a throughput, latency or scale guarantee.
 
 ## Choose REST or MCP
@@ -68,7 +67,7 @@ Import both the collection and environment JSON files, select **Kirk — My acce
 and set `api_key` through a local, unshared secret value or Postman Vault. The
 shipped environment contains no key. Do not publish or sync customer credentials.
 
-Run **2. List models**.
+Run the list-models request.
 
 ### Python
 
@@ -102,8 +101,7 @@ def call(path):
 call("/v1/models")
 ```
 
-A replacement scoring route is coming; this page will be updated when it is
-available.
+Scoring is not available through this API.
 
 The current customer data-fit path records zero credits. Paid ongoing workflow
 activation is separate; this does not establish pricing for MCP scoring or other
@@ -116,13 +114,10 @@ The adapter returns JSON errors as `{"error": "code"}`:
 | HTTP | Code | Check |
 | --- | --- | --- |
 | 400 | `invalid_headers` | Missing or duplicated key header, or invalid header framing |
-| 400 | `missing_idempotency_key` / `invalid_idempotency_key` | UUID v4 on POST only |
-| 400 | `invalid_json` / `invalid_request` | JSON syntax, exact fields, dimensions and value types |
 | 401 | `invalid_api_key` | Key format |
 | 402 | `insufficient_credits` | Account allowance for the requested operation |
 | 403 | `request_denied` | Key/account validity and required permissions |
-| 404 | `route_not_found` / `model_not_found` | Exact method/path, no query string, available model |
-| 413 | `request_too_large` | Body size and content length |
+| 404 | `route_not_found` | Exact method/path, no query string |
 | 429 | `rate_limited` | Reduce request rate |
 | 502 / 503 | `origin_unavailable` | Service availability; report request ID to support |
 

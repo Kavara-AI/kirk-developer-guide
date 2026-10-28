@@ -73,8 +73,8 @@ inspection result:
 
 On this route the inspection result is a **20 × 20 complex128** tensor whose
 rows are `Bid1..Bid10` and `Ask1..Ask10`. That result belongs to the book
-route. See [Customer REST API](customer-rest-api.md). A replacement scoring
-route is coming; this page will be updated when it is available.
+route. See [Customer REST API](customer-rest-api.md). Scoring is not
+available through this API.
 
 Documented call behaviour differs by tool. `kirk_score_l2_book` scores books
 as one ordered chain. `kirk_score_book_batch` scores many snapshots
