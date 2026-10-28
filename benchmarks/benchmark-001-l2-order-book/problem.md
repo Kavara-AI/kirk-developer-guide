@@ -13,7 +13,7 @@ A threshold on one feature may miss these combinations or generate false alarms 
 
 ## Operational question
 
-Can a relationship-aware inference engine signal that order-book behaviour has entered a different regime?
+Can Kirk signal that order-book behaviour has entered a different regime?
 
 ## Scope
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render the public exploration catalogue, or check it for drift. No engine calls."""
+"""Render the public exploration catalogue, or check it for drift. No service calls."""
 
 import argparse
 import json

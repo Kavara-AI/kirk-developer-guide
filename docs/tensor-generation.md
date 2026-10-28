@@ -73,7 +73,8 @@ inspection result:
 
 On this route the inspection result is a **20 × 20 complex128** tensor whose
 rows are `Bid1..Bid10` and `Ask1..Ask10`. That result belongs to the book
-route. See [Customer REST API](customer-rest-api.md). A replacement scoring route is coming; this page will be updated when it is available.
+route. See [Customer REST API](customer-rest-api.md). A replacement scoring
+route is coming; this page will be updated when it is available.
 
 Documented call behaviour differs by tool. `kirk_score_l2_book` scores books
 as one ordered chain. `kirk_score_book_batch` scores many snapshots
@@ -116,11 +117,8 @@ Each output should be traceable to:
 - observation index
 - start and end timestamps
 - preprocessing configuration, including window, stride and missing-data rule
-- **Kirk engine sha** (`kirk_version`, stamped on every response)
+- the full response and its request ID
 - run parameters, including chain length and warm-up
-
-The engine sha matters more than the rest: results from different engine builds are not
-interchangeable, and a result without its sha cannot be placed in a lineage later.
 
 ## Proposed upload-and-data-fit handoff
 
@@ -212,7 +210,7 @@ python3 scripts/render_phenomena_catalogue.py --check
 
 The script uses the Python standard library, validates unique identifiers and profile
 references, and checks that the published Markdown matches its source. It reads no
-customer files, uploads nothing and calls no engine. Keep existing IDs stable; add
+customer files and uploads nothing. Keep existing IDs stable; add
 new IDs for new prompts instead of renumbering or reusing old ones. Each entry inherits
 the catalogue's `Hypothesis` label. Put measured findings and their evidence in the
 benchmark/result records rather than relabeling this inspiration catalogue.

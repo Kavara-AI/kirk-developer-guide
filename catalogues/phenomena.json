@@ -821,7 +821,7 @@
       "phenomena": [
         {
           "id": "aviation-maritime-001",
-          "description": "Recurring combinations of engine and environmental measurements."
+          "description": "Recurring combinations of propulsion and environmental measurements."
         },
         {
           "id": "aviation-maritime-002",

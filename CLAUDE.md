@@ -24,7 +24,7 @@ Benchmark 001 currently defines an experiment. It does not claim validated
 performance, and nothing should describe it as though it does until a real run
 and its outputs are committed.
 
-## Running anything against the live engine
+## Running live calls
 
 For customer REST calls at `https://api.kavara.ai`, use
 [Customer REST API](docs/customer-rest-api.md) and its
@@ -35,11 +35,10 @@ For the separate MCP surface, calling Kirk needs a credential and costs real
 balance on the metered tools.
 See [Connect your Claude](docs/connect-your-claude.md) for the connector and for
 creating a key in the console. Free tools
-(`kirk_verify_engine`, `kirk_list_models`, `kirk_render_book`,
+(`kirk_list_models`, `kirk_render_book`,
 `kirk_bulk_howto`, `kirk_billing_*`) cost 0 IU and answer most questions.
 
-Record the `kirk_version` sha with any result you keep. Results from different
-engine builds are not interchangeable.
+Retain the response and its request ID with any result you keep.
 
 Never commit a credential, and never put one in an example.
 

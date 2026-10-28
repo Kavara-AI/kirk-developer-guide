@@ -440,7 +440,7 @@ transformations. Confirm their meaning with the data owner before preprocessing.
 
 **Hypotheses to explore:**
 
-- Recurring combinations of engine and environmental measurements.
+- Recurring combinations of propulsion and environmental measurements.
 - Changes in relationships between fuel use, speed and operating conditions.
 - Similar trajectories across different aircraft or vessels.
 - Repeated patterns in port or airport congestion.

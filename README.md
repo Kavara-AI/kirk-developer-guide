@@ -25,8 +25,8 @@ For a working customer API connection, use **`https://api.kavara.ai`** with an
 [Postman starter](https://kavara.ai/console/downloads/Kirk-Engineer-Starter.zip).
 To get a key, sign in at [kavara.ai/login](https://kavara.ai/login) with Google or GitHub, open **API keys** in the [console](https://kavara.ai/console) and create a key. Keys are self-service and bound to your account.
 
-The REST service supports engine identity, model listing and ten-level price-book
-scoring. It does not require Claude. The separate hosted MCP surface is described in
+The REST service supports model listing. It does not require Claude. The separate
+hosted MCP surface is described in
 [Connect your Claude](docs/connect-your-claude.md).
 
 ## Start here
@@ -65,7 +65,7 @@ an illustrative Kirk → Jev handoff; live inference and payments are not enable
 
 ## Documentation principles
 
-- **Problem first:** define the system and discovery question before discussing the engine; a downstream decision can follow later.
+- **Problem first:** define the system and discovery question before discussing Kirk; a downstream decision can follow later.
 - **Evidence over assertion:** connect material claims to runnable examples.
 - **Capability before architecture:** establish fit before explaining internals.
 - **Transparent limitations:** distinguish demonstrated behaviour from intended behaviour.

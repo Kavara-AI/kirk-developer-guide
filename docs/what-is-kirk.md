@@ -1,6 +1,6 @@
 # What is Kirk?
 
-Kirk is an inference engine intended for complex, non-stationary systems.
+Kirk is intended for complex, non-stationary systems.
 
 For this guide, that means systems with:
 
