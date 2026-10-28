@@ -64,7 +64,7 @@ an illustrative Kirk → Jev handoff; live inference and payments are not enable
 
 ## Documentation principles
 
-- **Problem first:** define the system and discovery question before discussing the engine; a downstream decision can follow later.
+- **Problem first:** define the system and discovery question before discussing Kirk; a downstream decision can follow later.
 - **Evidence over assertion:** connect material claims to runnable examples.
 - **Capability before architecture:** establish fit before explaining internals.
 - **Transparent limitations:** distinguish demonstrated behaviour from intended behaviour.
