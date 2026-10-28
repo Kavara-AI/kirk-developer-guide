@@ -5,7 +5,7 @@
 
 ## Context
 
-Claims about a new inference engine are difficult to assess without reproducible evidence.
+Claims about Kirk are difficult to assess without reproducible evidence.
 
 ## Decision
 

@@ -5,7 +5,7 @@
 
 ## Context
 
-New users need to determine whether Kirk fits their problem before studying engine internals.
+New users need to determine whether Kirk fits their problem before studying internals.
 
 ## Decision
 

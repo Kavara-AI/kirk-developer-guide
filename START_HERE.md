@@ -52,8 +52,7 @@ the axes, ordering, scaling and outputs.
 
 For customer REST access from code, Postman or an agent, follow the
 [REST quickstart](docs/customer-rest-api.md) at **`https://api.kavara.ai`**. It
-includes account/key setup, a [machine-readable specification](docs/customer-rest-api.openapi.json)
-and the Postman download. This is the fixed ten-level price-book data-fit path.
+includes account/key setup and a [machine-readable specification](docs/customer-rest-api.openapi.json).
 
 For the separate MCP tool surface:
 

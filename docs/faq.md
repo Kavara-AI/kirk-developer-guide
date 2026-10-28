@@ -2,7 +2,7 @@
 
 ## Is Kirk an LLM?
 
-No. This guide treats Kirk as an inference engine for multistream, non-stationary systems rather than a language-generation model.
+No. This guide treats Kirk as suited to multistream, non-stationary systems rather than a language-generation model.
 
 ## Does Kirk directly diagnose faults?
 
