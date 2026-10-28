@@ -114,7 +114,7 @@ was requested, continue to contract discovery rather than claiming a run occurre
 
 Choose the surface first. For the customer fixed-book REST service at
 **`https://api.kavara.ai`**, follow [Customer REST API](customer-rest-api.md):
-account/key setup, engine identity, model listing and one compatible score.
+account/key setup and one compatible score.
 Its input, authentication and idempotency requirements are defined in the
 [OpenAPI specification](customer-rest-api.openapi.json). This path needs no MCP
 client or Claude connector. Keep its data-fit credit policy separate from MCP
@@ -127,10 +127,10 @@ credentials through the client's secret mechanism. The hosted MCP endpoint is
 1. Read server instructions and discover tools with MCP `tools/list` through your
    client. Inspect schemas, cost policy and available resources. Tool names in
    prose are orientation, not permission to invent arguments.
-2. Use the advertised orientation tools (the guide documents `kirk_verify_engine`
-   and `kirk_list_models`) to record engine identity and candidate model IDs. Follow
+2. Use the advertised orientation tools (the guide documents `kirk_list_models`)
+   to record candidate model IDs. Follow
    the current advertised schema if names differ. A listing alone is not liveness
-   or data compatibility; an identity hash alone is not verified enclave attestation.
+   or data compatibility.
 3. Match the source representation to an explicit model/input contract. Kirk
    takes one square real- or complex-valued matrix per time step, typically
    16 × 16 or 32 × 32. You choose what the rows and columns represent and you
@@ -164,10 +164,7 @@ CLI that plans sweeps against an owned Studio workspace. Its `start` command
 permits bounded **local synthetic Kirk stub** sweeps only. The hosted customer
 Gateway currently exposes a fixed price-book score contract, not raw Kirk
 hyperparameter overrides. A Studio plan or stub result is not a hosted Kirk
-run or a credit quote. The Studio stub's `cooling_rate` decays tau
-multiplicatively, while the measured
-[PyKirk operating-envelope work](https://github.com/Kavara-AI/kirk-operating-envelope)
-describes an additive tau increment. Do not transfer a tuned value between them.
+run or a credit quote. Studio stub parameters are not hosted Kirk parameters; do not transfer a tuned value between them.
 
 For an authorised local Studio experiment, read that repository's `README.md`,
 `docs/MODELS.md` and CLI help. The CLI reads `KVS_STUDIO_TOKEN`; supply the
@@ -196,9 +193,9 @@ python -m kvs sweep compare --studio-url https://YOUR_STUDIO_ORIGIN \
 `config list/show` read Studio's own processor registry. The Kirk result says
 `agent_sweep_policy: "stub-only"` and
 `hosted_kirk_raw_hp_admission: false`; its field names and defaults are **not**
-a hosted engine catalogue. Save `schema_sha256` so later readers know which
+a hosted Kirk parameter catalogue. Save `schema_sha256` so later readers know which
 internal form the agent inspected. The optional pin stops a new plan or start
-when that form changes; it does not verify the sealed engine. Recovery of an
+when that form changes; it does not verify the hosted release. Recovery of an
 existing sweep intent remains available after a form change.
 
 The `start` command replans, caps the expanded run count and binds execution
@@ -212,7 +209,7 @@ for checking pipeline wiring and agent procedure, not for claiming Kirk's
 performance.
 
 For a **hosted** sweep, first obtain a server-declared catalogue bound to the
-serving engine digest and the supported Uhura representation. It must specify
+release_id and the supported Uhura representation. It must specify
 the admitted field names and ranges, matrix/input envelope, state and reset
 semantics, maximum combinations, timeout/capacity, the customer's identity and
 spending phase, and a receipt for each run. Ask the server for the quote and
@@ -225,8 +222,8 @@ new idempotency keys to retry an uncertain execution.
 
 Execute only through the established contract. Keep input references, effective
 configuration, ordered processing or independent-snapshot semantics, state/reset
-history, engine/model identity, raw responses, usage and errors in a run manifest.
-Preserve server field names for identity and outputs; do not invent a universal
+history, model id, raw responses, usage and errors in a run manifest.
+Preserve server field names for outputs; do not invent a universal
 response schema. Before retrying an uncertain metered call, establish whether it
 already executed or consumed usage.
 

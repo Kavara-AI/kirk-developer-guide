@@ -60,7 +60,7 @@ Search the catalogue by domain, observation or behaviour. For example, try
 **Explore all … domains** reveals the remaining cards.
 
 The catalogue contains 32 domains and 256 prompts, drawn from this guide's
-[catalogue](phenomena-catalogue.md) at revision `9d2e119`.
+[catalogue dated 2026-09-21](phenomena-catalogue.md).
 
 - Choose **+ Add** to add a domain to your starting point. Choose **✓ Added** or
   its removal control in the summary to remove it.
@@ -189,7 +189,7 @@ Return to **Kirk → Jev** and find **What would you pass to Jev?**
 
 **Hypothesis:** these scenarios demonstrate a proposed interface, not measured
 Kirk output, a Jev response or a validated integration. The illustrative evidence
-explicitly leaves measurements and model/engine identity unset. Editing or
+explicitly leaves measurements and the model unset. Editing or
 exporting the example makes no model call.
 
 A developer implementing the pattern needs AI SDK 7+, configured AI Gateway
@@ -200,7 +200,7 @@ Running copied code elsewhere can make billable calls; this portal does not
 provide credentials or execute the code.
 
 A sample-quality report or exploration prompt is not a substitute for discovery
-evidence. Retain measurements, timestamps, input context, model and engine identity,
+evidence. Retain measurements, timestamps, input context, and the model,
 configuration, replay information, comparisons and uncertainty. Then evaluate
 Jev's decisions and your application policy separately. A typed decision alone
 does not establish a cause or authorise an action.

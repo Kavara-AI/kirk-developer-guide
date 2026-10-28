@@ -4,14 +4,14 @@
   "purpose": "Kirk discovery intake; preparation for a data-fit review",
   "source": {
     "url": "https://github.com/Kavara-AI/kirk-developer-guide",
-    "revision": "9d2e119",
+    "revision": "catalogue dated 2026-09-21",
     "catalogue_claim_status": "Hypothesis"
   },
   "status": {
     "input_contract": "Not established",
     "model_selection": "Not established",
     "admission": "Not assessed",
-    "engine_run": "Not performed",
+    "run_status": "Not performed",
     "payment": "Not collected"
   },
   "customer_declarations": {
