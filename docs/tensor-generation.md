@@ -73,8 +73,8 @@ inspection result:
 
 On this route the inspection result is a **20 x 20 complex-valued tensor** whose
 rows are `Bid1..Bid10` and `Ask1..Ask10`. That result belongs to the book
-route. See [Customer REST API](customer-rest-api.md). Scoring is not
-available through this API.
+route. See [Customer REST API](customer-rest-api.md). The customer REST score is
+`POST /v1/score-book` with the same ten-and-ten prices.
 
 Documented call behaviour differs by tool. `kirk_score_l2_book` scores books
 as one ordered chain. `kirk_score_book_batch` scores many snapshots
@@ -117,7 +117,6 @@ Each output should be traceable to:
 - observation index
 - start and end timestamps
 - preprocessing configuration, including window, stride and missing-data rule
-- `release_id` (the release you're calling)
 - run parameters, including chain length and warm-up
 
 ## Proposed upload-and-data-fit handoff

@@ -64,4 +64,4 @@ network access or model calls are needed.
 unestablished and engine run not performed. To request live equipment analysis,
 the next step is the square-matrix contract in
 [tensor generation](../../docs/tensor-generation.md) and runtime access that
-accepts it.
+accepts it. The ten-level book-scoring call is a separate fixed route.

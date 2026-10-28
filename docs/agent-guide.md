@@ -114,9 +114,8 @@ was requested, continue to contract discovery rather than claiming a run occurre
 
 Choose the surface first. For the customer fixed-book REST service at
 **`https://api.kavara.ai`**, follow [Customer REST API](customer-rest-api.md):
-account/key setup and release_id (the release you're calling). Scoring is not
-available through this API.
-Its authentication requirements are defined in the
+account/key setup and one compatible score.
+Its input, authentication and idempotency requirements are defined in the
 [OpenAPI specification](customer-rest-api.openapi.json). This path needs no MCP
 client or Claude connector. Keep its data-fit credit policy separate from MCP
 metering. Supply credentials through the environment's secret controls.
@@ -129,9 +128,9 @@ credentials through the client's secret mechanism. The hosted MCP endpoint is
    client. Inspect schemas, cost policy and available resources. Tool names in
    prose are orientation, not permission to invent arguments.
 2. Use the advertised orientation tools (the guide documents `kirk_list_models`)
-   to record candidate model IDs and release_id (the release you're calling). Follow
+   to record candidate model IDs. Follow
    the current advertised schema if names differ. A listing alone is not liveness
-   or data compatibility; an identity hash alone is not verified enclave attestation.
+   or data compatibility.
 3. Match the source representation to an explicit model/input contract. Kirk
    takes one square real- or complex-valued matrix per time step, typically
    16 × 16 or 32 × 32. You choose what the rows and columns represent and you
@@ -163,8 +162,8 @@ can be complete while requested inference remains blocked.
 [Kavara Visual Studio](https://github.com/Kavara-AI/visual-studio) has an agent
 CLI that plans sweeps against an owned Studio workspace. Its `start` command
 permits bounded **local synthetic Kirk stub** sweeps only. The hosted customer
-Gateway does not expose raw Kirk hyperparameter overrides. Scoring is not
-available through this API. A Studio plan or stub result is not a hosted Kirk
+Gateway currently exposes a fixed price-book score contract, not raw Kirk
+hyperparameter overrides. A Studio plan or stub result is not a hosted Kirk
 run or a credit quote. Studio stub parameters are not hosted Kirk parameters; do not transfer a tuned value between them.
 
 For an authorised local Studio experiment, read that repository's `README.md`,
@@ -223,8 +222,8 @@ new idempotency keys to retry an uncertain execution.
 
 Execute only through the established contract. Keep input references, effective
 configuration, ordered processing or independent-snapshot semantics, state/reset
-history, model id and release_id (the release you're calling), raw responses, usage and errors in a run manifest.
-Preserve server field names for identity and outputs; do not invent a universal
+history, model id, raw responses, usage and errors in a run manifest.
+Preserve server field names for outputs; do not invent a universal
 response schema. Before retrying an uncertain metered call, establish whether it
 already executed or consumed usage.
 

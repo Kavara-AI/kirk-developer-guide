@@ -1,8 +1,10 @@
 # Glossary
 
 **Binary**  
-The build that computes a score. Record `release_id` (the release you're calling)
-with the result.
+The build that computes a score.
+
+**Release identifier**  
+`release_id` is the release you're calling.
 
 **Change point**  
 A time associated with a transition in data-generating behaviour.

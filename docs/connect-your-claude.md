@@ -65,7 +65,7 @@ and in
 ## Check it worked
 
 Ask Claude to run `kirk_list_models`. A working connection returns the
-registered model ids. Record `release_id` (the release you're calling).
+registered model ids.
 
 ## Free and metered tools
 
@@ -74,7 +74,6 @@ questions.
 
 | Tool | Cost | What it does |
 | --- | --- | --- |
-| `kirk_verify_engine` | 0 IU | release_id (the release you're calling) |
 | `kirk_list_models` | 0 IU | registered model ids |
 | `kirk_render_book` | 0 IU | inspect the rendered tensor without scoring |
 | `kirk_bulk_howto` | 0 IU | returns a stdlib Python client for bulk work |
