@@ -8,9 +8,8 @@ The server is `https://kirk-mcp.kavara.ai/mcp`. Customer REST at
 an `Authorization` header alone does not authenticate those routes. See
 [Customer REST API](customer-rest-api.md).
 
-The behaviour below was read from `Kavara-AI/kirk-account-service` `main` at
-commit `5598636511eb4dd6a6809531f3a43d45115ca9ec` (17 October 2026). It
-describes that revision. Where a live call is cited, it is labelled
+The behaviour below was verified against the Kavara account service as of
+17 October 2026. Where a live call is cited, it is labelled
 **Observed**.
 
 ## Terms

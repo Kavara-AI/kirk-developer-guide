@@ -193,7 +193,7 @@ python -m kvs sweep compare --studio-url https://YOUR_STUDIO_ORIGIN \
 `config list/show` read Studio's own processor registry. The Kirk result says
 `agent_sweep_policy: "stub-only"` and
 `hosted_kirk_raw_hp_admission: false`; its field names and defaults are **not**
-a hosted engine catalogue. Save `schema_sha256` so later readers know which
+a hosted Kirk parameter catalogue. Save `schema_sha256` so later readers know which
 internal form the agent inspected. The optional pin stops a new plan or start
 when that form changes; it does not verify the hosted release. Recovery of an
 existing sweep intent remains available after a form change.
