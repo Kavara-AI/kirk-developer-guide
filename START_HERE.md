@@ -53,8 +53,7 @@ the axes, ordering, scaling and outputs.
 For customer REST access from code, Postman or an agent, follow the
 [REST quickstart](docs/customer-rest-api.md) at **`https://api.kavara.ai`**. It
 includes account/key setup and a [machine-readable specification](docs/customer-rest-api.openapi.json).
-A starter collection will be available shortly. This is the fixed ten-level
-price-book data-fit path.
+This is the fixed ten-level price-book data-fit path.
 
 For the separate MCP tool surface:
 

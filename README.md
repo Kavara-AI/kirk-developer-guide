@@ -22,10 +22,9 @@ This repository helps developers answer three practical questions:
 For a working customer API connection, use **`https://api.kavara.ai`** with an
 `X-Kavara-Key` header. Start with the [REST quickstart](docs/customer-rest-api.md)
 or the [OpenAPI specification](docs/customer-rest-api.openapi.json).
-A starter collection will be available shortly.
 To get a key, sign in at [kavara.ai/login](https://kavara.ai/login) with Google or GitHub, open **API keys** in the [console](https://kavara.ai/console) and create a key. Keys are self-service and bound to your account.
 
-The REST service supports engine identity, model listing and ten-level price-book
+The REST service supports ten-level price-book
 scoring. It does not require Claude. The separate hosted MCP surface is described in
 [Connect your Claude](docs/connect-your-claude.md).
 
