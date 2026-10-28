@@ -22,7 +22,7 @@
         "summary": "Read available models",
         "responses": {
           "200": {
-            "description": "Successful Kirk result. Preserve model-specific returned fields.",
+            "description": "Model list. release_id is the release identifier.",
             "content": {
               "application/json": {
                 "schema": {
@@ -30,10 +30,62 @@
                   "required": [
                     "result"
                   ],
+                  "additionalProperties": false,
                   "properties": {
-                    "result": {}
-                  },
-                  "additionalProperties": false
+                    "result": {
+                      "type": "object",
+                      "required": [
+                        "models",
+                        "release_id"
+                      ],
+                      "additionalProperties": false,
+                      "properties": {
+                        "models": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "required": [
+                              "id",
+                              "kind",
+                              "description"
+                            ],
+                            "additionalProperties": false,
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "kind": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "tool": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        },
+                        "release_id": {
+                          "type": "string",
+                          "description": "The release identifier."
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "result": {
+                    "models": [
+                      {
+                        "id": "example-model",
+                        "kind": "example-kind",
+                        "description": "Example description.",
+                        "tool": "example-tool"
+                      }
+                    ],
+                    "release_id": "example-release"
+                  }
                 }
               }
             }

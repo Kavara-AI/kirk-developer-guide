@@ -55,9 +55,17 @@ Availability of a credential does not authorize unrelated workloads or spending.
 | GET | `/v1/models` | Read available models and select a compatible model ID |
 | POST | `/v1/score-book` | Unavailable: this route is no longer offered. |
 
-Do not append query strings. Successful responses have the envelope
-`{"result": ...}`. Keep the returned field names and raw result; model-specific
-output is not a universal response schema.
+Do not append query strings. A successful `GET /v1/models` response is:
+
+```json
+{"result": {"models": [{"id": "example-model", "kind": "example-kind",
+ "description": "Example description.", "tool": "example-tool"}],
+ "release_id": "example-release"}}
+```
+
+Each model object has `id`, `kind`, and `description`. `tool` may be omitted.
+`release_id` is the release identifier. The response has no other fields.
+Keep the returned response and its request ID.
 
 ### Fastest path: Postman
 
