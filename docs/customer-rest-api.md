@@ -5,7 +5,6 @@ Postman or an agent with HTTPS access. No Claude connector is required.
 
 - [OpenAPI specification](customer-rest-api.openapi.json)
 - [Create an account or manage keys](https://kavara.ai/console)
-- [Download the Postman starter](https://kavara.ai/console/downloads/Kirk-Engineer-Starter.zip)
 
 **Observed — 2 October 2026:** a customer account completed a model-list
 request through this hostname in Postman. It returned HTTP 200. This is
@@ -43,8 +42,8 @@ For other data, start with the [agent intake workflow](agent-guide.md).
    `Authorization: Bearer ...` header alone does not authenticate these routes.
    Customer REST calls do not require Cloudflare service credentials.
 4. If your environment restricts outbound domains, have its administrator allow
-   HTTPS to `api.kavara.ai`. Allow `kavara.ai` for account access or downloading the
-   starter. Add `kirk-mcp.kavara.ai` only if using the separate MCP surface.
+   HTTPS to `api.kavara.ai`. Allow `kavara.ai` for account access.
+   Add `kirk-mcp.kavara.ai` only if using the separate MCP surface.
 
 For an agent, use a separate customer key and revoke it when no longer needed.
 Availability of a credential does not authorize unrelated workloads or spending.
@@ -62,12 +61,7 @@ output is not a universal response schema.
 
 ### Fastest path: Postman
 
-Download and unzip the [starter](https://kavara.ai/console/downloads/Kirk-Engineer-Starter.zip).
-Import both the collection and environment JSON files, select **Kirk — My access**,
-and set `api_key` through a local, unshared secret value or Postman Vault. The
-shipped environment contains no key. Do not publish or sync customer credentials.
-
-Run the list-models request.
+A starter collection will be available shortly.
 
 ### Python
 
@@ -103,9 +97,9 @@ call("/v1/models")
 
 Scoring is not available through this API.
 
-The current customer data-fit path records zero credits. Paid ongoing workflow
-activation is separate; this does not establish pricing for MCP scoring or other
-contracts. Check current account policy before extending the workload.
+Paid ongoing workflow activation is separate. This page does not establish
+pricing for MCP scoring or other contracts. Check current account policy
+before extending the workload.
 
 ## Errors and completion checks
 
@@ -115,7 +109,6 @@ The adapter returns JSON errors as `{"error": "code"}`:
 | --- | --- | --- |
 | 400 | `invalid_headers` | Missing or duplicated key header, or invalid header framing |
 | 401 | `invalid_api_key` | Key format |
-| 402 | `insufficient_credits` | Account allowance for the requested operation |
 | 403 | `request_denied` | Key/account validity and required permissions |
 | 404 | `route_not_found` | Exact method/path, no query string |
 | 429 | `rate_limited` | Reduce request rate |

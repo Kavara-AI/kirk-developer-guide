@@ -28,8 +28,8 @@ and its outputs are committed.
 
 For customer REST calls at `https://api.kavara.ai`, use
 [Customer REST API](docs/customer-rest-api.md) and its
-[OpenAPI specification](docs/customer-rest-api.openapi.json). The current fixed-book
-customer data-fit path is zero credits; paid workflow activation is separate.
+[OpenAPI specification](docs/customer-rest-api.openapi.json). Paid workflow
+activation is separate.
 
 For the separate MCP surface, calling Kirk needs a credential and costs real
 balance on the metered tools.
