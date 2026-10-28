@@ -1,0 +1,75 @@
+{
+  "info": {
+    "name": "Kirk — Engineer Starter",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Import the included environment. Set base_url and api_key as local, unshared values. The shipped files contain no host and no key. Send 1. List models, then 2. Score example book. The documented customer-visible response field is result. Fields inside result are TBD. Engine and identity fields are not part of the contract. Customer identity release_id comes with the next API release and is not part of these responses today."
+  },
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "X-Kavara-Key",
+        "type": "string"
+      },
+      {
+        "key": "value",
+        "value": "{{api_key}}",
+        "type": "string"
+      },
+      {
+        "key": "in",
+        "value": "header",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "1. List models",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/models",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "models"]
+        }
+      }
+    },
+    {
+      "name": "2. Score example book",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "{{$guid}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"bid_px\": [99.99, 99.98, 99.97, 99.96, 99.95, 99.94, 99.93, 99.92, 99.91, 99.90],\n  \"ask_px\": [100.01, 100.02, 100.03, 100.04, 100.05, 100.06, 100.07, 100.08, 100.09, 100.10],\n  \"model_id\": \"{{model_id}}\"\n}\n"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/score-book",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "score-book"]
+        }
+      }
+    }
+  ]
+}

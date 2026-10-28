@@ -1,9 +1,9 @@
 # Glossary
 
 **Binary**  
-The sealed Kirk build that computes a score. Its identity is a SHA-256 digest, stamped on
-every scoring response as `engine_sha` — see **Engine**. Two results are only comparable if
-they carry the same binary identity.
+The sealed Kirk build that computes a score. The customer contract does not
+identify the build in a response. Customer identity `release_id` comes with the
+next API release and is not part of a response today.
 
 **Change point**  
 A time associated with a transition in data-generating behaviour.
@@ -22,9 +22,9 @@ complex-valued matrix per step. A published envelope is identified by `envelope_
 together with a contract version. A model may report a null envelope, which means no
 contract has been derived for it yet — that is stated rather than omitted.
 
-**Engine**  
-The term used for a **binary** throughout the API: `engine_sha`, `engine_name`, and the
-`kirk_verify_engine` tool. Same object, API spelling.
+**Kirk API**  
+The customer service. Response fields do not name the build. Identity fields
+are not part of the contract.
 
 **Feature**  
 One measured stream you may place on an axis when you build the square matrix for a step.
@@ -48,8 +48,7 @@ An individual observation considered unusual relative to a reference.
 A change in how two or more variables behave together.
 
 **Score**  
-An entropy (surprise) value returned for one step, carrying the binary identity that
-produced it. Evaluation access can also return an embedding of the evolving structure
+An entropy (surprise) value returned for one step. Evaluation access can also return an embedding of the evolving structure
 or a prediction of masked input. Some public routes return the entropy score only.
 
 **Stride**  

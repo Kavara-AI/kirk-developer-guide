@@ -3,7 +3,7 @@
   "info": {
     "title": "Kirk Customer REST API",
     "version": "1.0.0",
-    "description": "Three customer routes for engine identity, model discovery and fixed ten-level price-book data fit. Separate from the hosted MCP service. Supply a customer key through local secret controls."
+    "description": "Customer routes for model discovery and fixed ten-level price-book data fit. Customer identity release_id comes with the next API release and is not part of these responses until that change ships. Engine and identity fields are not part of the contract. Separate from the hosted MCP service. Supply a customer key through local secret controls."
   },
   "servers": [
     {
@@ -16,57 +16,13 @@
     }
   ],
   "paths": {
-    "/v1/engine": {
-      "get": {
-        "operationId": "getEngine",
-        "summary": "Read engine identity",
-        "responses": {
-          "200": {
-            "description": "Successful Kirk result. Preserve model-specific returned fields.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "result"
-                  ],
-                  "properties": {
-                    "result": {}
-                  },
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Adapter error; infrastructure-generated errors can use a different envelope. See customer-rest-api.md for status/code mapping.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "error"
-                  ],
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "description": "No query strings. Do not send Idempotency-Key on GET requests."
-      }
-    },
     "/v1/models": {
       "get": {
         "operationId": "listModels",
         "summary": "Read available models",
         "responses": {
           "200": {
-            "description": "Successful Kirk result. Preserve model-specific returned fields.",
+            "description": "Model catalog. The documented customer-visible field is result. Fields inside result are TBD. Engine and identity fields are not part of the contract. Customer identity release_id comes with the next API release and is not part of this response until that change ships.",
             "content": {
               "application/json": {
                 "schema": {
@@ -75,7 +31,9 @@
                     "result"
                   ],
                   "properties": {
-                    "result": {}
+                    "result": {
+                      "description": "Model catalog. Inner fields are TBD."
+                    }
                   },
                   "additionalProperties": false
                 }
@@ -101,7 +59,7 @@
             }
           }
         },
-        "description": "No query strings. Do not send Idempotency-Key on GET requests."
+        "description": "No query strings. Do not send Idempotency-Key on GET requests. Customer identity release_id comes with the next API release and is not part of this response until that change ships."
       }
     },
     "/v1/score-book": {
@@ -110,7 +68,7 @@
         "summary": "Score one ten-level price book",
         "responses": {
           "200": {
-            "description": "Successful Kirk result. Preserve model-specific returned fields.",
+            "description": "Score response. The documented customer-visible field is result. Fields inside result are TBD. Engine and identity fields are not part of the contract.",
             "content": {
               "application/json": {
                 "schema": {

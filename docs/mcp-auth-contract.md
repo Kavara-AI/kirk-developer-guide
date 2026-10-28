@@ -8,10 +8,8 @@ The server is `https://kirk-mcp.kavara.ai/mcp`. Customer REST at
 an `Authorization` header alone does not authenticate those routes. See
 [Customer REST API](customer-rest-api.md).
 
-The behaviour below was read from `Kavara-AI/kirk-account-service` `main` at
-commit `5598636511eb4dd6a6809531f3a43d45115ca9ec` (17 October 2026). It
-describes that revision. Where a live call is cited, it is labelled
-**Observed**.
+The behaviour below describes the hosted MCP auth contract as read on
+17 October 2026. Where a live call is cited, it is labelled **Observed**.
 
 ## Terms
 
@@ -108,7 +106,7 @@ account key.
 
 ### Other zero-cost tools
 
-`kirk_verify_engine`, `kirk_list_models`, `kirk_render_book`,
+`kirk_list_models`, `kirk_render_book`,
 `kirk_bulk_howto`, and the `kirk_billing_*` tools are priced at 0, so the
 balance check does not stop them. This revision has no separate "key
 required" gate for them. Send your own key when the result has to be

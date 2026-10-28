@@ -14,7 +14,7 @@ Resolve the Jira site and cloud id at runtime from the Jira connection already a
 
 Use the Jira connection already available to the agent. Never invent credentials.
 
-- **Create an issue**: project `EN`, type **Task**, with a summary and a markdown description. Add a label from `docs/agents/triage-labels.md` when a skill names a triage role.
+- **Create an issue**: project `EN`, type **Task**, with a summary and a markdown description. Add a label from `.agents/triage-labels.md` when a skill names a triage role.
 - **Read an issue**: fetch `EN-<number>` including summary, description, status, labels, comments, parent, and issue links. A bare `#42`, or a GitHub `Closes #45`, is not an EN issue. Commit and PR references use `EN-<number>`.
 - **List issues**: JQL scoped to this project. Example: `project = EN AND labels = "needs-triage" AND statusCategory != Done ORDER BY created ASC`.
 - **Make an issue a child of a parent**: Jira's parent field, matching the EN hierarchy. A Task, Story, Feature, or Bug can parent to an Epic. A Subtask can parent to a Task, Story, Feature, or Bug. If the parent is an Epic, create a Task. If the parent is a Task, Story, Feature, or Bug, create a Subtask. If the hierarchy rejects the parent, put `Part of EN-<number>` at the top of the child description.
