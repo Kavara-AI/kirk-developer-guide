@@ -16,8 +16,7 @@ configuration, and they will score the same input to different values.
 
 **Data envelope**  
 The input-shape contract a model accepts. For Kirk, that is one square real- or
-complex-valued matrix per step. A published envelope is identified by `envelope_hash`
-together with a contract version. A model may report a null envelope, which means no
+complex-valued matrix per step. A model may report a null envelope, which means no
 contract has been derived for it yet — that is stated rather than omitted.
 
 **Feature**  

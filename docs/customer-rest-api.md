@@ -67,10 +67,6 @@ Each model object has `id`, `kind`, and `description`. `tool` may be omitted.
 `release_id` is the release identifier. The response has no other fields.
 Keep the returned response and its request ID.
 
-### Fastest path: Postman
-
-A starter collection will be available shortly.
-
 ### Python
 
 This uses Python 3's standard library. Inject `KIRK_API_KEY` before starting;
