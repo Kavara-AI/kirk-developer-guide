@@ -1,9 +1,9 @@
 # Glossary
 
 **Binary**  
-The sealed Kirk build that computes a score. Its identity is a SHA-256 digest, stamped on
-every scoring response as `engine_sha` — see **Engine**. Two results are only comparable if
-they carry the same binary identity.
+The build that computes a score. The v1 customer REST contract does not return
+build identity. Keep the `X-Kavara-Receipt` value from a metered success with
+the result. See [Customer REST API](customer-rest-api.md).
 
 **Change point**  
 A time associated with a transition in data-generating behaviour.
@@ -12,28 +12,23 @@ A time associated with a transition in data-generating behaviour.
 A system whose behaviour depends on interactions among multiple components or variables.
 
 **Configuration**  
-The parameter set and state policy under which a model is served. Not exposed on this
-surface: two models can share a binary and the same input contract and differ only in
-configuration, and they will score the same input to different values.
+The `hyperparameters` object sent to `POST /v1/kirk-api/create`, including
+`visible_nodes`. Learn and score then send the snapshot that create returned.
 
 **Data envelope**  
-The input-shape contract a model accepts. For Kirk, that is one square real- or
-complex-valued matrix per step. A published envelope is identified by `envelope_hash`
-together with a contract version. A model may report a null envelope, which means no
-contract has been derived for it yet — that is stated rather than omitted.
+The input-shape contract a call accepts. For the v1 customer REST contract,
+`samples` are `n` squares of `V` × `V`, and every real and imaginary part lies
+in [-1, 1]. See [Customer REST API](customer-rest-api.md).
 
 **Engine**  
-The term used for a **binary** throughout the API: `engine_sha`, `engine_name`, and the
-`kirk_verify_engine` tool. Same object, API spelling.
+Not a field in the v1 customer REST contract. `GET /v1/engine` is not part of v1.
 
 **Feature**  
 One measured stream you may place on an axis when you build the square matrix for a step.
 
 **Model**  
-A registered model id, servable by a binary, and the thing you name when you call a tool.
-A model is not the same as the combination of binary, configuration and input contract that
-serves it: those can change while the model id stays the same, and two model ids can share
-everything except configuration. Keep the model id with any result you record.
+Not an argument of the v1 customer REST contract. `GET /v1/models` is not part
+of v1. Create takes `hyperparameters`. Learn and score take a snapshot and samples.
 
 **Non-stationary**  
 Having statistical behaviour that changes over time.
@@ -48,9 +43,10 @@ An individual observation considered unusual relative to a reference.
 A change in how two or more variables behave together.
 
 **Score**  
-An entropy (surprise) value returned for one step, carrying the binary identity that
-produced it. Evaluation access can also return an embedding of the evolving structure
-or a prediction of masked input. Some public routes return the entropy score only.
+The `entropy` array (float32, one value per submitted square) in a learn or score
+response. `outputs=entropy` returns that array alone. `outputs=all` and
+`outputs=features` also return `feature_arr`, `feature_vec` and `feature_scalar`.
+`POST /v1/score-book` is not part of v1.
 
 **Stride**  
 How many source observations the next matrix advances. You choose it when you build

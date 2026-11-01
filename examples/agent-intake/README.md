@@ -63,5 +63,6 @@ network access or model calls are needed.
 **Expected completion:** a valid preparation brief, with model/input contract
 unestablished and engine run not performed. To request live equipment analysis,
 the next step is the square-matrix contract in
-[tensor generation](../../docs/tensor-generation.md) and runtime access that
-accepts it. The ten-level book-scoring call is a separate fixed route.
+[tensor generation](../../docs/tensor-generation.md) and the customer routes in
+[Customer REST API](../../docs/customer-rest-api.md). `GET /v1/engine`,
+`GET /v1/models` and `POST /v1/score-book` are not part of v1.

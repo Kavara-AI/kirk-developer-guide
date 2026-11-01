@@ -189,7 +189,7 @@ Return to **Kirk → Jev** and find **What would you pass to Jev?**
 
 **Hypothesis:** these scenarios demonstrate a proposed interface, not measured
 Kirk output, a Jev response or a validated integration. The illustrative evidence
-explicitly leaves measurements and model/engine identity unset. Editing or
+explicitly leaves measurements and run identity unset. Editing or
 exporting the example makes no model call.
 
 A developer implementing the pattern needs AI SDK 7+, configured AI Gateway
@@ -200,8 +200,9 @@ Running copied code elsewhere can make billable calls; this portal does not
 provide credentials or execute the code.
 
 A sample-quality report or exploration prompt is not a substitute for discovery
-evidence. Retain measurements, timestamps, input context, model and engine identity,
-configuration, replay information, comparisons and uncertainty. Then evaluate
+evidence. Retain measurements, timestamps, input context, the receipt id when
+a customer call returns one, configuration, replay information, comparisons and
+uncertainty. Then evaluate
 Jev's decisions and your application policy separately. A typed decision alone
 does not establish a cause or authorise an action.
 
@@ -214,7 +215,7 @@ remain wherever your browser saves downloads.
 
 **Hypothesis — production architecture:** discovery would execute in Kirk's
 separately secured runtime, with only authorised evidence passed downstream.
-The portal neither executes the model nor verifies runtime attestation. A Vercel
+The portal does not execute a model or certify the runtime. A Vercel
 website deployment is not an AI Gateway model listing or a confidential-computing
 certification.
 

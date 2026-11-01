@@ -65,11 +65,11 @@ and in
 ## Check it worked
 
 Ask Claude to run `kirk_verify_engine`. A working connection returns
-`status: ok` and a `kirk_version` sha.
+`status: ok`.
 
-**Record that sha.** Results from different engine builds are not
-interchangeable, and a result kept without its `kirk_version` cannot be placed
-in a lineage afterwards.
+That call is hosted MCP. It is not a customer REST operation. The v1 REST
+quick-start is [Customer REST API](customer-rest-api.md). `GET /v1/engine`,
+`GET /v1/models` and `POST /v1/score-book` are not part of v1.
 
 ## Free and metered tools
 
@@ -78,17 +78,19 @@ questions.
 
 | Tool | Cost | What it does |
 | --- | --- | --- |
-| `kirk_verify_engine` | 0 IU | engine identity and sha |
-| `kirk_list_models` | 0 IU | registered model ids and their engines |
-| `kirk_render_book` | 0 IU | inspect the rendered tensor without scoring |
+| `kirk_verify_engine` | 0 IU | connection check (`status: ok`) |
+| `kirk_list_models` | 0 IU | names the server currently lists |
+| `kirk_render_book` | 0 IU | inspect a tensor without scoring |
 | `kirk_bulk_howto` | 0 IU | returns a stdlib Python client for bulk work |
 | `kirk_billing_show` / `kirk_billing_usage` | 0 IU | balance and usage |
 | `kirk_score_book` | 1 IU per call | score one snapshot |
 | `kirk_score_book_batch` | 1 IU per 50 books | score many independent snapshots |
 | `kirk_score_l2_book` | 1 IU per call | score full L2 books as one ordered chain |
 
-These book tools are fixed routes. Kirk's general input is one square matrix
-per step, which you build; see [tensor generation](tensor-generation.md).
+These are hosted MCP tools, not customer REST operations. Kirk's general input
+is one square matrix per step, which you build; see
+[tensor generation](tensor-generation.md) and
+[Customer REST API](customer-rest-api.md).
 
 Every response carries a `_cost` envelope, so a client can account for spend
 without inferring it. The connector also ships its own usage policy in its

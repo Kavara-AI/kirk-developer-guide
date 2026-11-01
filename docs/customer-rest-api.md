@@ -1,171 +1,248 @@
 # Customer REST API
 
-Use **`https://api.kavara.ai`** for customer REST calls from Python, curl,
-Postman or an agent with HTTPS access. No Claude connector is required.
+Use **`https://api.kavara.ai`** for customer REST calls from Python or curl.
 
 - [OpenAPI specification](customer-rest-api.openapi.json)
 - [Create an account or manage keys](https://kavara.ai/console)
-- [Download the Postman starter](https://kavara.ai/console/downloads/Kirk-Engineer-Starter.zip)
 
-**Observed — 2 October 2026:** a customer account completed engine, model-list and
-single-book score requests through this hostname in Postman. All three returned
-HTTP 200; account receipts recorded zero credits for this data-fit path. This is
-bounded customer-access validation, not a throughput, latency or scale guarantee.
+`GET /v1/engine`, `GET /v1/models` and `POST /v1/score-book` are not part of v1.
+This page does not include a sample for them.
 
-## Choose REST or MCP
+Hosted MCP is a separate surface. See [Connect your Claude](connect-your-claude.md).
+Do not send MCP calls to `api.kavara.ai`.
 
-| Surface | Endpoint | Contract |
-| --- | --- | --- |
-| Customer REST | `https://api.kavara.ai` | The three routes below, JSON bodies and `X-Kavara-Key` |
-| Hosted MCP | `https://kirk-mcp.kavara.ai/mcp` | MCP JSON-RPC tools; see [Connect your Claude](connect-your-claude.md) for its credential header and current tool policy |
-
-Both use HTTPS. MCP is also callable directly from code; it does not require
-Claude. These surfaces have different contracts. Do not send MCP JSON-RPC to
-`api.kavara.ai` or assume REST routes exist beneath the MCP URL.
-
-The REST service currently admits a fixed, ten-level price-book input. It does
-not expose arbitrary file upload, tensor rendering, batch scoring, billing or
-MCP routes. The general input contract — one square matrix per step, built by
-you — is described in [tensor generation](tensor-generation.md). For other data,
-start with the [agent intake workflow](agent-guide.md).
-
-## Account, key and network access
+## Account and key
 
 1. Sign in at [kavara.ai/login](https://kavara.ai/login) with Google or GitHub,
    open **API keys** in the [customer console](https://kavara.ai/console) and
-   create a customer API key. Console keys have fixed read-and-score access, so
-   there is nothing to enable. Keys are self-service and bound to your account;
-   copy the key when it is shown and store it in your secret manager.
-2. Supply the key through your client's secret controls. For code, inject it as
-   `KIRK_API_KEY` through your environment's secret manager. Do not commit it, put
-   it in a URL, or paste it into a shared transcript. Sandbox capabilities vary;
-   chat is not the only possible way to supply a credential.
-3. Send exactly one `X-Kavara-Key` header on every request. A customer key has the
-   form `k_` followed by 32 lowercase hexadecimal characters. An
-   `Authorization: Bearer ...` header alone does not authenticate these routes.
-   Customer REST calls do not require Cloudflare service credentials.
-4. If your environment restricts outbound domains, have its administrator allow
-   HTTPS to `api.kavara.ai`. Allow `kavara.ai` for account access or downloading the
-   starter. Add `kirk-mcp.kavara.ai` only if using the separate MCP surface.
+   create a customer API key. Copy the key when it is shown and store it in
+   your secret manager.
+2. Inject the key as `KIP_API_KEY`. Do not commit it, put it in a URL, or paste
+   it into a shared transcript.
+3. Send exactly one `X-Kavara-Key` header on every request. A customer key has
+   the form `k_` followed by 32 hex characters. Do not send an `Authorization`
+   header. The contract answers `400` with `{"error":"invalid_headers"}`.
+4. If your environment restricts outbound domains, allow HTTPS to `api.kavara.ai`.
 
-For an agent, use a separate customer key and revoke it when no longer needed.
-Availability of a credential does not authorize unrelated workloads or spending.
+A **snapshot** is the byte string returned by create. Learn and score send that
+snapshot back with **samples**: `n` squares of `V` × `V`.
 
-## Three supported calls
+## Published operations
 
-| Method | Path | Purpose |
-| --- | --- | --- |
-| GET | `/v1/engine` | Read engine identity; retain its returned SHA with results |
-| GET | `/v1/models` | Read available models and select a compatible model ID |
-| POST | `/v1/score-book` | Score one ten-level bid/ask price book |
+These are the operations in the published customer contract. A first session
+checks the key (`health`) and the published limits (`contract`), then creates
+a snapshot. Learn and score are in the same contract. Their body is an archive,
+not JSON, so the copy-paste samples stop at create.
 
-Do not append query strings. Successful responses have the envelope
-`{"result": ...}`. Keep the returned field names and raw result; model-specific
-output is not a universal response schema.
+| Method | Path | Request | Success body |
+| --- | --- | --- | --- |
+| GET | `/v1/kirk-api/health` | None | JSON. `readiness` is `ready` |
+| GET | `/v1/kirk-api/contract` | None | JSON limits, `outputs` and `rate_limit` |
+| GET | `/v1/kirk-api/openapi.json` | None | This contract, as JSON |
+| POST | `/v1/kirk-api/create` | JSON | Binary snapshot |
+| POST | `/v1/kirk-api/learn` | `application/x-kirk-npz` | npz outputs and a new snapshot |
+| POST | `/v1/kirk-api/score` | `application/x-kirk-npz` | npz outputs |
 
-### Fastest path: Postman
+`create`, `learn` and `score` successes include `X-Kavara-Receipt`: `rcpt_`
+and 32 hex characters, a new value on each call. Health, contract and errors
+do not. Account responses include `X-RateLimit-Limit`, `X-RateLimit-Remaining`
+and `X-RateLimit-Reset`.
 
-Download and unzip the [starter](https://kavara.ai/console/downloads/Kirk-Engineer-Starter.zip).
-Import both the collection and environment JSON files, select **Kirk — My access**,
-and set `api_key` through a local, unshared secret value or Postman Vault. The
-shipped environment contains no key. Do not publish or sync customer credentials.
+The limit is 300 calls per account per fixed 60 second window, counting every
+`/v1/kirk-api/*` call. The largest body is 8388608 bytes.
 
-Run **1. Verify engine**, then **2. List models**, then **3. Score example book**. Confirm the configured
-`model_id` is available before scoring. The starter generates a fresh UUID for
-each score send; for a retry of the same logical operation, retain and reuse the
-original UUID instead.
+### Python
 
-### Python: the same three calls
-
-This uses Python 3's standard library. Inject `KIRK_API_KEY` before starting;
-there is no credential in the script. Use synthetic data first.
+Python 3 standard library only. Set `KIP_API_KEY` before starting. The script
+sends `User-Agent` on every call. It does not retry.
 
 ```python
 import json
 import os
 import urllib.error
 import urllib.request
-import uuid
 
 BASE_URL = "https://api.kavara.ai"
-API_KEY = os.environ["KIRK_API_KEY"]
+API_KEY = os.environ["KIP_API_KEY"]
+USER_AGENT = "kavara-quickstart/1.0"
 
 
-def call(path, payload=None, request_id=None):
-    headers = {"X-Kavara-Key": API_KEY, "Accept": "application/json"}
+def call(method, path, payload=None):
+    headers = {
+        "X-Kavara-Key": API_KEY,
+        "Accept": "application/json, application/octet-stream, application/x-kirk-npz",
+        "User-Agent": USER_AGENT,
+    }
     body = None
     if payload is not None:
         headers["Content-Type"] = "application/json"
-        headers["Idempotency-Key"] = request_id
-        body = json.dumps(payload, allow_nan=False).encode("utf-8")
-    request = urllib.request.Request(BASE_URL + path, data=body, headers=headers)
+        body = json.dumps(payload).encode("utf-8")
+    request = urllib.request.Request(
+        BASE_URL + path, data=body, headers=headers, method=method
+    )
     try:
         with urllib.request.urlopen(request, timeout=40) as response:
-            result = json.load(response)
-            print(response.status, response.headers.get("X-Request-Id"), result)
-            return result
+            raw = response.read()
+            print(
+                response.status,
+                response.headers.get("Content-Type"),
+                response.headers.get("X-Kavara-Receipt"),
+            )
+            content_type = response.headers.get("Content-Type") or ""
+            if content_type.startswith("application/json"):
+                print(json.loads(raw.decode("utf-8")))
+            return raw
     except urllib.error.HTTPError as error:
-        # Report identifiers for support; never print request headers or keys.
-        print("HTTP", error.code, "request", error.headers.get("X-Request-Id"))
+        # Status and error body only. Do not print request headers or the key.
+        print("HTTP", error.code, error.read().decode("utf-8", "replace"))
         raise SystemExit(1)
 
 
-call("/v1/engine")
-call("/v1/models")
-# Choose a compatible model from the returned catalog before scoring.
-model_id = input("Available compatible model ID: ").strip()
-score_id = str(uuid.uuid4())
-print("Retain this score Idempotency-Key for any retry:", score_id)
-call("/v1/score-book", {
-    "bid_px": [99.99, 99.98, 99.97, 99.96, 99.95, 99.94, 99.93, 99.92, 99.91, 99.90],
-    "ask_px": [100.01, 100.02, 100.03, 100.04, 100.05, 100.06, 100.07, 100.08, 100.09, 100.10],
-    "model_id": model_id,
-}, request_id=score_id)
+call("GET", "/v1/kirk-api/health")
+call("GET", "/v1/kirk-api/contract")
+call("POST", "/v1/kirk-api/create", {"hyperparameters": {"visible_nodes": 1}})
 ```
 
-The starter's example model is `kirk-test1-binary-threshold-v1`; use it only while
-it remains available and compatible. An unattended agent should read the model
-catalog and configure the compatible model explicitly instead of using `input()`.
-The script does not retry automatically.
+### curl
 
-## Score input and retries
+The same three calls, with the same headers and the same JSON body.
 
-The JSON object must contain **exactly** `bid_px`, `ask_px` and `model_id`.
-Each price array must contain exactly ten finite, positive JSON numbers;
-strings and booleans are invalid. Send level 1 first: descending bids and ascending
-asks, with the best bid below the best ask, as in the synthetic example.
-`model_id` must match `[a-z0-9][a-z0-9_-]{0,127}` and name an available model.
-The maximum request body is 256 KiB. Use `Content-Type: application/json`.
+```bash
+set -eu
+: "${KIP_API_KEY:?}"
+BASE_URL="https://api.kavara.ai"
 
-Every score POST requires **`Idempotency-Key`**, a canonical lowercase UUID v4.
-Generate one for each new logical score. If a response is lost, retain that UUID
-and the identical body for any retry; do not turn an uncertain request into a new
-operation. Do not send `Idempotency-Key` on either GET route: it is rejected.
+call() {
+  method="$1"
+  path="$2"
+  body="${3-}"
+  if [ -n "$body" ]; then
+    curl --silent --show-error --fail-with-body \
+      --request "$method" \
+      --url "${BASE_URL}${path}" \
+      --header "X-Kavara-Key: ${KIP_API_KEY}" \
+      --header "Accept: application/json, application/octet-stream, application/x-kirk-npz" \
+      --header "User-Agent: kavara-quickstart/1.0" \
+      --header "Content-Type: application/json" \
+      --data "$body"
+  else
+    curl --silent --show-error --fail-with-body \
+      --request "$method" \
+      --url "${BASE_URL}${path}" \
+      --header "X-Kavara-Key: ${KIP_API_KEY}" \
+      --header "Accept: application/json, application/octet-stream, application/x-kirk-npz" \
+      --header "User-Agent: kavara-quickstart/1.0"
+  fi
+  printf '\n'
+}
 
-The current customer data-fit path records zero credits. Paid ongoing workflow
-activation is separate; this does not establish pricing for MCP scoring or other
-contracts. Check current account policy before extending the workload.
+call GET /v1/kirk-api/health
+call GET /v1/kirk-api/contract
+call POST /v1/kirk-api/create '{"hyperparameters":{"visible_nodes":1}}'
+```
 
-## Errors and completion checks
+## Response excerpts
 
-The adapter returns JSON errors as `{"error": "code"}`:
+From the contract schema, not from a live capture.
 
-| HTTP | Code | Check |
+Health returns `200` and JSON. `readiness` is required. `release_id`, when
+present, is a string.
+
+```json
+{"readiness": "ready"}
+```
+
+Contract returns `200` and JSON. These fields are fixed by the schema. The
+response may also include `release_id`, `api_version`, `max_batch` and
+`snapshot_binding` (`required` or `off`).
+
+```json
+{
+  "readiness": "ready",
+  "max_body_bytes": 8388608,
+  "outputs": ["all", "entropy", "features"],
+  "rate_limit": {
+    "per_account_per_minute": 300,
+    "window": "fixed",
+    "window_seconds": 60,
+    "scope": "every /v1/kirk-api/* call by one account",
+    "headers": [
+      "X-RateLimit-Limit",
+      "X-RateLimit-Remaining",
+      "X-RateLimit-Reset",
+      "Retry-After"
+    ]
+  }
+}
+```
+
+Create returns `200` and the snapshot bytes. `Content-Type` is
+`application/octet-stream`, or `application/x-kirk-npz` with members
+`snapshot` and `snapshot_envelope` when `snapshot_binding` is `required`.
+Keep `X-Kavara-Receipt` with the snapshot. The body is not a JSON object.
+
+The create body in the samples is the smallest object the schema accepts:
+`hyperparameters.visible_nodes` is an integer of at least 1. `random_state`
+is an optional integer. `Content-Type` is `application/json`.
+
+```json
+{"hyperparameters": {"visible_nodes": 1}}
+```
+
+## Learn and score
+
+`POST /v1/kirk-api/learn` and `POST /v1/kirk-api/score` take
+`Content-Type: application/x-kirk-npz` (no pickle). The archive holds:
+
+- `snapshot`: uint8 bytes from create, or from a previous learn
+- `samples`: `n` squares of `V` × `V`, dtype float32, float64, complex64 or
+  complex128, every real and imaginary part in [-1, 1]
+
+Optional query `outputs` is one of `all` (the default), `entropy` or
+`features`. Any other value is `422` with `{"error":"invalid_outputs"}`.
+
+A success is `application/x-kirk-npz`:
+
+| `outputs` | Members |
+| --- | --- |
+| `all` | `entropy` float32 `(n,)`, `feature_arr` complex64 `(n, V, V)`, `feature_vec` complex64 `(n, 2V)`, `feature_scalar` complex64 `(n,)` |
+| `entropy` | `entropy` only |
+| `features` | `feature_arr`, `feature_vec`, `feature_scalar` |
+
+Learn also returns `snapshot` (uint8). Score does not. Both successes include
+`X-Kavara-Receipt`. Build the archive from the create response before sending
+it. The samples above do not invent archive bytes.
+
+## Errors
+
+Bodies below are the contract's error objects.
+
+| HTTP | Body | When |
 | --- | --- | --- |
-| 400 | `invalid_headers` | Missing or duplicated key header, or invalid header framing |
-| 400 | `missing_idempotency_key` / `invalid_idempotency_key` | UUID v4 on POST only |
-| 400 | `invalid_json` / `invalid_request` | JSON syntax, exact fields, dimensions and value types |
-| 401 | `invalid_api_key` | Key format |
-| 402 | `insufficient_credits` | Account allowance for the requested operation |
-| 403 | `request_denied` | Key/account validity and required permissions |
-| 404 | `route_not_found` / `model_not_found` | Exact method/path, no query string, available model |
-| 413 | `request_too_large` | Body size and content length |
-| 429 | `rate_limited` | Reduce request rate; retain score operation identity for retries |
-| 502 / 503 | `origin_unavailable` | Service availability; report request ID to support |
+| 401 | `{"error":"invalid_api_key"}` | No key, a repeated key header, or a key that is not `k_` plus 32 hex |
+| 400 | `{"error":"invalid_headers"}` | `Transfer-Encoding`, a repeated `Content-Length`, or an `Authorization` header |
+| 403 | `{"error":"request_denied"}` | Unknown key, revoked key, or a key with no tenant row. One body for all three |
+| 404 | `{"error":"route_not_found"}` | Unknown path or method |
+| 413 | `{"error":"request_too_large"}` | Body over 8388608 bytes |
+| 415 | `{"error":"unsupported_content_type"}` | Not `application/json` on create, or not `application/x-kirk-npz` on learn and score |
+| 422 | `{"error":"invalid_outputs"}` | `outputs` is not `all`, `entropy` or `features` |
+| 422 | `EnvelopeRefused` | `error` is `EnvelopeRefused`, with `rule` (`input_range` or `chain_length`) and `message`. `input_range` means a part was outside [-1, 1] |
+| 400 or 409 | `{"error":"invalid_request"}` | The service refused the archive or another input |
+| 429 | `{"error":"rate_limited","retry_after":N}` | Over 300 calls in the window. `Retry-After` equals `N` |
+| 402 | `{"error":"insufficient_credits"}` | Reserved for a credit check |
+| 500, 502 or 503 | `{"error":"origin_unavailable"}` | The service could not return an answer |
+| 503 | `{"error":"receipt_unavailable"}` | A receipt row could not be written. No output is returned |
 
-Adapter responses include `Cache-Control: no-store` and `X-Request-Id`.
-Errors generated earlier by infrastructure can have a different envelope.
-For support, retain status, request ID and a redacted input description, never the
-key. A successful setup has three real HTTP 200 responses, engine/model identity
-and a retained score result. A reachable login page or imported collection alone
-does not establish working API access.
+A rate-limit body matches this shape. `retry_after` is an integer from 1 to 60.
+
+```json
+{"error": "rate_limited", "retry_after": 1}
+```
+
+Some paths the contract does not define answer `404` or `405` with a JSON
+object of only `code` and `message`. A response from this API for an unknown
+route is `{"error":"route_not_found"}`.
+
+A finished check is HTTP 200 from health, HTTP 200 from contract, and HTTP 200
+from create with a receipt header. A reachable login page alone does not
+establish API access.
