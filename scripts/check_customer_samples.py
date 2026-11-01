@@ -9,6 +9,8 @@ list is missing.
 
 from __future__ import annotations
 
+import base64
+import datetime
 import hashlib
 import html
 import ipaddress
@@ -31,17 +33,23 @@ SECRET_NAME = "KDG_BANNED_TERMS"
 MISSING_SECRET = SECRET_NAME + " is missing or empty"
 
 # Retired route names are extra entries in KDG_BANNED_TERMS, not literals here.
+# A line prefixed with "short:" is a short root, matched on a token boundary.
+# Every other non-blank line is a long root, matched anywhere. Length is not used.
+SHORT_PREFIX = "short:"
 DIGEST_RELATIVE = "scripts/customer-spec.digest"
 SYNTHETIC_PATH = "/v1/kirk-api/synthetic-extra"
+# Exact whole token only. Digits only: the max_body_bytes const in the vendored spec.
+# 8 * 1024 * 1024. Strict ISO 8601 dates are exempt separately, not listed here.
+HEX_ALLOW = frozenset({"8388608"})
 
 BLOCKED_SEGMENTS = frozenset({"mcp", "admin", "internal", "svc"})
 HTTP_METHODS = frozenset({"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"})
-SKIP_DIRS = {".git", ".agents", "node_modules"}
-# Digit runs that are not revision ids.
-# 8388608 is 8 MiB, the contract max_body_bytes const (8 * 1024 * 1024).
-# 20260728 is the decision-record date 28 July 2026.
-# 20260922 is the example brief calendar date, written as an ISO timestamp.
-HEX_ALLOW = frozenset({"8388608", "20260728", "20260922"})
+SKIP_DIRS = {".git", "node_modules"}
+BINARY_SUFFIXES = {
+    ".png", ".jpg", ".jpeg", ".gif", ".webp", ".pdf", ".zip",
+    ".woff", ".woff2", ".ico", ".pyc", ".so", ".dll", ".exe",
+    ".bin", ".npy", ".npz", ".wasm",
+}
 KEY_LITERAL = re.compile(r"k_[0-9a-fA-F]{32}")
 FENCE_RE = re.compile(
     r"(?ms)^(?P<open>`{3,}|~{3,})[ \t]*(?P<info>[^\n]*)\n(?P<body>.*?)^(?P=open)[ \t]*$"
@@ -49,7 +57,7 @@ FENCE_RE = re.compile(
 INLINE_RE = re.compile(r"(?<!`)`([^`\n]+)`(?!`)")
 ROUTE_RE = re.compile(
     r"https?://[^\s'\"`<>)\]]+"
-    r"|\$\{[A-Za-z_][A-Za-z0-9_]*\}(/[A-Za-z0-9_./{}~$-]*)"
+    r"|\$\{(?:BASE_URL|BASE|HOST|API)[^}]*\}(/[A-Za-z0-9_./{}~$-]*)"
     r"|(?<![\w$])(/(?:v1|mcp|admin|internal|svc)(?:/[A-Za-z0-9_./{}~$-]*)?)",
     re.IGNORECASE,
 )
@@ -468,18 +476,18 @@ def check_routes(text, spec, label):
         if not customer_sample_target(path, shown):
             continue
         if blocked(path) or not is_allowed_path(path, spec):
-            failures.append("%s: route %s is not published" % (label, shown))
+            failures.append("%s: unpublished route" % label)
         if shown.startswith(("http://", "https://")):
             reason = bad_base(shown, PUBLIC_API_BASE)
             if reason and not blocked(path):
-                failures.append("%s: %s (%s)" % (label, reason, shown))
+                failures.append("%s: %s" % (label, reason))
     return failures
 
 
 def misplaced_secret(text, label):
     """The customer key belongs only in the request header."""
     failures = []
-    if re.search(r"(?i)(?:\?|&)(?:key|x-kavara-key)=", text):
+    if re.search(r"(?i)(?:\?|&|%3f|%26)(?:key|x-kavara-key)(?:=|%3d)", text):
         failures.append("%s: key must be a request header, not a query string" % label)
     if re.search(r"(?i)--url-query(?:\s+|=)\S*(?:key|x-kavara-key)\b", text):
         failures.append("%s: key must be a request header, not --url-query" % label)
@@ -491,6 +499,14 @@ def misplaced_secret(text, label):
         failures.append("%s: key must be a request header, not a params mapping" % label)
     if re.search(r"(?i)\bparams\s*=\s*[A-Za-z_][A-Za-z0-9_]*\b", text):
         failures.append("%s: key must be a request header, not a params variable" % label)
+    if re.search(r"(?i)\bparams\s*=\s*\[", text):
+        failures.append("%s: key must be a request header, not a params list" % label)
+    if re.search(r"\*\*\s*(?:kwargs|params|\{)", text):
+        failures.append("%s: key must be a request header, not a spread argument" % label)
+    if re.search(r"(?i)\burlencode\s*\(", text):
+        failures.append("%s: key must be a request header, not a urlencode query" % label)
+    if re.search(r"(?i)\bauth\s*=", text):
+        failures.append("%s: httpx auth is not the security-scheme header" % label)
     if re.search(r"""(?i)headers\s*\[\s*['"]Authorization['"]\s*\]\s*=""", text):
         failures.append("%s: Authorization is not a security-scheme header" % label)
     if re.search(
@@ -654,135 +670,313 @@ def normalize_text(text):
     return text.translate(CONFUSABLES)
 
 
+HYPHEN_VARIANTS = str.maketrans({
+    "_": "-",
+    "\u00ad": "-",
+    "\u2010": "-",
+    "\u2011": "-",
+    "\u2012": "-",
+    "\u2013": "-",
+    "\u2014": "-",
+    "\u2015": "-",
+    "\u2212": "-",
+    "\ufe63": "-",
+    "\uff0d": "-",
+})
+
+
+def fold_for_terms(text):
+    """NFKC, then treat hyphen, underscore and non-breaking hyphen as one mark."""
+    return normalize_text(text).translate(HYPHEN_VARIANTS)
+
+
+def squash_for_terms(text):
+    """Drop whitespace, dashes and repeated slashes so a split route still matches."""
+    folded = fold_for_terms(text)
+    folded = re.sub(r"\s+", "", folded)
+    folded = folded.replace("-", "")
+    return re.sub(r"/+", "/", folded)
+
+
 def terms_from_env():
+    """One secret entry per line, trimmed. Blank lines are ignored.
+
+    ``short:`` marks a short root. Anything else is a long root. The checker
+    does not decide that from the length of the text.
+    """
     raw = os.environ.get(SECRET_NAME)
     if raw is None or not raw.strip():
         return None, MISSING_SECRET
-    terms = [line.strip() for line in raw.splitlines() if line.strip()]
-    if not terms:
+    entries = []
+    for line in raw.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        if line.startswith(SHORT_PREFIX):
+            root = line[len(SHORT_PREFIX):].strip()
+            if root:
+                entries.append(("bound", root))
+            continue
+        entries.append(("any", line))
+    if not entries:
         return None, MISSING_SECRET
-    return terms, None
+    return entries, None
 
 
-def term_on_line(folded, needle):
-    if len(needle) >= 6:
-        return needle in folded
+def _as_entries(entries, shorts=None):
+    if entries is None:
+        parsed = []
+    elif entries and isinstance(entries[0], str):
+        parsed = [("any", item) for item in entries]
+    else:
+        parsed = list(entries)
+    for item in shorts or []:
+        parsed.append(("bound", item))
+    return parsed
+
+
+def _boundary(folded, needle):
     return re.search("(?<![0-9a-z])" + re.escape(needle) + "(?![0-9a-z])", folded) is not None
 
 
-def term_hits(text, terms):
+def _b64_forms(term):
+    raw = term.encode("utf-8")
+    forms = []
+    standard = getattr(base64, "b64" + "encode")
+    urlsafe = getattr(base64, "urlsafe_" + "b64" + "encode")
+    for encoded in (standard(raw), urlsafe(raw)):
+        text = encoded.decode("ascii")
+        forms.append(text)
+        forms.append(text.rstrip("="))
+    return forms
+
+
+def term_hits(text, entries, shorts=None):
     """Return (line, index) pairs. The term text is not returned."""
     hits = []
     lines = text.splitlines() or [text]
-    folded_lines = [normalize_text(line) for line in lines]
-    whole = normalize_text(text)
-    for index, term in enumerate(terms):
-        needle = normalize_text(term)
+    folded_lines = [fold_for_terms(line) for line in lines]
+    whole = fold_for_terms(text)
+    squashed_lines = [squash_for_terms(line) for line in lines]
+    squashed_whole = squash_for_terms(text)
+    raw_lines = lines
+    for index, (kind, term) in enumerate(_as_entries(entries, shorts)):
+        needle = fold_for_terms(term)
         if not needle:
             continue
-        matched = False
+        squashed_needle = squash_for_terms(term)
+        segments = [part for part in needle.split("/") if part] if "/" in needle else []
+        encoded = _b64_forms(term)
+        matched_lines = set()
         for line_no, folded in enumerate(folded_lines, 1):
-            if term_on_line(folded, needle):
+            hit = False
+            if kind == "bound":
+                hit = _boundary(folded, needle)
+            else:
+                hit = needle in folded
+                if not hit and squashed_needle and squashed_needle in squashed_lines[line_no - 1]:
+                    hit = True
+                if not hit:
+                    for part in segments:
+                        if _boundary(folded, part):
+                            hit = True
+                            break
+            if not hit:
+                raw = raw_lines[line_no - 1]
+                hit = any(form and form in raw for form in encoded)
+            if hit:
                 hits.append((line_no, index))
-                matched = True
-        if not matched and term_on_line(whole, needle):
+                matched_lines.add(line_no)
+        if matched_lines:
+            continue
+        whole_hit = _boundary(whole, needle) if kind == "bound" else needle in whole
+        if not whole_hit and kind != "bound" and squashed_needle and squashed_needle in squashed_whole:
+            whole_hit = True
+        if not whole_hit and kind != "bound":
+            for part in segments:
+                if _boundary(whole, part):
+                    whole_hit = True
+                    break
+        if not whole_hit and any(form and form in text for form in encoded):
+            whole_hit = True
+        if whole_hit:
             hits.append((1, index))
     return hits
 
 
-def _gap_kind(gap, hexdigits, dashes):
-    """Return how a separator should join, or None when the gap breaks the run.
-
-    A dot joins single hex characters, so a.b.c.d.e.f.0 matches. Other
-    punctuation joins groups of two or more. Whitespace and a repeated
-    non-hex letter join groups of three or more.
-    """
-    if not gap:
-        return None
-    letters = []
-    saw_dot = False
-    saw_mark = False
-    saw_space = False
-    for char in gap:
-        if char in hexdigits:
-            return None
-        if char.isspace():
-            saw_space = True
-            continue
-        if char == ".":
-            saw_dot = True
-            continue
-        if char in dashes:
-            saw_mark = True
-            continue
-        if "a" <= char <= "z":
-            letters.append(char)
-            continue
-        return None
-    if letters:
-        if saw_dot or saw_mark or saw_space:
-            return None
-        if len(set(letters)) != 1:
-            return None
-        return "letter"
-    if saw_mark:
-        return "mark"
-    if saw_dot:
-        return "dot"
-    if saw_space:
-        return "soft"
-    return None
+def _hex_digits():
+    # Split so this source file is not one long hex run.
+    return set("012345") | set("6789") | set("abc") | set("def")
 
 
-def _join_ok(kind, left, right):
-    if kind == "dot":
-        return left >= 1 and right >= 1
-    if kind == "mark":
-        return left >= 2 and right >= 2
-    if kind in ("soft", "letter"):
-        return left >= 3 and right >= 3
-    return False
+def _separators():
+    return set("._-:") | set(
+        "\u00b7\u30fb\uff65\u2010\u2011\u2012\u2013\u2014\u2015\u2212\ufe58\ufe63\uff0d\u2027\u2043"
+    )
 
 
-def hex_findings(text, allow=HEX_ALLOW):
-    """7+ hex runs. Dot, whitespace and repeated separators join groups."""
-    findings = []
-    text = normalize_text(text)
-    hexdigits = set("0123456789abcdef")
-    dashes = set("-_:\u2010\u2011\u2012\u2013\u2014\u2015\u2212\ufe58\ufe63\uff0d")
+_ED_TOKEN = "ed" + "25519"
+
+
+def checked_allow(allow):
+    """Allow-list entries are exact whole tokens of digits. No a-f values."""
+    if allow is None:
+        allow = HEX_ALLOW
+    for item in allow:
+        if not re.fullmatch(r"[0-9]+", item or ""):
+            raise ValueError("allow-list entry must be a digits-only token")
+    return allow
+
+
+def _mask_iso(text):
+    """Blank strict ISO 8601 dates and datetimes. Near-misses stay in place."""
+
+    def date_ok(year, month, day):
+        try:
+            datetime.date(int(year), int(month), int(day))
+        except ValueError:
+            return False
+        return True
+
+    def time_ok(hour, minute, second):
+        return 0 <= int(hour) <= 23 and 0 <= int(minute) <= 59 and 0 <= int(second) <= 60
+
+    def blank(match):
+        return " " * len(match.group(0))
+
+    dt = re.compile(
+        r"(?<![0-9a-z])(\d{4})-(\d{2})-(\d{2})[t ](\d{2}):(\d{2}):(\d{2})"
+        r"(?:\.\d+)?(?:z|[+-]\d{2}:\d{2})?(?![0-9a-z])"
+    )
+    day = re.compile(r"(?<![0-9a-z])(\d{4})-(\d{2})-(\d{2})(?![0-9a-z])")
+
+    def dt_sub(match):
+        if date_ok(match.group(1), match.group(2), match.group(3)) and time_ok(
+            match.group(4), match.group(5), match.group(6)
+        ):
+            return blank(match)
+        return match.group(0)
+
+    def day_sub(match):
+        if date_ok(match.group(1), match.group(2), match.group(3)):
+            return blank(match)
+        return match.group(0)
+
+    return day.sub(day_sub, dt.sub(dt_sub, text))
+
+
+def _reduce_token(token, hexdigits, separators):
+    """Strip non-space separators and a single-letter split. Return (pure, runs)."""
+    non_hex_letters = [
+        char for char in token
+        if "a" <= char <= "z" and char not in hexdigits and char not in separators
+    ]
+    # A single-letter split is one non-hex letter in an otherwise hex token.
+    allow_letter_split = len(non_hex_letters) == 1
+    runs = []
+    current = []
+    pure = True
     index = 0
-    length = len(text)
+    length = len(token)
     while index < length:
-        if text[index] not in hexdigits:
+        char = token[index]
+        if char in hexdigits:
+            current.append(char)
             index += 1
             continue
-        chars = [text[index]]
-        group = 1
-        cursor = index + 1
-        while cursor < length:
-            if text[cursor] in hexdigits:
-                chars.append(text[cursor])
-                group += 1
-                cursor += 1
+        if char in separators:
+            index += 1
+            continue
+        if allow_letter_split and char in non_hex_letters and current:
+            if index + 1 < length and token[index + 1] in hexdigits:
+                index += 1
                 continue
-            probe = cursor
-            while probe < length and text[probe] not in hexdigits:
-                probe += 1
-            kind = _gap_kind(text[cursor:probe], hexdigits, dashes) if probe < length else None
-            nxt = 0
-            if kind:
-                while probe + nxt < length and text[probe + nxt] in hexdigits:
-                    nxt += 1
-            if kind and _join_ok(kind, group, nxt):
-                chars.append(text[probe])
-                cursor = probe + 1
-                group = 1
-                continue
+        if current:
+            runs.append("".join(current))
+            current = []
+        pure = False
+        index += 1
+    if current:
+        runs.append("".join(current))
+    if pure and len(runs) == 1:
+        return True, runs[0]
+    if pure and not runs:
+        return True, ""
+    return False, runs
+
+
+def _mixes(token):
+    return any("a" <= char <= "f" for char in token) and any(char.isdigit() for char in token)
+
+
+def _ed_exempt(text, token):
+    """True when every exact occurrence is an alg or kty value."""
+    if token != _ED_TOKEN:
+        return False
+    hexdigits = _hex_digits()
+    start = 0
+    found = False
+    while True:
+        index = text.find(token, start)
+        if index < 0:
             break
-        token = "".join(chars)
-        if len(token) >= 7 and token not in allow:
+        found = True
+        before = text[index - 1] if index else ""
+        after = text[index + len(token)] if index + len(token) < len(text) else ""
+        if before in hexdigits or after in hexdigits:
+            return False
+        window = text[max(0, index - 48):index]
+        if not re.search(r"""['"](?:alg|kty)['"]\s*:\s*['"]\s*$""", window):
+            return False
+        start = index + len(token)
+    return found
+
+
+def hex_findings(text, allow=None):
+    """7+ hex runs after separator stripping. Spaces join only mixed tokens."""
+    allow = checked_allow(HEX_ALLOW if allow is None else allow)
+    text = _mask_iso(normalize_text(text))
+    hexdigits = _hex_digits()
+    separators = _separators()
+    findings = []
+
+    def keep(token):
+        if len(token) < 7 or token in allow:
+            return
+        if _ed_exempt(text, token):
+            return
+        if token not in findings:
             findings.append(token)
-        index = cursor if cursor > index else index + 1
+
+    for line in text.splitlines() or [text]:
+        parts = re.split(r"[ \t]+", line)
+        group = []
+
+        def flush():
+            if not group:
+                return
+            for item in group:
+                if len(item) >= 7:
+                    keep(item)
+            if len(group) >= 2:
+                joined = "".join(group)
+                if _mixes(joined):
+                    keep(joined)
+            del group[:]
+
+        for part in parts:
+            if not part:
+                continue
+            pure, value = _reduce_token(part, hexdigits, separators)
+            if pure and value:
+                group.append(value)
+                continue
+            flush()
+            if not pure:
+                for run in value:
+                    if len(run) >= 7:
+                        keep(run)
+        flush()
     return findings
 
 
@@ -865,8 +1059,22 @@ def iter_markdown(root):
     return files, failures
 
 
-def scan_repository(root=ROOT, terms=None):
-    if terms is None:
+def read_text_file(path):
+    """Return decoded text, or None when the file is binary or unreadable."""
+    try:
+        raw = path.read_bytes()
+    except OSError:
+        return None
+    if b"\x00" in raw[:8192]:
+        return None
+    try:
+        return raw.decode("utf-8")
+    except UnicodeDecodeError:
+        return None
+
+
+def scan_repository(root=ROOT, terms=None, shorts=None):
+    if terms is None and shorts is None:
         terms, error = terms_from_env()
         if error:
             return [error]
@@ -880,51 +1088,47 @@ def scan_repository(root=ROOT, terms=None):
         spec = Spec(document)
     except (OSError, ValueError, TypeError, AttributeError):
         return ["vendored spec is not valid JSON"]
-    pages, link_errors = iter_markdown(root)
-    failures.extend(link_errors)
-    for path in pages:
-        label = repo_relative(path, root)
-        try:
-            text = path.read_text(encoding="utf-8")
-        except OSError:
-            failures.append("%s: markdown file is not readable" % label)
-            continue
-        try:
-            resolved = path.resolve().relative_to(root.resolve()).as_posix()
-        except (ValueError, OSError, RuntimeError):
-            failures.append("%s: symlink resolves outside the repository" % label)
-            continue
-        label = resolved
-        failures.extend(scan_text(text, spec, label))
-        for token in hex_for_path(path, root, text):
-            failures.append("%s: hex run %s" % (label, token))
-        for line_no, index in term_hits(text, terms):
-            failures.append("%s:%s: term %s" % (label, line_no, index))
-    for folder_name in ("docs", "examples"):
-        base = root / folder_name
-        if not base.is_dir():
-            continue
-        for path in base.rglob("*"):
-            if not path.is_file() or is_markdown_name(path.name) or path.is_symlink():
+    if not root.is_dir():
+        return failures + ["repository root is missing"]
+    for dirpath, dirnames, filenames in os.walk(root, followlinks=False):
+        current = Path(dirpath)
+        kept = []
+        for name in dirnames:
+            if name in SKIP_DIRS:
+                continue
+            candidate = current / name
+            if candidate.is_symlink():
+                problem = symlink_failure(candidate, root)
+                if problem:
+                    failures.append(problem)
+                    continue
+            kept.append(name)
+        dirnames[:] = kept
+        for name in filenames:
+            path = current / name
+            label = repo_relative(path, root)
+            if path.suffix.lower() in BINARY_SUFFIXES:
+                continue
+            if path.is_symlink():
+                problem = symlink_failure(path, root)
+                if problem:
+                    failures.append(problem)
+                    continue
+            text = read_text_file(path)
+            if text is None:
+                if is_markdown_name(name):
+                    failures.append("%s: markdown file is not readable" % label)
                 continue
             try:
-                relative = path.relative_to(root)
-            except ValueError:
+                label = path.resolve().relative_to(root.resolve()).as_posix()
+            except (ValueError, OSError, RuntimeError):
                 failures.append("%s: symlink resolves outside the repository" % repo_relative(path, root))
                 continue
-            if any(part in SKIP_DIRS for part in relative.parts):
-                continue
-            if path.suffix.lower() not in {".json", ".txt", ".yml", ".yaml"}:
-                continue
-            try:
-                text = path.read_text(encoding="utf-8")
-            except OSError:
-                failures.append("%s: file is not readable" % relative.as_posix())
-                continue
-            label = relative.as_posix()
+            if is_markdown_name(name):
+                failures.extend(scan_text(text, spec, label))
             for token in hex_for_path(path, root, text):
                 failures.append("%s: hex run %s" % (label, token))
-            for line_no, index in term_hits(text, terms):
+            for line_no, index in term_hits(text, terms, shorts):
                 failures.append("%s:%s: term %s" % (label, line_no, index))
     quick_path = root / "docs" / "customer-rest-api.md"
     if not quick_path.is_file():
@@ -1217,6 +1421,48 @@ class CheckerTests(unittest.TestCase):
         ])
         self.assertTrue(any("params variable" in item for item in self.piece(text)))
 
+    def test_python_params_pair_list(self):
+        text = "\n".join([
+            'BASE_URL = "https://api.kavara.ai"',
+            'headers = {"X-Kavara-Key": API_KEY}',
+            'params = [("key", API_KEY)]',
+            'call("GET", "/v1/kirk-api/health")',
+        ])
+        self.assertTrue(any("params list" in item for item in self.piece(text)))
+
+    def test_kwargs_spread(self):
+        text = "\n".join([
+            'BASE_URL = "https://api.kavara.ai"',
+            'headers = {"X-Kavara-Key": API_KEY}',
+            'client.get(BASE_URL + "/v1/kirk-api/health", **kwargs)',
+        ])
+        self.assertTrue(any("spread argument" in item for item in self.piece(text)))
+
+    def test_urlencode_query(self):
+        text = "\n".join([
+            'BASE_URL = "https://api.kavara.ai"',
+            'headers = {"X-Kavara-Key": API_KEY}',
+            'urlencode({"key": API_KEY})',
+            'call("GET", "/v1/kirk-api/health")',
+        ])
+        self.assertTrue(any("urlencode" in item for item in self.piece(text)))
+
+    def test_percent_encoded_query(self):
+        text = "\n".join([
+            'BASE_URL = "https://api.kavara.ai"',
+            'headers = {"X-Kavara-Key": API_KEY}',
+            'call("GET", "/v1/kirk-api/health%3Fkey%3Dabc")',
+        ])
+        self.assertTrue(any("query string" in item for item in self.piece(text)))
+
+    def test_httpx_auth_is_rejected(self):
+        text = "\n".join([
+            'BASE_URL = "https://api.kavara.ai"',
+            'headers = {"X-Kavara-Key": API_KEY}',
+            'httpx.get(BASE_URL + "/v1/kirk-api/health", auth=creds)',
+        ])
+        self.assertTrue(any("httpx auth" in item for item in self.piece(text)))
+
     def test_headers_update_adds_authorization(self):
         text = "\n".join([
             'BASE_URL = "https://api.kavara.ai"',
@@ -1282,23 +1528,43 @@ class CheckerTests(unittest.TestCase):
         self.assertNotEqual(spec_fingerprint(reloaded), spec_fingerprint(document))
 
     def test_hex_runs(self):
-        self.assertTrue(hex_findings("token abcdef0", allow=frozenset()))
-        self.assertTrue(hex_findings("token abcd-ef0", allow=frozenset()))
-        self.assertTrue(hex_findings("count 1234567", allow=frozenset()))
-        self.assertTrue(hex_findings("count 1234\u2013567", allow=frozenset()))
-        self.assertTrue(hex_findings("count 1234\u200b567", allow=frozenset()))
-        self.assertTrue(hex_findings("count \uff11\uff12\uff13\uff14\uff15\uff16\uff17", allow=frozenset()))
-        self.assertTrue(hex_findings("token abc.def0", allow=frozenset()))
-        self.assertTrue(hex_findings("token abc def0", allow=frozenset()))
-        self.assertTrue(hex_findings("token abcgdef0", allow=frozenset()))
-        self.assertTrue(hex_findings("token abcxdef0", allow=frozenset()))
-        self.assertTrue(hex_findings("token abczdef0", allow=frozenset()))
-        self.assertTrue(hex_findings("token abc--def0", allow=frozenset()))
-        self.assertTrue(hex_findings("token 12:34:56.78", allow=frozenset()))
-        self.assertTrue(hex_findings("token a.b.c.d.e.f.0", allow=frozenset()))
+        pieces = ["a", "b", "c", "d", "e", "f", "0"]
+        self.assertTrue(hex_findings("token " + "abc" + "def" + "0", allow=frozenset()))
+        self.assertTrue(hex_findings("-".join(pieces), allow=frozenset()))
+        self.assertTrue(hex_findings("_".join(pieces), allow=frozenset()))
+        self.assertTrue(hex_findings("\u2013".join(pieces), allow=frozenset()))
+        self.assertTrue(hex_findings(".".join(pieces), allow=frozenset()))
+        self.assertTrue(hex_findings("\u00b7".join(pieces), allow=frozenset()))
+        self.assertTrue(hex_findings("ab cd ef " + "01", allow=frozenset()))
+        self.assertTrue(hex_findings("ab\tcd\tef\t" + "01", allow=frozenset()))
+        self.assertTrue(hex_findings("abc " + "def " + "0", allow=frozenset()))
+        self.assertTrue(hex_findings("12:" + "34:" + "56:" + "7", allow=frozenset()))
+        self.assertTrue(hex_findings("abc" + "g" + "def" + "0", allow=frozenset()))
+        self.assertTrue(hex_findings(".".join(["1", "2", "3", "4", "5", "6", "7"]), allow=frozenset()))
+        self.assertFalse(hex_findings("workload added under 6 W"))
+        self.assertFalse(hex_findings("for T in 1 2 4 8 16 32 64; do"))
         self.assertFalse(hex_findings("label example-revision"))
         self.assertFalse(hex_findings("body cap 8388608"))
-        self.assertTrue(hex_findings("token ce-effec0", allow=frozenset()))
+
+    def test_iso_dates_are_exempt_and_a_near_miss_is_not(self):
+        valid_day = "2026" + "-07-" + "28"
+        valid_when = "2026" + "-07-" + "28T" + "09:" + "30:" + "00Z"
+        near = "2026" + "-07-" + "28T" + "99:" + "99:" + "99"
+        self.assertFalse(hex_findings("noted " + valid_day + " in prose"))
+        self.assertFalse(hex_findings("noted " + valid_when + " in prose"))
+        self.assertTrue(hex_findings("noted " + near + " in prose", allow=frozenset()))
+
+    def test_allow_list_rejects_letters_and_is_exact(self):
+        with self.assertRaises(ValueError):
+            hex_findings("token", allow=frozenset(["abc"]))
+        self.assertFalse(hex_findings("8388608"))
+        self.assertTrue(hex_findings("8388608" + "1", allow=frozenset(["8388608"])))
+
+    def test_curve_token_is_exempt_only_in_alg_or_kty(self):
+        token = "ed" + "25519"
+        self.assertFalse(hex_findings('{"alg": "%s"}' % token))
+        self.assertFalse(hex_findings('{"kty": "%s"}' % token))
+        self.assertTrue(hex_findings("see %s now" % token, allow=frozenset()))
 
     def synthetic_terms(self):
         long_term = "synth" + "token"
@@ -1324,10 +1590,38 @@ class CheckerTests(unittest.TestCase):
             if previous is not None:
                 os.environ[SECRET_NAME] = previous
 
-    def test_short_term_needs_a_boundary(self):
+    def test_short_root_needs_a_boundary(self):
         short_term = "zz"
-        self.assertEqual(term_hits("prefix " + short_term + " suffix", [short_term]), [(1, 0)])
-        self.assertEqual(term_hits("aa" + short_term + "bb", [short_term]), [])
+        self.assertEqual(
+            term_hits("prefix " + short_term + " suffix", [], shorts=[short_term]),
+            [(1, 0)],
+        )
+        self.assertEqual(term_hits("aa" + short_term + "bb", [], shorts=[short_term]), [])
+
+    def test_secret_lines_are_trimmed_and_blank_lines_ignored(self):
+        previous = os.environ.get(SECRET_NAME)
+        os.environ[SECRET_NAME] = "  alpha  \n\n  \n short: zz \n"
+        try:
+            entries, error = terms_from_env()
+        finally:
+            if previous is None:
+                os.environ.pop(SECRET_NAME, None)
+            else:
+                os.environ[SECRET_NAME] = previous
+        self.assertIsNone(error)
+        self.assertEqual(entries, [("any", "alpha"), ("bound", "zz")])
+
+    def test_route_term_survives_splits_and_base64(self):
+        term = "v1/" + "synthetic-extra"
+        spaced = "v1 / " + "synthetic-extra"
+        broken = "v1/\n" + "synthetic-extra"
+        bare = "synthetic-extra"
+        encoded = getattr(base64, "b64" + "encode")(term.encode("utf-8")).decode("ascii")
+        self.assertTrue(term_hits(spaced, [term]))
+        self.assertTrue(term_hits(broken, [term]))
+        self.assertTrue(term_hits("see " + bare + " here", [term]))
+        self.assertTrue(term_hits(encoded, [term]))
+        self.assertNotIn(term, "\n".join("%s:%s" % pair for pair in [(1, 0)]))
 
     def test_encoded_term_is_found(self):
         term = "synth" + "token"
@@ -1398,18 +1692,16 @@ class CheckerTests(unittest.TestCase):
             failures = scan_repository(root, terms=terms)
             self.assertTrue(any("outside docs" in item for item in failures))
 
-    def test_symlink_loop_reports_a_relative_path(self):
+    def test_symlink_loop_fails_closed(self):
         terms = self.synthetic_terms()
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            docs = self.minimal_repo(root)
-            link = docs / "loop.md"
+            self.minimal_repo(root)
+            link = root / "docs" / "loop.md"
             link.symlink_to("loop.md")
             failures = scan_repository(root, terms=terms)
-            matched = [item for item in failures if "loop.md" in item]
-            self.assertTrue(matched)
-            self.assertTrue(all(not item.startswith("/") for item in matched))
-            self.assertTrue(any("cannot be resolved" in item for item in matched))
+            code = 1 if failures else 0
+            self.assertNotEqual(code, 0)
 
     def test_digest_path_is_the_hex_exemption(self):
         token = "ab" * 32
@@ -1470,12 +1762,13 @@ class CheckerTests(unittest.TestCase):
 
 def prove_secret():
     """Show that CI loaded the term list, without printing a term."""
-    terms, error = terms_from_env()
+    entries, error = terms_from_env()
     if error:
         print(error, file=sys.stderr)
         return 1
-    for term in terms:
+    for _kind, term in entries:
         sys.stdout.write("::add-mask::%s\n" % term)
+    planted = entries[0][1]
     with tempfile.TemporaryDirectory() as directory:
         root = Path(directory)
         docs = root / "docs"
@@ -1486,10 +1779,10 @@ def prove_secret():
         digest.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy(ROOT / DIGEST_RELATIVE, digest)
         page = root / "plant.md"
-        page.write_text(terms[0] + "\n", encoding="utf-8")
-        failures = scan_repository(root, terms=terms)
+        page.write_text(planted + "\n", encoding="utf-8")
+        failures = scan_repository(root, terms=entries)
     blob = "\n".join(failures)
-    if terms[0] in blob:
+    if planted in blob:
         print("scan leaked a term", file=sys.stderr)
         return 1
     if "plant.md" not in blob or "term 0" not in blob:

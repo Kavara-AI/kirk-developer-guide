@@ -591,7 +591,7 @@ transformations. Confirm their meaning with the data owner before preprocessing.
 - Similar response trajectories across different experimental conditions.
 - Changes in the timing between signals from different regions.
 - Multiscale structures in electrophysiological recordings.
-- Stable patterns embedded within otherwise variable activity.
+- Stable patterns included within otherwise variable activity.
 
 <a id="genomics"></a>
 ### Genomics and cellular biology

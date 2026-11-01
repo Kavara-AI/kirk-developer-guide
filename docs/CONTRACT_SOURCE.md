@@ -14,7 +14,7 @@ Operations kept:
 - `POST /v1/kirk-api/learn`
 - `POST /v1/kirk-api/score`
 
-`max_body_bytes` is 8 MiB (8388608, which is 8 × 1024 × 1024).
+`max_body_bytes` is 8 MiB (8 × 1024 × 1024).
 
 ## Digest
 

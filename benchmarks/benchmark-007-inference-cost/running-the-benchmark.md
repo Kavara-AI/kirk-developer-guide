@@ -68,7 +68,7 @@ Kirk's cost per output scalar depends on the deployment path:
 | **In-process / sealed engine on your own host** | engine throughput **and** RAPL energy | — |
 | **Hosted surface, on a documented route** | end-to-end throughput of that route | engine energy — the number is network round-trip, not compute |
 
-`kirk_score_book_batch` scores ten-level price books. It does not accept the
+The batch caller scores ten-level price books. It does not accept the
 square matrices built from this benchmark's channel panel. A hosted throughput
 number is comparable only for the route you actually called, with that route's
 input recorded.

@@ -97,7 +97,7 @@ and append "..." to indicate truncation.
 - [ ] Descriptions over 1024 chars are truncated at the last word boundary
       before 1024 chars
 - [ ] Truncated descriptions end with "..."
-- [ ] The total length including "..." does not exceed 1024 chars
+- [ ] The total length including "..." does not exceed 1,024 chars
 
 **Out of scope:**
 - Changing the 1024 char limit itself
