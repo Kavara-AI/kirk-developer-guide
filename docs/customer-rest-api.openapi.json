@@ -687,6 +687,7 @@
             "type": "integer"
           },
           "max_body_bytes": {
+            "description": "8 MiB (8 * 1024 * 1024).",
             "const": 8388608
           },
           "outputs": {

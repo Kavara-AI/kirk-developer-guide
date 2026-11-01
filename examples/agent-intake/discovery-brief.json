@@ -4,7 +4,7 @@
   "purpose": "Kirk discovery intake; preparation for a data-fit review",
   "source": {
     "url": "https://github.com/Kavara-AI/kirk-developer-guide",
-    "revision": "as of 2026-10-31",
+    "revision": "example-revision",
     "catalogue_claim_status": "Hypothesis"
   },
   "status": {

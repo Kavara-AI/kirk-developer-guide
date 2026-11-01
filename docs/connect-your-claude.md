@@ -54,16 +54,14 @@ this beta. Use Claude Code with the header form above.
 Anthropic describes the dialog in
 [Add a connector by URL](https://claude.com/docs/connectors/custom/remote-mcp)
 (also published as
-[add an unlisted connector](https://claude.com/docs/connectors/custom/add-unlisted))
-and in
-[Get started with custom connectors using remote MCP](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp).
+[add an unlisted connector](https://claude.com/docs/connectors/custom/add-unlisted)).
 
 ## Free and metered tools
 
 Start with the free ones — they cost nothing and answer most orientation
 questions.
 
-Earlier preview routes are not part of the v1 customer API and are not supported.
+/v1/engine, /v1/models, /v1/score-book and /usage* are not part of v1.
 
 | Tool | Cost | What it does |
 | --- | --- | --- |

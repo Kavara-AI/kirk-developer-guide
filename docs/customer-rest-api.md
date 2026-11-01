@@ -5,7 +5,7 @@ Use **`https://api.kavara.ai`** for customer REST calls from Python or curl.
 - [OpenAPI specification](customer-rest-api.openapi.json)
 - [Create an account or manage keys](https://kavara.ai/console)
 
-Earlier preview routes are not part of the v1 customer API and are not supported.
+/v1/engine, /v1/models, /v1/score-book and /usage* are not part of v1.
 
 Hosted MCP is a separate surface. See [Connect your Claude](connect-your-claude.md).
 Do not send MCP calls to `api.kavara.ai`.
@@ -47,7 +47,7 @@ do not. Account responses include `X-RateLimit-Limit`, `X-RateLimit-Remaining`
 and `X-RateLimit-Reset`.
 
 The limit is 300 calls per account per fixed 60 second window, counting every
-`/v1/kirk-api/*` call. The largest body is 8388608 bytes.
+`/v1/kirk-api/*` call. The largest body is 8 MiB (8388608 bytes, 8 × 1024 × 1024).
 
 ### Python
 
@@ -202,7 +202,7 @@ Bodies below are the contract's error objects.
 | 401 | `{"error":"invalid_api_key"}` | No key, a repeated key header, or a key that is not `k_` plus 32 hex |
 | 403 | `{"error":"request_denied"}` | Unknown key, revoked key, or a key with no tenant row. One body for all three |
 | 404 | `{"error":"route_not_found"}` | Unknown path or method |
-| 413 | `{"error":"request_too_large"}` | Body over 8388608 bytes |
+| 413 | `{"error":"request_too_large"}` | Body over 8 MiB (8388608 bytes) |
 | 415 | `{"error":"unsupported_content_type"}` | Not `application/json` on create, or not `application/x-kirk-npz` on learn and score |
 | 422 | `{"error":"invalid_outputs"}` | `outputs` is not `all`, `entropy` or `features` |
 | 422 | `EnvelopeRefused` | `error` is `EnvelopeRefused`, with `rule` (`input_range` or `chain_length`) and `message`. `input_range` means a part was outside [-1, 1] |

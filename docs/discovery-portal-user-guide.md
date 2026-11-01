@@ -60,7 +60,7 @@ Search the catalogue by domain, observation or behaviour. For example, try
 **Explore all … domains** reveals the remaining cards.
 
 The catalogue contains 32 domains and 256 prompts, drawn from this guide's
-[catalogue](phenomena-catalogue.md) as of 2026-10-31.
+[catalogue](phenomena-catalogue.md), labelled example-revision.
 
 - Choose **+ Add** to add a domain to your starting point. Choose **✓ Added** or
   its removal control in the summary to remove it.
@@ -124,9 +124,9 @@ For a minimal file, save this as `example.csv`:
 
 ```csv
 timestamp,temperature_c,vibration_mm_s
-2026-01-01T09:00:00Z,22.1,0.12
-2026-01-01T09:01:00Z,22.3,
-2026-01-01T09:02:00Z,22.4,0
+09:00:00Z,22.1,0.12
+09:01:00Z,22.3,
+09:02:00Z,22.4,0
 ```
 
 **Observed inspection behaviour:** the portal measures all rows of the supplied

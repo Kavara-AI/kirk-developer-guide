@@ -24,7 +24,7 @@ in [-1, 1]. See [Customer REST API](customer-rest-api.md).
 One measured stream you may place on an axis when you build the square matrix for a step.
 
 **Model**  
-Earlier preview routes are not part of the v1 customer API and are not supported.
+/v1/engine, /v1/models, /v1/score-book and /usage* are not part of v1.
 Create takes `hyperparameters`. Learn and score take a snapshot and samples.
 
 **Non-stationary**  
@@ -43,7 +43,7 @@ A change in how two or more variables behave together.
 The `entropy` array (float32, one value per submitted square) in a learn or score
 response. `outputs=entropy` returns that array alone. `outputs=all` and
 `outputs=features` also return `feature_arr`, `feature_vec` and `feature_scalar`.
-Earlier preview routes are not part of the v1 customer API and are not supported.
+/v1/engine, /v1/models, /v1/score-book and /usage* are not part of v1.
 
 **Stride**  
 How many source observations the next matrix advances. You choose it when you build

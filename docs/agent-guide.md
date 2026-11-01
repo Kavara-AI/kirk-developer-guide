@@ -115,7 +115,7 @@ Choose the surface first. For customer REST at
 **`https://api.kavara.ai`**, follow [Customer REST API](customer-rest-api.md):
 account and key setup, then `GET /v1/kirk-api/health`, `GET /v1/kirk-api/contract`
 and `POST /v1/kirk-api/create`. Learn and score send the snapshot from create
-with square samples. Earlier preview routes are not part of the v1 customer API and are not supported. Paths, bodies and errors are in the
+with square samples. /v1/engine, /v1/models, /v1/score-book and /usage* are not part of v1. Paths, bodies and errors are in the
 [OpenAPI specification](customer-rest-api.openapi.json). This path needs no MCP
 client. Supply `KIP_API_KEY` through the environment's secret controls. The
 header is `X-Kavara-Key`.

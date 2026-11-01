@@ -4,8 +4,9 @@
 Scans every fenced block (backtick or tilde, tagged or not) and every inline
 code span under the customer docs. Unknown fence languages are scanned, not
 skipped. The operation allow-list is loaded from
-docs/customer-rest-api.openapi.json at runtime. Security schemes and paths
-must match the digest stored in this file.
+docs/customer-rest-api.openapi.json at runtime. The full document must match
+the encoded digest in scripts/customer-spec.digest, which this checker skips
+by exact path. The digest is not stored as a hex run.
 """
 
 from __future__ import annotations
@@ -15,18 +16,21 @@ import ipaddress
 import json
 import re
 import shlex
+import shutil
 import sys
 import tempfile
+import unicodedata
 import unittest
 from pathlib import Path
 from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 OPENAPI_PATH = ROOT / "docs" / "customer-rest-api.openapi.json"
+DIGEST_PATH = ROOT / "scripts" / "customer-spec.digest"
 PUBLIC_API_BASE = "https://api.kavara.ai"
-
-# Digest of security, securitySchemes and paths. Not written into docs prose.
-EXPECTED_SPEC_DIGEST = "0af5ab3c7864dace6d97044611984926b5f9eb81ac1ef571c629cd9d4ce64e1d"
+# Exact paths the hex scan must not read. The digest file is encoded, and it
+# lives outside docs; the exclusion is here so a wider scan still skips it.
+HEX_SKIP_PATHS = frozenset({DIGEST_PATH.resolve()})
 
 BLOCKED_SEGMENTS = frozenset({"mcp", "admin", "internal", "svc", "usage"})
 EXCLUDED_EXACT = frozenset({"/v1/engine", "/v1/models", "/v1/score-book"})
@@ -44,8 +48,10 @@ BANNED_TERMS = (
     "engine_sha",
     "agent_sweep_policy",
 )
-# Collapsed hex tokens that are dates or other non-revision labels.
-HEX_ALLOW = frozenset({"20261031", "20260922", "20261002"})
+# Digit runs that are not revision ids.
+# 8388608 is 8 MiB, the contract max_body_bytes const (8 * 1024 * 1024).
+# 20260922 is the example brief calendar date, written as an ISO timestamp.
+HEX_ALLOW = frozenset({"8388608", "20260922"})
 KEY_LITERAL = re.compile(r"k_[0-9a-fA-F]{32}")
 FENCE_RE = re.compile(
     r"(?ms)^(?P<open>`{3,}|~{3,})[ \t]*(?P<info>[^\n]*)\n(?P<body>.*?)^(?P=open)[ \t]*$"
@@ -65,14 +71,25 @@ QUICKSTART_CALLS = (
 
 
 def spec_fingerprint(document):
-    """Canonical digest of the security schemes and paths."""
-    payload = {
-        "paths": document.get("paths") or {},
-        "security": document.get("security") or [],
-        "securitySchemes": ((document.get("components") or {}).get("securitySchemes") or {}),
-    }
-    blob = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+    """Canonical digest of the whole document, including paths and components."""
+    blob = json.dumps(document, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
     return hashlib.sha256(blob.encode("utf-8")).hexdigest()
+
+
+def encode_digest(hex_digest):
+    """Break a hex digest into 4-digit groups so it is not a 7+ hex run.
+
+    Hex has no 'g', and 'g' is not a stripped separator, so the groups stay split.
+    """
+    return "g".join(hex_digest[index:index + 4] for index in range(0, len(hex_digest), 4))
+
+
+def decode_digest(text):
+    return "".join(text.strip().split("g"))
+
+
+def stored_digest():
+    return decode_digest(DIGEST_PATH.read_text(encoding="utf-8"))
 
 
 def load_document(path):
@@ -376,6 +393,8 @@ def curl_commands(text):
         headers = []
         data = None
         output = None
+        basic = False
+        url_query = []
         index = 0
         while index < len(argv):
             arg = argv[index]
@@ -400,6 +419,22 @@ def curl_commands(text):
                 output = nxt
                 index += 2
                 continue
+            if arg == "--url-query" and nxt is not None:
+                url_query.append(nxt)
+                index += 2
+                continue
+            if arg.startswith("--url-query="):
+                url_query.append(arg.split("=", 1)[1])
+                index += 1
+                continue
+            if arg in ("-u", "--user") or arg.startswith("--user="):
+                basic = True
+                index += 2 if arg in ("-u", "--user") and nxt is not None else 1
+                continue
+            if arg.startswith("-u") and not arg.startswith("--"):
+                basic = True
+                index += 1
+                continue
             if arg.startswith(("http://", "https://", "${")):
                 url = arg
             index += 1
@@ -411,6 +446,8 @@ def curl_commands(text):
             "headers": header_map(headers),
             "data": data,
             "output": output,
+            "basic": basic,
+            "url_query": url_query,
         })
     return commands
 
@@ -446,10 +483,25 @@ def check_routes(text, spec, label):
     return failures
 
 
+def misplaced_secret(text, label):
+    """X-Kavara-Key is a request header. Basic auth and Authorization are not."""
+    failures = []
+    if re.search(r"(?i)(?:\?|&)X-Kavara-Key\b", text):
+        failures.append("%s: X-Kavara-Key must be a request header, not a query string" % label)
+    if re.search(r"(?i)--url-query(?:\s+|=)\S*X-Kavara-Key", text):
+        failures.append("%s: X-Kavara-Key must be a request header, not --url-query" % label)
+    if re.search(r"(?i)params\s*=\s*\{[^}]*X-Kavara-Key", text):
+        failures.append("%s: X-Kavara-Key must be a request header, not a params mapping" % label)
+    if re.search(r"""(?i)headers\s*\[\s*['"]Authorization['"]\s*\]\s*=""", text):
+        failures.append("%s: Authorization is not a security-scheme header" % label)
+    return failures
+
+
 def check_piece(text, spec, label):
     failures = []
     if KEY_LITERAL.search(text):
         failures.append("%s: sample contains a key literal" % label)
+    failures.extend(misplaced_secret(text, label))
     failures.extend(check_routes(text, spec, label))
     base = assigned_base(text)
     static_headers, conditional_type = python_headers(text)
@@ -465,15 +517,20 @@ def check_piece(text, spec, label):
         if "error" in command:
             failures.append("%s: %s" % (label, command["error"]))
             continue
+        if command.get("basic"):
+            failures.append("%s: curl basic auth is not the security scheme" % label)
+        for item in command.get("url_query") or []:
+            if re.search(r"(?i)X-Kavara-Key", item):
+                failures.append("%s: X-Kavara-Key must be a request header, not --url-query" % label)
         raw = command["url"] or ""
         url = resolve_url(raw, text) if raw else None
         path = ""
         if raw.startswith("${BASE_URL}"):
-            path = normalise(raw[len("${BASE_URL}"):])
+            path = normalise(raw[len("${BASE_URL}"):].split("?", 1)[0])
         elif url:
             path = normalise(urlsplit(url).path)
         elif raw.startswith("/"):
-            path = normalise(raw)
+            path = normalise(raw.split("?", 1)[0])
         if command["output"] is None:
             failures.append("%s: curl sample must use -o file" % label)
         failures.extend(validate_call(
@@ -508,11 +565,11 @@ def scan_text(text, spec, label):
     return failures
 
 
-def check_digest(path, expected):
+def check_digest(path):
     document = load_document(path)
     got = spec_fingerprint(document)
-    if got != expected:
-        return ["spec digest drifted from the recorded security-scheme and path digest"]
+    if got != stored_digest():
+        return ["spec digest drifted from the recorded full-document digest"]
     spec = Spec(document)
     failures = []
     if spec.public_base != PUBLIC_API_BASE:
@@ -526,8 +583,15 @@ def check_digest(path, expected):
 
 
 def hex_findings(text, allow=HEX_ALLOW):
+    """7+ hex runs after NFKC, with separators, dashes and zero-width marks removed.
+
+    Digit-only runs count. A letter is not required.
+    """
     findings = []
+    text = unicodedata.normalize("NFKC", text)
+    text = text.translate({ord(char): None for char in "\u200b\u200c\u200d\ufeff\u2060\u180e"})
     separators = set("-_:")
+    separators.update("\u2010\u2011\u2012\u2013\u2014\u2015\u2212\ufe58\ufe63\uff0d\u00ad")
     hexdigits = set("0123456789abcdefABCDEF")
     index = 0
     length = len(text)
@@ -548,15 +612,33 @@ def hex_findings(text, allow=HEX_ALLOW):
                 continue
             break
         token = "".join(chars)
-        letter = re.search(r"[A-Fa-f]", token)
-        if token.lower() not in allow and ((len(token) >= 7 and letter) or len(token) >= 16):
-            findings.append(token)
+        if len(token) >= 7 and token.lower() not in allow:
+            findings.append(token.lower())
         index = cursor if cursor > index else index + 1
     return findings
 
 
+def fold_term(text):
+    """NFKC, casefold, and drop separators so a banned term cannot hide in punctuation."""
+    text = unicodedata.normalize("NFKC", text).casefold()
+    text = text.translate({ord(char): None for char in "\u200b\u200c\u200d\ufeff\u2060\u180e"})
+    for char in "-_\u2010\u2011\u2012\u2013\u2014\u2015\u2212\ufe58\ufe63\uff0d\u00ad":
+        text = text.replace(char, "")
+    return text
+
+
 def banned_findings(text):
-    return [term for term in BANNED_TERMS if term in text]
+    folded = fold_term(text)
+    return [term for term in BANNED_TERMS if fold_term(term) in folded]
+
+
+def in_doc_tree(path, root):
+    """True for docs/ and examples/ after resolving to a path relative to root."""
+    try:
+        relative = path.resolve().relative_to(Path(root).resolve())
+    except ValueError:
+        return False
+    return bool(relative.parts) and relative.parts[0] in DOC_ROOTS
 
 
 def quickstart_calls(text, spec):
@@ -594,14 +676,14 @@ def markdown_files(root):
                 continue
             if any(part in SKIP_DIRS for part in path.relative_to(root).parts):
                 continue
-            if path.name == "skills-lock.json":
+            if path.resolve() in HEX_SKIP_PATHS or not in_doc_tree(path, root):
                 continue
             files.append(path)
     return files
 
 
 def scan_repository(root=ROOT):
-    failures = check_digest(root / "docs" / "customer-rest-api.openapi.json", EXPECTED_SPEC_DIGEST)
+    failures = check_digest(root / "docs" / "customer-rest-api.openapi.json")
     document = load_document(root / "docs" / "customer-rest-api.openapi.json")
     spec = Spec(document)
     for path in markdown_files(root):
@@ -611,7 +693,7 @@ def scan_repository(root=ROOT):
         label = str(path.relative_to(root))
         if path.suffix.lower() == ".md":
             failures.extend(scan_text(text, spec, label))
-        if path.parts[0] in DOC_ROOTS or (len(path.parts) > 1 and path.parts[0] in DOC_ROOTS):
+        if in_doc_tree(path, root):
             for token in hex_findings(text):
                 failures.append("%s: hex run %s" % (label, token))
             for term in banned_findings(text):
@@ -690,8 +772,26 @@ class CheckerTests(unittest.TestCase):
     def wrapped(self, text):
         return scan_text(text, self.spec(), "fixture")
 
-    def test_vendored_digest_matches(self):
-        self.assertEqual(check_digest(OPENAPI_PATH, EXPECTED_SPEC_DIGEST), [])
+    def independent_digest(self, document):
+        """Hash the whole document without using spec_fingerprint or a module constant."""
+        blob = json.dumps(document, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+        return hashlib.sha256(blob.encode("utf-8")).hexdigest()
+
+    def test_vendored_digest_matches_independent_hash(self):
+        document = load_document(OPENAPI_PATH)
+        got = self.independent_digest(document)
+        self.assertEqual(got, decode_digest(DIGEST_PATH.read_text(encoding="utf-8")))
+        self.assertEqual(spec_fingerprint(document), got)
+        self.assertEqual(check_digest(OPENAPI_PATH), [])
+
+    def test_schema_edit_changes_digest(self):
+        document = load_document(OPENAPI_PATH)
+        original = self.independent_digest(document)
+        edited = json.loads(json.dumps(document))
+        node = edited["components"]["schemas"]["CreateRequest"]["properties"]["hyperparameters"]
+        node["properties"]["visible_nodes"]["minimum"] = 0
+        self.assertNotEqual(self.independent_digest(edited), original)
+        self.assertNotEqual(spec_fingerprint(edited), spec_fingerprint(document))
 
     def test_full_url(self):
         text = "```bash\ncurl https://api.kavara.ai/v1/engine -o out.json\n```\n"
@@ -773,21 +873,47 @@ class CheckerTests(unittest.TestCase):
         ])
         self.assertTrue(any("text/plain" in item for item in self.piece(text)))
 
-    def test_private_base(self):
+    def test_key_in_curl_query(self):
         text = "\n".join([
-            'BASE_URL = "https://10.1.2.3"',
+            'BASE_URL="https://api.kavara.ai"',
+            'curl --request GET --url "${BASE_URL}/v1/kirk-api/health?X-Kavara-Key=abc" '
+            '--header "X-Kavara-Key: ${KIP_API_KEY}" -o out.json',
+        ])
+        self.assertTrue(any("query string" in item for item in self.piece(text)))
+
+    def test_key_in_python_params(self):
+        text = "\n".join([
+            'BASE_URL = "https://api.kavara.ai"',
             'headers = {"X-Kavara-Key": API_KEY}',
+            'params = {"X-Kavara-Key": API_KEY}',
             'call("GET", "/v1/kirk-api/health")',
         ])
-        self.assertTrue(any("private" in item or "public api base" in item for item in self.piece(text)))
+        self.assertTrue(any("params" in item for item in self.piece(text)))
 
-    def test_security_scheme_change(self):
-        document = load_document(OPENAPI_PATH)
-        document["components"]["securitySchemes"]["kavaraKey"]["name"] = "X-Other-Key"
-        tmp = Path(tempfile.mkdtemp()) / "openapi.json"
-        tmp.write_text(json.dumps(document), encoding="utf-8")
-        self.assertTrue(check_digest(tmp, EXPECTED_SPEC_DIGEST))
-        self.assertEqual(check_digest(OPENAPI_PATH, EXPECTED_SPEC_DIGEST), [])
+    def test_key_in_url_query_flag(self):
+        text = "\n".join([
+            'BASE_URL="https://api.kavara.ai"',
+            'curl --request GET --url "${BASE_URL}/v1/kirk-api/health" '
+            '--url-query "X-Kavara-Key=abc" --header "X-Kavara-Key: ${KIP_API_KEY}" -o out.json',
+        ])
+        self.assertTrue(any("--url-query" in item for item in self.piece(text)))
+
+    def test_curl_basic_auth(self):
+        text = "\n".join([
+            'BASE_URL="https://api.kavara.ai"',
+            'curl --request GET --url "${BASE_URL}/v1/kirk-api/health" '
+            '--header "X-Kavara-Key: ${KIP_API_KEY}" -u "user:pass" -o out.json',
+        ])
+        self.assertTrue(any("basic auth" in item for item in self.piece(text)))
+
+    def test_authorization_assigned_later(self):
+        text = "\n".join([
+            'BASE_URL = "https://api.kavara.ai"',
+            'headers = {"X-Kavara-Key": API_KEY}',
+            'headers["Authorization"] = "Bearer x"',
+            'call("GET", "/v1/kirk-api/health")',
+        ])
+        self.assertTrue(any("Authorization" in item for item in self.piece(text)))
 
     def test_usage_segment(self):
         self.assertTrue(self.piece("curl https://api.kavara.ai/usage/me -o out.json"))
@@ -803,10 +929,62 @@ class CheckerTests(unittest.TestCase):
         ])
         self.assertEqual(self.piece(text), [])
 
-    def test_hex_runs_and_dates(self):
-        self.assertTrue(hex_findings("revision 9d2e119"))
-        self.assertTrue(hex_findings("revision 9d2e-119"))
-        self.assertFalse(hex_findings("as of 2026-10-31"))
+    def test_documentation_address_is_not_the_api_base(self):
+        text = "\n".join([
+            'BASE_URL = "https://192.0.2.1"',
+            'headers = {"X-Kavara-Key": API_KEY}',
+            'call("GET", "/v1/kirk-api/health")',
+        ])
+        self.assertTrue(any("sample base is not" in item for item in self.piece(text)))
+
+    def test_security_scheme_change(self):
+        document = load_document(OPENAPI_PATH)
+        mutated = json.loads(json.dumps(document))
+        mutated["components"]["securitySchemes"]["kavaraKey"]["name"] = "X-Other-Key"
+        with tempfile.TemporaryDirectory() as directory:
+            tmp = Path(directory) / "openapi.json"
+            tmp.write_text(json.dumps(mutated), encoding="utf-8")
+            reloaded = load_document(tmp)
+        self.assertNotEqual(self.independent_digest(reloaded), self.independent_digest(document))
+        self.assertNotEqual(spec_fingerprint(reloaded), spec_fingerprint(document))
+
+    def test_hex_runs(self):
+        self.assertTrue(hex_findings("token abcdef0", allow=frozenset()))
+        self.assertTrue(hex_findings("token abcd-ef0", allow=frozenset()))
+        self.assertTrue(hex_findings("count 1234567", allow=frozenset()))
+        self.assertTrue(hex_findings("count 1234\u2013567", allow=frozenset()))
+        self.assertTrue(hex_findings("count 1234\u200b567", allow=frozenset()))
+        self.assertTrue(hex_findings("count \uff11\uff12\uff13\uff14\uff15\uff16\uff17", allow=frozenset()))
+        self.assertFalse(hex_findings("label example-revision"))
+        self.assertFalse(hex_findings("body cap 8388608"))
+
+    def test_banned_term_folding(self):
+        planted = "Cooling" + "\u2013" + "Rate"
+        host = "VERCEL" + ".APP"
+        self.assertEqual(fold_term("\n".join(banned_findings(planted))), fold_term("cooling" + "_" + "rate"))
+        self.assertEqual(fold_term("\n".join(banned_findings(host))), fold_term(host))
+
+    def test_markdown_scan_catches_planted_leaks(self):
+        """The real repository scan must see Markdown under docs/, not skip it."""
+        tuning = "cooling" + "_" + "rate"
+        host = "vercel" + "." + "app"
+        token = "abc" + "de" + "f2"
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            docs = root / "docs"
+            docs.mkdir()
+            shutil.copy(OPENAPI_PATH, docs / "customer-rest-api.openapi.json")
+            shutil.copy(ROOT / "docs" / "customer-rest-api.md", docs / "customer-rest-api.md")
+            clean = scan_repository(root)
+            self.assertFalse(any("planted-leak" in item for item in clean), clean)
+            page = docs / "planted-leak.md"
+            page.write_text(tuning + "\n" + host + "\n" + token + "\n", encoding="utf-8")
+            dirty = scan_repository(root)
+            blob = "\n".join(dirty).casefold()
+            self.assertIn("planted-leak.md", blob)
+            self.assertIn(fold_term(tuning), fold_term(blob))
+            self.assertIn(fold_term(host), fold_term(blob))
+            self.assertIn(token, blob)
 
     def test_banned_term(self):
         self.assertEqual(banned_findings("see vercel.app today"), ["vercel.app"])
@@ -814,7 +992,7 @@ class CheckerTests(unittest.TestCase):
 
 def main(argv):
     if "--print-digest" in argv:
-        print(spec_fingerprint(load_document(OPENAPI_PATH)))
+        print(encode_digest(spec_fingerprint(load_document(OPENAPI_PATH))))
         return 0
     if "--self-test" in argv:
         suite = unittest.defaultTestLoader.loadTestsFromTestCase(CheckerTests)
