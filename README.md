@@ -31,9 +31,11 @@ hosted MCP surface is described in [Connect your Claude](docs/connect-your-claud
 
 `python3 scripts/check_customer_samples.py` checks that fenced samples use only
 published customer routes. Its term list is one trimmed line per entry. A line
-that starts with `/` is a route and matches only the whole normalised path; a
-trailing `*` marks a prefix of that path. `short:` marks a short root and does
-not apply to routes.
+that starts with `/` is a route and matches the whole normalised path, including
+inside a full URL, a Markdown link, an autolink, or a host/path. One trailing
+slash, a query, or a fragment does not change the path. A trailing `*` marks a
+prefix of that path. `short:` marks a short root and does not apply to routes.
+A long root also matches when its pieces are joined with no separator.
 
 ## Start here
 
