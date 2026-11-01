@@ -7,14 +7,15 @@ at runtime. Term matching uses KDG_BANNED_TERMS and refuses to run when that
 list is missing.
 
 Secret lines are trimmed and blank lines are ignored. A line that starts with
-``/`` is a route entry: it matches only the whole normalised path. A trailing
-``*`` marks a prefix entry (the path, or that path plus further segments).
-Normalisation is NFKC, casefold, URL-decoding, slash collapsing, and removal
-of whitespace, line breaks, dashes and dots between the path's characters.
-The base64 and rot13 of the whole path are checked. A route is never matched
-by segment. A full URL, Markdown link, autolink, or host/path is reduced to
-its path, then a trailing slash, query, and fragment are removed. Literal
-pieces joined in code are evaluated too. ``short:`` never applies to a route.
+``/`` is a route entry. An exact entry matches when its segments are a
+contiguous run at the end of a path. A trailing ``*`` is a prefix entry and
+also matches when further segments follow. A partial segment does not match.
+Normalisation is NFKC, casefold, URL-decoding, slash collapsing, a trailing
+slash, query, fragment, or parameter suffix, and ``.`` and ``..`` segments.
+A leading version segment matches any version. Dashes and dots inside a
+segment are removed. The base64 and rot13 of the whole path are checked.
+Literal pieces joined in one expression are evaluated too. ``short:`` never
+applies to a route.
 ``short:`` (any case) marks a short root matched on a token boundary. Any
 other line is a long root, including inside a longer word and with its parts
 joined and with no separator.
@@ -24,6 +25,7 @@ from __future__ import annotations
 
 import base64
 import datetime
+import functools
 import hashlib
 import html
 import ipaddress
@@ -547,9 +549,17 @@ def misplaced_secret(text, label):
     if re.search(r"(?i)\bcookies\s*=", text):
         failures.append("%s: key must be a request header, not cookies" % label)
     if re.search(
-        r"(?i)\b(?:data|json)\s*=\s*\{[^}]*(?:x[-_]kavara[-_]key|\bkey\b|Authorization)",
+        r"(?i)\b(?:data|json)\s*=\s*\{[^}]*(?:x[-_]kavara[-_]key|api_key|\bkey\b|Authorization)",
         text,
     ):
+        failures.append("%s: key must be a request header, not a body field" % label)
+    if re.search(r"""(?i)['"]api_key['"]\s*:""", text):
+        failures.append("%s: key must be a request header, not a body field" % label)
+    if re.search(r"""(?i)\b(?:data|json)\s*=\s*['"][^'"]*\bkey\s*=""", text):
+        failures.append("%s: key must be a request header, not a body field" % label)
+    if re.search(r"""(?i)--data(?:-raw|-binary)?(?:\s+|=)['"][^'"]*\bkey\s*=""", text):
+        failures.append("%s: key must be a request header, not a body field" % label)
+    if re.search(r"(?i)\bdict\s*\([^)]*\b(?:key|api_key)\s*=", text):
         failures.append("%s: key must be a request header, not a body field" % label)
     if re.search(
         r"(?i)\b(?:data|json|cookies)\s*=\s*[\[(][^\]\)]*(?:x[-_]kavara[-_]key|\bkey\b|Authorization)",
@@ -749,13 +759,13 @@ def fold_for_terms(text):
 def terms_from_env(raw=None):
     """One secret entry per line, trimmed. Blank lines are ignored.
 
-    A line that starts with ``/`` is a route. It matches only as the whole
-    normalised path. A trailing ``*`` marks a prefix entry: the path itself
-    and any longer path under it. Normalisation is NFKC, casefold,
-    URL-decoding, slash collapsing, and removal of whitespace, line breaks,
-    dashes and dots between the path's characters. The base64 and rot13 forms
-    of the whole path are checked too. A route is never matched by segment,
-    and ``short:`` does not apply to it.
+    A line that starts with ``/`` is a route. An exact entry matches when its
+    segments sit at the end of a path, so a mount prefix is allowed. A trailing
+    ``*`` also matches when further segments follow. A partial segment does not
+    match. Normalisation resolves ``.`` and ``..``, drops a parameter suffix,
+    and removes dashes and dots inside a segment. A leading version segment
+    matches any version. The base64 and rot13 forms of the whole path are
+    checked too. ``short:`` does not apply to a route.
 
     ``short:`` (any case) marks a short root, matched on a token boundary.
     A one-letter short root, or a short root that itself starts with
@@ -808,6 +818,7 @@ def _boundary(folded, needle):
     return re.search("(?<![0-9a-z])" + re.escape(needle) + "(?![0-9a-z])", folded) is not None
 
 
+@functools.lru_cache(maxsize=None)
 def _b64_forms(term):
     raw = term.encode("utf-8")
     forms = []
@@ -837,50 +848,91 @@ def _term_parts(term):
     return [part for part in re.split(r"[-\s]+", folded) if part]
 
 
-def _part_pattern(parts):
+@functools.lru_cache(maxsize=None)
+def _compiled_part(parts):
     """Long roots match inside a longer word. Separators sit only at the term's breaks."""
     gap = r"[\s\-]+"
     body = gap.join(re.escape(part) for part in parts)
     return re.compile(body)
 
 
-def _route_canonical(term):
-    text = fold_for_terms(term).strip()
-    prefix = text.endswith("*")
-    if prefix:
-        text = text[:-1]
-    out = []
-    previous_slash = False
-    for char in text:
-        if char.isspace() or char == "-" or char == ".":
-            continue
-        if char == "/":
-            if previous_slash:
-                continue
-            out.append("/")
-            previous_slash = True
-            continue
-        previous_slash = False
-        out.append(char)
-    return "".join(out), prefix
+def _part_pattern(parts):
+    return _compiled_part(tuple(parts))
 
 
 def _strip_route_tail(path):
-    """Drop a query, a fragment, and a trailing slash before the path is compared."""
-    path = path.split("#", 1)[0].split("?", 1)[0]
+    """Drop a query, a fragment, a parameter suffix, and a trailing slash."""
+    path = path.split("#", 1)[0].split("?", 1)[0].split(";", 1)[0]
     if len(path) > 1:
         path = path.rstrip("/")
     return path
 
 
-def _route_match(path, canon, prefix):
-    found, _ignored = _route_canonical(path)
-    if not found:
+_VERSION_SEGMENT = re.compile(r"v[0-9]+\Z")
+
+
+def _fold_segment(segment):
+    return "".join(char for char in segment if not char.isspace() and char not in "-.")
+
+
+def _path_segments(path):
+    """Resolve '.' and '..' segments, then fold dashes and dots inside a name."""
+    parts = []
+    for segment in _strip_route_tail(path).split("/"):
+        if segment == "" or segment == ".":
+            continue
+        if segment == "..":
+            if parts:
+                parts.pop()
+            continue
+        folded = _fold_segment(segment)
+        if folded:
+            parts.append(folded)
+    return parts
+
+
+@functools.lru_cache(maxsize=None)
+def _entry_info(term):
+    text = fold_for_terms(term).strip()
+    prefix = text.endswith("*")
+    if prefix:
+        text = text[:-1]
+    raw = []
+    for segment in _strip_route_tail(text).split("/"):
+        if segment == "" or segment == ".":
+            continue
+        if segment == "..":
+            if raw:
+                raw.pop()
+            continue
+        raw.append(segment)
+    versioned = bool(raw) and _VERSION_SEGMENT.fullmatch(raw[0]) is not None
+    segments = tuple(folded for folded in (_fold_segment(part) for part in raw) if folded)
+    return segments, prefix, versioned
+
+
+def _slice_match(found, entry, versioned):
+    if len(found) != len(entry) or not entry:
+        return False
+    for index, (got, want) in enumerate(zip(found, entry)):
+        if index == 0 and versioned:
+            if _VERSION_SEGMENT.fullmatch(got) is None:
+                return False
+        elif got != want:
+            return False
+    return True
+
+
+def _route_match_segments(found, entry, prefix, versioned):
+    if not entry or len(found) < len(entry):
         return False
     if prefix:
-        base = canon.rstrip("/")
-        return found == base or found.startswith(base + "/")
-    return found == canon
+        last = len(found) - len(entry)
+        for start in range(last + 1):
+            if _slice_match(found[start:start + len(entry)], entry, versioned):
+                return True
+        return False
+    return _slice_match(found[len(found) - len(entry):], entry, versioned)
 
 
 _URL_RE = re.compile(r"https?://[^\s<>()\[\]\"']+")
@@ -947,8 +999,6 @@ def _fstring_value(body):
         expr = body[index + 1:end].strip()
         if len(expr) >= 2 and expr[0] in "'\"" and expr[-1] == expr[0]:
             parts.append(_literal_body(expr[1:-1]))
-        else:
-            return None
         index = end + 1
     return "".join(parts)
 
@@ -978,10 +1028,101 @@ def _quoted_matches(text):
     return [match for match in _QUOTED.finditer(text) if not _covered(match.start(), spans)]
 
 
+_CONCAT_GAP = re.compile(
+    r"[ \t]*(?:\\(?:\r?\n)[ \t]*)*(?:\+[ \t]*(?:\\(?:\r?\n)[ \t]*)*)?\Z"
+)
+_COMMA_GAP = re.compile(
+    r"[ \t]*(?:\\(?:\r?\n)[ \t]*)*,[ \t]*(?:\\(?:\r?\n)[ \t]*)*\Z"
+)
+_FORMAT_TAIL = re.compile(r"\s*\.\s*format\s*\(")
+_PATH_JOIN = re.compile(r"(?:os\.path\.join|posixpath\.join)\s*\(\s*([^\)]*)\)")
+_PERCENT_CALL = re.compile(
+    r"""(?P<q>['"])(?P<fmt>(?:\\.|[^\\])*?)(?P=q)\s*%\s*"""
+    r"""(?P<arg>\((?:[^()]*)\)|['"](?:\\.|[^\\])*?['"])"""
+)
+_JOIN_CALL = re.compile(
+    r"""(?P<q>['"])(?P<sep>(?:\\.|[^\\])*?)(?P=q)\s*\.\s*join\s*\(\s*[\[(](?P<items>[^\]\)]*)[\]\)]\s*\)"""
+)
+
+
+def _gap_kind(gap):
+    if _CONCAT_GAP.fullmatch(gap):
+        return "concat"
+    if _COMMA_GAP.fullmatch(gap):
+        return "comma"
+    return None
+
+
+def _format_pieces(fmt, args):
+    """Keep literal text. A placeholder contributes only a literal argument."""
+    out = []
+    index = 0
+    used = 0
+    while index < len(fmt):
+        if fmt.startswith("{{", index):
+            out.append("{")
+            index += 2
+            continue
+        if fmt.startswith("}}", index):
+            out.append("}")
+            index += 2
+            continue
+        if fmt[index] != "{":
+            out.append(fmt[index])
+            index += 1
+            continue
+        end = fmt.find("}", index)
+        if end < 0:
+            break
+        expr = fmt[index + 1:end].strip()
+        if expr == "" or expr.isdigit():
+            if used < len(args) and args[used] is not None:
+                out.append(args[used])
+            used += 1
+        elif len(expr) >= 2 and expr[0] in "'\"" and expr[-1] == expr[0]:
+            out.append(_literal_body(expr[1:-1]))
+        index = end + 1
+    return "".join(out)
+
+
+def _arg_literals(src):
+    """Top-level format arguments. None marks a non-literal piece."""
+    args = []
+    buf = []
+    quote = None
+    for char in src:
+        if quote:
+            buf.append(char)
+            if char == quote and (len(buf) < 2 or buf[-2] != "\\"):
+                quote = None
+            continue
+        if char in "'\"":
+            quote = char
+            buf.append(char)
+            continue
+        if char == ",":
+            args.append("".join(buf).strip())
+            buf = []
+            continue
+        buf.append(char)
+    tail = "".join(buf).strip()
+    if tail:
+        args.append(tail)
+    values = []
+    for piece in args:
+        item = _QUOTED.fullmatch(piece) if piece else None
+        if item is None or item.group("f") or item.group("f2"):
+            values.append(None)
+        else:
+            values.append(_quoted_value(item))
+    return values
+
+
 def _assembled_routes(text):
     """Best-effort values of routes built from literal pieces. (value, start)."""
     found = []
-    matches = _quoted_matches(text)
+    spans = _triple_spans(text)
+    matches = [match for match in _QUOTED.finditer(text) if not _covered(match.start(), spans)]
     index = 0
     while index < len(matches):
         value = _quoted_value(matches[index])
@@ -989,28 +1130,48 @@ def _assembled_routes(text):
         end = matches[index].end()
         cursor = index + 1
         chained = False
+        kind_used = None
+        pieces = [] if value is None else [value]
         while cursor < len(matches) and value is not None:
             gap = text[end:matches[cursor].start()]
-            if not re.fullmatch(r"[ \t]*\+[ \t]*|[ \t]*", gap):
+            kind = _gap_kind(gap)
+            if kind is None or (kind_used is not None and kind != kind_used):
                 break
             nxt = _quoted_value(matches[cursor])
             if nxt is None:
                 break
+            kind_used = kind
+            pieces.append(nxt)
             value += nxt
             end = matches[cursor].end()
             chained = True
             cursor += 1
-        if value and chained and "/" in value:
+        if kind_used == "comma" and pieces and all(part.startswith("/") for part in pieces):
+            found.append(("".join(pieces), start))
+        elif value and chained and "/" in value:
             found.append((value, start))
         elif value and "/" in value and (matches[index].group("f") or matches[index].group("f2")):
-            if "{" in (matches[index].group("body") or matches[index].group("body2") or ""):
-                found.append((value, start))
+            found.append((value, start))
         index = cursor if chained else index + 1
-    for match in re.finditer(
-        r"""(?P<q>['"])(?P<sep>(?:\\.|[^\\])*?)(?P=q)\s*\.\s*join\s*\(\s*\[(?P<items>[^\]]*)\]\s*\)""",
-        text,
-    ):
-        if _covered(match.start(), _triple_spans(text)):
+    for match in matches:
+        if match.group("f") or match.group("f2"):
+            continue
+        tail = text[match.end():]
+        marker = _FORMAT_TAIL.match(tail)
+        if marker is None:
+            continue
+        rest = tail[marker.end():]
+        close = rest.find(")")
+        if close < 0:
+            continue
+        fmt = _quoted_value(match)
+        if not fmt:
+            continue
+        built = _format_pieces(fmt, _arg_literals(rest[:close]))
+        if built and "/" in built:
+            found.append((built, match.start()))
+    for match in _JOIN_CALL.finditer(text):
+        if _covered(match.start(), spans):
             continue
         items = []
         rest = match.group("items")
@@ -1026,9 +1187,13 @@ def _assembled_routes(text):
             items.append(_quoted_value(item))
             rest = rest[item.end():]
         if ok and items:
-            found.append((_literal_body(match.group("sep")).join(items), match.start()))
-    for match in re.finditer(r"(?:os\.path\.join|posixpath\.join)\s*\(\s*([^\)]*)\)", text):
-        if _covered(match.start(), _triple_spans(text)):
+            sep = _literal_body(match.group("sep"))
+            built = sep.join(items)
+            if sep == "/" and built and not built.startswith("/"):
+                built = "/" + built
+            found.append((built, match.start()))
+    for match in _PATH_JOIN.finditer(text):
+        if _covered(match.start(), spans):
             continue
         items = []
         rest = match.group(1)
@@ -1045,12 +1210,8 @@ def _assembled_routes(text):
             rest = rest[item.end():]
         if ok and items:
             found.append((posixpath.join(*items), match.start()))
-    percent = re.compile(
-        r"""(?P<q>['"])(?P<fmt>(?:\\.|[^\\])*?)(?P=q)\s*%\s*"""
-        r"""(?P<arg>\((?:[^()]*)\)|['"](?:\\.|[^\\])*?['"])"""
-    )
-    for match in percent.finditer(text):
-        if _covered(match.start(), _triple_spans(text)):
+    for match in _PERCENT_CALL.finditer(text):
+        if _covered(match.start(), spans):
             continue
         arg = match.group("arg")
         if arg.startswith("("):
@@ -1102,15 +1263,25 @@ def _apply_percent(fmt, args):
     return "".join(out)
 
 
-def _route_lines(text, canon, prefix):
-    folded = fold_for_terms(text)
-    for path, line_no in _paths_in(folded):
-        if _route_match(path, canon, prefix):
-            return line_no
+def _prepared_routes(text, folded):
+    """Paths and assembled literals for one text, computed once per scan."""
+    direct = [(_path_segments(path), line_no) for path, line_no in _paths_in(folded)]
+    built = []
     for value, start in _assembled_routes(text):
+        line_no = _line_of(text, start)
         for path, _line in _paths_in(fold_for_terms(value)):
-            if _route_match(path, canon, prefix):
-                return _line_of(text, start)
+            built.append((_path_segments(path), line_no))
+    return direct, built
+
+
+def _match_prepared(prepared, entry, prefix, versioned):
+    direct, built = prepared
+    for segments, line_no in direct:
+        if _route_match_segments(segments, entry, prefix, versioned):
+            return line_no
+    for segments, line_no in built:
+        if _route_match_segments(segments, entry, prefix, versioned):
+            return line_no
     return None
 
 
@@ -1123,12 +1294,14 @@ def term_hits(text, entries, shorts=None):
     hits = []
     folded = fold_for_terms(text)
     decoded = normalize_text(text)
-    for index, (kind, term) in enumerate(_as_entries(entries, shorts)):
+    parsed = list(_as_entries(entries, shorts))
+    prepared = _prepared_routes(text, folded) if any(kind == "route" for kind, _term in parsed) else None
+    for index, (kind, term) in enumerate(parsed):
         found_at = None
         if kind == "route":
-            canon, prefix = _route_canonical(term)
-            if canon:
-                found_at = _route_lines(text, canon, prefix)
+            entry, prefix, versioned = _entry_info(term)
+            if entry and prepared is not None:
+                found_at = _match_prepared(prepared, entry, prefix, versioned)
             path = term[:-1] if term.endswith("*") else term
             if found_at is None:
                 for form in _b64_forms(path):
@@ -1394,7 +1567,7 @@ def is_markdown_name(name):
 
 
 _ACTION_PIN = re.compile(
-    r"^[ \t]*uses:[ \t]+[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+@[0-9a-f]{40}"
+    r"^[ \t]*(?:-[ \t]+)?uses:[ \t]+[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+@[0-9a-f]{40}"
     r"(?:[ \t]+#[ \t]*v[0-9]+(?:\.[0-9]+)*)?[ \t]*$"
 )
 
@@ -1417,11 +1590,53 @@ def _mask_action_pins(text):
     return "".join(kept)
 
 
+class DuplicateJsonKey(ValueError):
+    """A JSON object repeated a key. json.loads would otherwise keep the last one."""
+
+
+def _reject_duplicate_keys(pairs):
+    found = {}
+    for key, value in pairs:
+        if key in found:
+            raise DuplicateJsonKey("duplicate key")
+        found[key] = value
+    return found
+
+
+def load_strict_json(text):
+    """Parse JSON. A duplicate key at any nesting level is an error."""
+    return json.loads(text, object_pairs_hook=_reject_duplicate_keys)
+
+
+def _skill_folders(root):
+    base = Path(root) / ".agents" / "skills"
+    if not base.is_dir():
+        return set()
+    return {item.name for item in base.iterdir() if item.is_dir()}
+
+
+def lock_errors(text, root):
+    """Errors for the skills lock. A duplicate key fails before any exemption."""
+    try:
+        document = load_strict_json(text)
+    except DuplicateJsonKey:
+        return ["duplicate key"]
+    except ValueError:
+        return []
+    if not isinstance(document, dict):
+        return []
+    skills = document.get(LOCK_OBJECT)
+    if not isinstance(skills, dict):
+        return []
+    folders = _skill_folders(root)
+    return ["skill folder is missing" for name in skills if name not in folders]
+
+
 def _mask_lock_hashes(text):
     """Blank only skills.<name>.computedHash when the value is 64 lowercase hex."""
     try:
-        document = json.loads(text)
-    except ValueError:
+        document = load_strict_json(text)
+    except (DuplicateJsonKey, ValueError):
         return text
     if not isinstance(document, dict):
         return text
@@ -1442,7 +1657,14 @@ def _mask_lock_hashes(text):
 
 
 def _workflow_yml(relative):
-    return relative.startswith(".github/workflows/") and relative.endswith(".yml")
+    """A pin is exempt only in a file directly inside .github/workflows."""
+    prefix = ".github/workflows/"
+    if not relative.startswith(prefix):
+        return False
+    name = relative[len(prefix):]
+    if not name or "/" in name:
+        return False
+    return name.endswith(".yml") or name.endswith(".yaml")
 
 
 def hex_for_path(path, root, text, allow=None):
@@ -1558,6 +1780,9 @@ def scan_repository(root=ROOT, terms=None, shorts=None):
                 continue
             if is_markdown_name(name):
                 failures.extend(scan_text(text, spec, label))
+            if label == LOCK_RELATIVE:
+                for problem in lock_errors(text, root):
+                    failures.append("%s: %s" % (label, problem))
             for token in hex_for_path(path, root, text):
                 failures.append("%s: hex run %s" % (label, token))
             for line_no, index in term_hits(text, terms, shorts):
@@ -2116,9 +2341,10 @@ class CheckerTests(unittest.TestCase):
         self.assertTrue(term_hits("<" + host + term + ">", [term]))
         self.assertTrue(term_hits("preview.example" + term, [term]))
         self.assertTrue(term_hits("preview.example:8443" + term + "/", [term]))
-        self.assertEqual(term_hits("see " + _slash("v1", "qa", "one"), [term]), [])
-        self.assertEqual(term_hits(host + _slash("v1", "qa", "one"), [term]), [])
+        self.assertTrue(term_hits("see " + _slash("v1", "qa", "one"), [term]))
+        self.assertTrue(term_hits(host + _slash("v1", "qa", "one"), [term]))
         self.assertEqual(term_hits("see " + term + "/more", [term]), [])
+        self.assertEqual(term_hits("see " + term + "abc", [term]), [])
         prefix = _prefixed("zz")
         self.assertTrue(term_hits(host + "/zz/more?x=1", [prefix]))
         self.assertEqual(term_hits("see /zzy?x=1", [prefix]), [])
@@ -2135,7 +2361,63 @@ class CheckerTests(unittest.TestCase):
         ]
         for sample in samples:
             self.assertTrue(term_hits(sample, [term]), sample)
-        self.assertEqual(term_hits('"/v1" + "/qd" + "/four"', [term]), [])
+        self.assertTrue(term_hits('"/v1" + "/qd" + "/four"', [term]))
+        self.assertEqual(term_hits('"/qd" + "/four" + "/more"', [term]), [])
+        self.assertEqual(term_hits('"/xqd" + "/four"', [term]), [])
+
+    def test_mount_prefix_version_and_dot_segments(self):
+        term = _slash("qd", "four")
+        self.assertTrue(term_hits(_slash("pre", "qd", "four"), [term]))
+        self.assertTrue(term_hits(_slash("pre", "qd", "four") + "/", [term]))
+        self.assertTrue(term_hits(_slash("pre", "qd", "four") + "?q=1", [term]))
+        self.assertTrue(term_hits(_slash("pre", "qd", "four") + "#f", [term]))
+        self.assertTrue(term_hits(term + ";x=1", [term]))
+        self.assertTrue(term_hits("/a/../" + term.lstrip("/"), [term]))
+        self.assertTrue(term_hits("/a/b/../../" + term.lstrip("/"), [term]))
+        self.assertTrue(term_hits("/a/./" + term.lstrip("/"), [term]))
+        self.assertEqual(term_hits(_slash("pre", "qd", "fourabc"), [term]), [])
+        self.assertEqual(term_hits(_slash("pre", "qd", "four", "more"), [term]), [])
+        self.assertEqual(term_hits("/a/../qd/fourabc", [term]), [])
+        version = _slash("v1", "qd", "four")
+        self.assertTrue(term_hits(_slash("v2", "qd", "four"), [version]))
+        self.assertTrue(term_hits(_slash("v10", "qd", "four") + "?q=1", [version]))
+        self.assertTrue(term_hits(_slash("pre", "v8", "qd", "four") + "/", [version]))
+        self.assertEqual(term_hits(_slash("vx", "qd", "four"), [version]), [])
+        self.assertEqual(term_hits(_slash("v2", "qd", "five"), [version]), [])
+        self.assertEqual(term_hits(_slash("v2", "qd", "four", "more"), [version]), [])
+        self.assertEqual(term_hits(_slash("v2", "qd", "fourabc"), [version]), [])
+        prefix = _prefixed("zz")
+        self.assertTrue(term_hits(_slash("pre", "zz", "more"), [prefix]))
+        self.assertTrue(term_hits(_slash("pre", "zz") + "?q=1", [prefix]))
+        self.assertEqual(term_hits(_slash("pre", "zzy"), [prefix]), [])
+        self.assertEqual(term_hits(_slash("pre", "zzmore"), [prefix]), [])
+
+    def test_code_built_route_forms(self):
+        term = _slash("qd", "four")
+        hits = [
+            '"/qd" "/four"',
+            '"/qd" \\\n+ "/four"',
+            '"/qd/{}".format("four")',
+            '"{}".format("/qd/four")',
+            'f"/qd/{\'four\'}"',
+            'f"/qd/{name}/four"',
+            '"/".join(["qd", "four"])',
+            '"/".join(("qd", "four"))',
+            '("/qd", "/four")',
+        ]
+        for sample in hits:
+            self.assertTrue(term_hits(sample, [term]), sample)
+        misses = [
+            'f"/no/{name}"',
+            '"/no/{}".format("zz")',
+            '"/no" + "/match"',
+            '"/".join(["no", "match"])',
+            '"/".join(["qd", name])',
+            '("/no", "/match")',
+            '"/qd" \\\n+ "/other"',
+        ]
+        for sample in misses:
+            self.assertEqual(term_hits(sample, [term]), [], sample)
 
     def test_path_prefix_marker(self):
         term = "/" + "zz" + "*"
@@ -2253,6 +2535,93 @@ class CheckerTests(unittest.TestCase):
             }), encoding="utf-8")
             self.assertTrue(hex_for_path(other, root, other.read_text(encoding="utf-8")))
 
+    def test_duplicate_lock_keys_fail(self):
+        token = "a1" * 32
+        field = LOCK_FIELD
+        group = LOCK_OBJECT
+        bodies = [
+            '{"%s": {"one": {"%s": "%s", "%s": "%s"}}}' % (group, field, token, field, token),
+            '{"%s": {"one": {"%s": "%s"}, "one": {"%s": "%s"}}}' % (group, field, token, field, token),
+            '{"version": 1, "version": 1, "%s": {}}' % group,
+        ]
+        for body in bodies:
+            with tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                self.minimal_repo(root)
+                lock = root / LOCK_RELATIVE
+                lock.write_text(body + "\n", encoding="utf-8")
+                failures = scan_repository(root, terms=[])
+                self.assertTrue(any(item.endswith(": duplicate key") for item in failures), failures)
+
+    def test_lock_hash_shape_rejects_uppercase_and_other_lengths(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.minimal_repo(root)
+            folder = root / ".agents" / "skills" / "demo"
+            folder.mkdir(parents=True)
+            lock = root / LOCK_RELATIVE
+            for value in ("A1" * 32, "a1" * 31 + "b", "a1" * 32 + "c"):
+                self.assertIn(len(value), (63, 64, 65))
+                lock.write_text(json.dumps({
+                    LOCK_OBJECT: {"demo": {LOCK_FIELD: value}},
+                }), encoding="utf-8")
+                self.assertTrue(hex_for_path(lock, root, lock.read_text(encoding="utf-8")), value)
+
+    def test_fraction_of_seven_digits_is_not_exempt(self):
+        frac = "2026" + "-07-" + "28T" + "09:" + "30:" + "00." + "123456" + "7Z"
+        self.assertEqual(frac.count("."), 1)
+        self.assertTrue(hex_findings(frac, allow=frozenset()))
+
+    def test_pin_exemption_rejects_loose_lines_and_other_directories(self):
+        sha = "a1" * 20
+        self.assertEqual(len(sha), 40)
+        good = [
+            "uses: actions/checkout@%s" % sha,
+            "        uses: actions/checkout@%s # v4.4.0" % sha,
+            "- uses: actions/checkout@%s # v1" % sha,
+            "      - uses: actions/checkout@%s" % sha,
+        ]
+        bad = [
+            "name: uses: actions/checkout@%s" % sha,
+            "echo uses: actions/checkout@%s # v1" % sha,
+            "uses: actions/checkout@%s # anything" % sha,
+            "uses: actions/checkout@%s # v1 extra" % sha,
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.minimal_repo(root)
+            workflow = root / ".github" / "workflows"
+            workflow.mkdir(parents=True)
+            for index, line in enumerate(good):
+                path = workflow / ("ok-%s.yml" % index)
+                path.write_text(line + "\n", encoding="utf-8")
+                self.assertEqual(hex_for_path(path, root, path.read_text(encoding="utf-8")), [], line)
+            for index, line in enumerate(bad):
+                path = workflow / ("bad-%s.yml" % index)
+                path.write_text(line + "\n", encoding="utf-8")
+                self.assertTrue(hex_for_path(path, root, path.read_text(encoding="utf-8")), line)
+            for name in ("side.yml", "side.yaml", str(Path(".github") / "side.yml")):
+                path = root / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text("uses: actions/checkout@%s # v1\n" % sha, encoding="utf-8")
+                self.assertTrue(hex_for_path(path, root, path.read_text(encoding="utf-8")), name)
+            direct = workflow / "in.yaml"
+            direct.write_text("- uses: actions/checkout@%s # v1\n" % sha, encoding="utf-8")
+            self.assertEqual(hex_for_path(direct, root, direct.read_text(encoding="utf-8")), [])
+            nested = workflow / "sub" / "x.yml"
+            nested.parent.mkdir()
+            nested.write_text("- uses: actions/checkout@%s # v1\n" % sha, encoding="utf-8")
+            self.assertTrue(hex_for_path(nested, root, nested.read_text(encoding="utf-8")))
+
+    def test_lock_entries_match_skill_folders(self):
+        text = (ROOT / LOCK_RELATIVE).read_text(encoding="utf-8")
+        self.assertEqual(lock_errors(text, ROOT), [])
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.minimal_repo(root)
+            raw = json.dumps({LOCK_OBJECT: {"missing-skill": {LOCK_FIELD: "a1" * 32}}})
+            self.assertTrue(any("skill folder" in item for item in lock_errors(raw, root)))
+
     def test_workflow_pin_is_exempt_only_on_the_uses_line(self):
         sha = "a1" * 20
         self.assertEqual(len(sha), 40)
@@ -2317,6 +2686,9 @@ class CheckerTests(unittest.TestCase):
             common + ['client.get(BASE_URL + "/v1/kirk-api/health", **options)'],
             common + ['curl -G --data "key=abc" --url "${BASE_URL}/v1/kirk-api/health" -o out.json'],
             common + ['page = base + "?access_token=abc"', 'call("GET", "/v1/kirk-api/health")'],
+            common + ['json = {"api_key": API_KEY}', 'call("GET", "/v1/kirk-api/health")'],
+            common + ['data = "key=abc"', 'call("GET", "/v1/kirk-api/health")'],
+            common + ['dict(key=API_KEY)', 'call("GET", "/v1/kirk-api/health")'],
         ]
         for sample in samples:
             self.assertTrue(self.piece("\n".join(sample)), sample)
