@@ -20,14 +20,17 @@ This repository helps developers answer three practical questions:
 ## Customer API access
 
 For a working customer API connection, use **`https://api.kavara.ai`** with an
-`X-Kavara-Key` header. Start with the [REST quickstart](docs/customer-rest-api.md),
-[OpenAPI specification](docs/customer-rest-api.openapi.json), or
-[Postman starter](https://kavara.ai/console/downloads/Kirk-Engineer-Starter.zip).
+`X-Kavara-Key` header. The key comes from the environment variable `KIP_API_KEY`.
+Start with the [REST quickstart](docs/customer-rest-api.md) and the
+[OpenAPI specification](docs/customer-rest-api.openapi.json).
 To get a key, sign in at [kavara.ai/login](https://kavara.ai/login) with Google or GitHub, open **API keys** in the [console](https://kavara.ai/console) and create a key. Keys are self-service and bound to your account.
 
-The REST service supports engine identity, model listing and ten-level price-book
-scoring. It does not require Claude. The separate hosted MCP surface is described in
-[Connect your Claude](docs/connect-your-claude.md).
+The first calls check readiness and the published limits, then create a snapshot.
+Learn and score send that snapshot with square samples. Earlier preview routes are not part of the v1 customer API and are not supported. The separate
+hosted MCP surface is described in [Connect your Claude](docs/connect-your-claude.md).
+
+`python3 scripts/check_customer_samples.py` checks that fenced samples use only
+published customer routes.
 
 ## Start here
 
@@ -44,7 +47,7 @@ read the catalogue and prepare the JSON artifact without operating a browser.
 
 ## Use the discovery portal
 
-Open the [Kirk discovery portal](https://kirk-discovery-portal.vercel.app/) and follow
+Open the Kavara discovery portal (URL provided at onboarding) and follow
 the [portal user guide](docs/discovery-portal-user-guide.md) to explore the catalogue,
 inspect a sample locally and download a discovery brief. The portal also includes
 an illustrative Kirk → Jev handoff; live inference and payments are not enabled.

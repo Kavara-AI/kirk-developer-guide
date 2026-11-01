@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "created_at": "2026-09-22T00:00:00.000Z",
+  "created_at": "2026-09-22T09:30:00Z",
   "purpose": "Kirk discovery intake; preparation for a data-fit review",
   "source": {
     "url": "https://github.com/Kavara-AI/kirk-developer-guide",
-    "revision": "9d2e119",
+    "revision": "example-revision",
     "catalogue_claim_status": "Hypothesis"
   },
   "status": {

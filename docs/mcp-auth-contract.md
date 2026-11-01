@@ -3,13 +3,12 @@
 This page states which calls on the hosted Kirk MCP server need an account
 key, where that key is sent, and how a refusal is returned.
 
-The server is `https://kirk-mcp.kavara.ai/mcp`. Customer REST at
+The server is https://kirk-mcp.kavara.ai/mcp. Customer REST at
 `https://api.kavara.ai` is a separate contract: it uses `X-Kavara-Key`, and
 an `Authorization` header alone does not authenticate those routes. See
 [Customer REST API](customer-rest-api.md).
 
-The behaviour below was read from `Kavara-AI/kirk-account-service` `main` at
-commit `5598636511eb4dd6a6809531f3a43d45115ca9ec` (17 October 2026). It
+The behaviour below was read from the account service repo `main` on 17 October 2026. It
 describes that revision. Where a live call is cited, it is labelled
 **Observed**.
 
@@ -27,7 +26,7 @@ is `initialize` and `tools/list`.
 `initialize` and `tools/list` need no key.
 
 The server is built without an authentication provider on the protocol
-session. The key middleware forwards an `/mcp` request that contains no key,
+session. The key middleware forwards an MCP-path request that contains no key,
 and it does not stop the request before the protocol handler runs.
 `initialize` does not resolve the key, so a caller who sends nothing still
 completes the handshake.
@@ -38,7 +37,7 @@ expired does: list handling raises, and the listing is not returned.
 
 ## Where to send the key
 
-The supported route is a header on `https://kirk-mcp.kavara.ai/mcp`:
+The supported route is a header on https://kirk-mcp.kavara.ai/mcp:
 
 - `Authorization: Bearer <key>`
 - `X-Kirk-Key: <key>`
@@ -46,7 +45,7 @@ The supported route is a header on `https://kirk-mcp.kavara.ai/mcp`:
 Both headers are read by the same check. Use `Authorization` when the client
 can set a header.
 
-A key in the path (`/mcp/<key>`) or the query string (`k` or `key`) is still
+A key in the path or the query string (`k` or `key`) is still
 accepted on this revision. That form is legacy, and it is deprecated for a
 new client. When more than one form is present, the first match wins, in
 this order: path, then query, then header. A leftover path or query key
@@ -108,7 +107,7 @@ account key.
 
 ### Other zero-cost tools
 
-`kirk_verify_engine`, `kirk_list_models`, `kirk_render_book`,
+`kirk_list_models`, `kirk_render_book`,
 `kirk_bulk_howto`, and the `kirk_billing_*` tools are priced at 0, so the
 balance check does not stop them. This revision has no separate "key
 required" gate for them. Send your own key when the result has to be
