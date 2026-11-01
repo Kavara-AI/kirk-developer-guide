@@ -5,7 +5,7 @@ Use **`https://api.kavara.ai`** for customer REST calls from Python or curl.
 - [OpenAPI specification](customer-rest-api.openapi.json)
 - [Create an account or manage keys](https://kavara.ai/console)
 
-/v1/engine, /v1/models, /v1/score-book and /usage* are not part of v1.
+Earlier preview routes are not part of the v1 customer API and are not supported.
 
 Hosted MCP is a separate surface. See [Connect your Claude](connect-your-claude.md).
 Do not send MCP calls to `api.kavara.ai`.

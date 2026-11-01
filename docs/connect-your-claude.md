@@ -61,7 +61,7 @@ Anthropic describes the dialog in
 Start with the free ones — they cost nothing and answer most orientation
 questions.
 
-/v1/engine, /v1/models, /v1/score-book and /usage* are not part of v1.
+Earlier preview routes are not part of the v1 customer API and are not supported.
 
 | Tool | Cost | What it does |
 | --- | --- | --- |

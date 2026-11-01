@@ -64,4 +64,4 @@ network access or model calls are needed.
 unestablished and engine run not performed. To request live equipment analysis,
 the next step is the square-matrix contract in
 [tensor generation](../../docs/tensor-generation.md) and the customer routes in
-[Customer REST API](../../docs/customer-rest-api.md). /v1/engine, /v1/models, /v1/score-book and /usage* are not part of v1.
+[Customer REST API](../../docs/customer-rest-api.md). Earlier preview routes are not part of the v1 customer API and are not supported.

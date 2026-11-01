@@ -26,7 +26,7 @@ Start with the [REST quickstart](docs/customer-rest-api.md) and the
 To get a key, sign in at [kavara.ai/login](https://kavara.ai/login) with Google or GitHub, open **API keys** in the [console](https://kavara.ai/console) and create a key. Keys are self-service and bound to your account.
 
 The first calls check readiness and the published limits, then create a snapshot.
-Learn and score send that snapshot with square samples. /v1/engine, /v1/models, /v1/score-book and /usage* are not part of v1. The separate
+Learn and score send that snapshot with square samples. Earlier preview routes are not part of the v1 customer API and are not supported. The separate
 hosted MCP surface is described in [Connect your Claude](docs/connect-your-claude.md).
 
 `python3 scripts/check_customer_samples.py` checks that fenced samples use only

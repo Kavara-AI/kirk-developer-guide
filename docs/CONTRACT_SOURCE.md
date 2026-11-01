@@ -16,16 +16,20 @@ Operations kept:
 
 `max_body_bytes` is 8 MiB (8388608, which is 8 × 1024 × 1024).
 
+## Digest
+
+Each CI run hashes the whole vendored document: one JSON object, keys sorted,
+compact separators, SHA-256. The digest is not stored in this repository. If
+the vendored file is missing or is not JSON, that step stops with an error
+and does not raise a traceback.
+
 ## Sync
 
-CI for this repository cannot read the account service repo, so the workflow
-does not fetch the upstream file and does not store a credential for it.
-
-Someone who can already read that repo runs:
+CI cannot read the upstream repo and does not store a credential for it.
+A person who can read it passes the upstream location as an argument, or
+sets `KDG_UPSTREAM_SPEC`, and runs:
 
     python3 scripts/sync_customer_contract.py
 
-The script reads `contracts/kirk-api/openapi.customer.json` on `main` with the
-caller's existing `gh` login. It compares that document with the vendored
-spec and does not write either file. If the login cannot see the repo, the
-script says so and exits.
+The script compares paths, methods, request and response schemas, and
+security. It ignores descriptions and examples. It does not write files.

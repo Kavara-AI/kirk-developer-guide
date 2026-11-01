@@ -1,68 +1,99 @@
 #!/usr/bin/env python3
-"""Compare the vendored customer spec with the account-service copy.
+"""Compare the vendored customer spec with an upstream copy.
 
-Read-only. Uses the caller's existing gh login and stores no credential.
-Exit 0 when the documents match, 1 when they differ, 2 when the upstream
-repo cannot be read.
+Read-only. The upstream location is an argument or KDG_UPSTREAM_SPEC.
+A local file path is read directly. Any other value is fetched with gh
+using the caller's existing login. No credential is stored.
+
+Exit 0 when the semantic contract matches, 1 when it differs, 2 when the
+upstream document cannot be read.
 """
 
 from __future__ import annotations
 
-import base64
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 VENDORED = ROOT / "docs" / "customer-rest-api.openapi.json"
-UPSTREAM = "repos/Kavara-AI/kirk-account-service/contents/contracts/kirk-api/openapi.customer.json"
+IGNORED = {"description", "summary", "example", "examples", "externalDocs"}
+
+
+def semantic(node):
+    if isinstance(node, dict):
+        return {
+            key: semantic(value)
+            for key, value in node.items()
+            if key not in IGNORED and not str(key).startswith("x-")
+        }
+    if isinstance(node, list):
+        return [semantic(value) for value in node]
+    return node
+
+
+def view(document):
+    components = document.get("components") or {}
+    kept = ("schemas", "parameters", "securitySchemes", "requestBodies", "responses", "headers")
+    return {
+        "paths": semantic(document.get("paths") or {}),
+        "security": semantic(document.get("security") or []),
+        "components": semantic({key: components.get(key) for key in kept}),
+    }
 
 
 def canonical(document):
-    return json.dumps(document, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+    return json.dumps(view(document), sort_keys=True, separators=(",", ":"), ensure_ascii=True)
 
 
-def fetch():
-    command = [
-        "gh", "api",
-        "-H", "Accept: application/vnd.github.raw",
-        UPSTREAM + "?ref=main",
-    ]
+def load_upstream(location):
+    candidate = Path(location)
+    if candidate.is_file():
+        return json.loads(candidate.read_text(encoding="utf-8"))
+    command = ["gh", "api", "-H", "Accept: application/vnd.github.raw", location]
     try:
         completed = subprocess.run(command, capture_output=True, text=True, check=False)
     except OSError as exc:
         print("gh is not available (%s)." % exc, file=sys.stderr)
         return None
     if completed.returncode != 0:
-        print("The account service repo is not readable from this login.", file=sys.stderr)
-        detail = (completed.stderr or "").strip().splitlines()
-        if detail:
-            print(detail[-1], file=sys.stderr)
+        print("The upstream spec is not readable from this login.", file=sys.stderr)
         return None
-    body = completed.stdout
     try:
-        return json.loads(body)
+        return json.loads(completed.stdout)
     except ValueError:
-        # Some gh versions still return the JSON contents wrapper.
-        try:
-            wrapped = json.loads(body)
-        except ValueError:
-            print("Upstream response was not the contract JSON.", file=sys.stderr)
-            return None
-        raw = base64.b64decode(wrapped.get("content") or "")
-        return json.loads(raw.decode("utf-8"))
+        print("Upstream response was not the contract JSON.", file=sys.stderr)
+        return None
 
 
-def main():
-    upstream = fetch()
+def main(argv):
+    location = argv[1] if len(argv) > 1 else os.environ.get("KDG_UPSTREAM_SPEC", "")
+    if not location:
+        print("upstream spec location is missing; pass a path or set KDG_UPSTREAM_SPEC", file=sys.stderr)
+        return 2
+    try:
+        upstream = load_upstream(location)
+    except (OSError, ValueError):
+        print("upstream spec is not valid JSON", file=sys.stderr)
+        return 2
     if upstream is None:
         return 2
-    vendored = json.loads(VENDORED.read_text(encoding="utf-8"))
+    try:
+        vendored = json.loads(VENDORED.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        print("vendored spec is missing", file=sys.stderr)
+        return 2
+    upstream_view = view(upstream)
+    vendored_view = view(vendored)
     if canonical(upstream) == canonical(vendored):
         print("Vendored spec matches the upstream customer contract.")
         return 0
     print("Vendored spec differs from the upstream customer contract.", file=sys.stderr)
+    for name in ("paths", "security", "components"):
+        if upstream_view.get(name) != vendored_view.get(name):
+            print("%s differs" % name, file=sys.stderr)
     vendored_paths = set((vendored.get("paths") or {}))
     upstream_paths = set((upstream.get("paths") or {}))
     print("paths only upstream: %s" % sorted(upstream_paths - vendored_paths), file=sys.stderr)
@@ -71,4 +102,4 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(sys.argv))

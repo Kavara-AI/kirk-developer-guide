@@ -64,7 +64,7 @@ Submit the square matrices through the [customer REST contract](customer-rest-ap
 `POST /v1/kirk-api/score` take that snapshot plus `samples`, `n` squares of
 `V` × `V`, with every real and imaginary part in [-1, 1].
 
-/v1/engine, /v1/models, /v1/score-book and /usage* are not part of v1.
+Earlier preview routes are not part of the v1 customer API and are not supported.
 Read [Customer REST API](customer-rest-api.md) for the methods, headers and
 response members. Where a surface has no documented way to submit the matrices
 you built, contact Kavara.

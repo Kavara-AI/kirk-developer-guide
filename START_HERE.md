@@ -54,7 +54,7 @@ For customer REST access from code or an agent, follow the
 [REST quickstart](docs/customer-rest-api.md) at **`https://api.kavara.ai`**. It
 includes account and key setup and a [machine-readable specification](docs/customer-rest-api.openapi.json).
 Check readiness and the published limits, then create a snapshot. Learn and
-score send that snapshot with square samples. /v1/engine, /v1/models, /v1/score-book and /usage* are not part of v1.
+score send that snapshot with square samples. Earlier preview routes are not part of the v1 customer API and are not supported.
 
 For the separate MCP tool surface:
 

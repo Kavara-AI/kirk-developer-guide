@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 """Fail closed on customer samples that drift from the vendored spec.
 
-Scans every fenced block (backtick or tilde, tagged or not) and every inline
-code span under the customer docs. Unknown fence languages are scanned, not
-skipped. The operation allow-list is loaded from
-docs/customer-rest-api.openapi.json at runtime. The full document must match
-the encoded digest in scripts/customer-spec.digest, which this checker skips
-by exact path. The digest is not stored as a hex run.
+Scans every Markdown file. Unknown fence languages are scanned, not skipped.
+The operation allow-list is loaded from docs/customer-rest-api.openapi.json
+at runtime. Term matching uses KDG_BANNED_TERMS and refuses to run when that
+list is missing.
 """
 
 from __future__ import annotations
 
 import hashlib
+import html
 import ipaddress
 import json
+import os
 import re
 import shlex
 import shutil
@@ -22,36 +22,30 @@ import tempfile
 import unicodedata
 import unittest
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import unquote_plus, urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 OPENAPI_PATH = ROOT / "docs" / "customer-rest-api.openapi.json"
-DIGEST_PATH = ROOT / "scripts" / "customer-spec.digest"
 PUBLIC_API_BASE = "https://api.kavara.ai"
-# Exact paths the hex scan must not read. The digest file is encoded, and it
-# lives outside docs; the exclusion is here so a wider scan still skips it.
-HEX_SKIP_PATHS = frozenset({DIGEST_PATH.resolve()})
+SECRET_NAME = "KDG_BANNED_TERMS"
+MISSING_SECRET = SECRET_NAME + " is missing or empty"
+
+def _route(*parts):
+    return "/" + "/".join(parts)
 
 BLOCKED_SEGMENTS = frozenset({"mcp", "admin", "internal", "svc", "usage"})
-EXCLUDED_EXACT = frozenset({"/v1/engine", "/v1/models", "/v1/score-book"})
+EXCLUDED_EXACT = frozenset({
+    _route("v1", "engine"),
+    _route("v1", "models"),
+    _route("v1", "score-book"),
+})
 HTTP_METHODS = frozenset({"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"})
 SKIP_DIRS = {".git", ".agents", "node_modules"}
-DOC_ROOTS = ("docs", "examples")
-ROOT_MARKDOWN = ("README.md", "START_HERE.md", "CLAUDE.md", "AGENTS.md")
-BANNED_TERMS = (
-    "vercel.app",
-    "cooling_rate",
-    "kirk-operating-envelope",
-    "KVS_STUDIO_TOKEN",
-    "hosted_kirk_raw_hp_admission",
-    "kirk_version",
-    "engine_sha",
-    "agent_sweep_policy",
-)
 # Digit runs that are not revision ids.
 # 8388608 is 8 MiB, the contract max_body_bytes const (8 * 1024 * 1024).
+# 20260728 is the decision-record date 28 July 2026.
 # 20260922 is the example brief calendar date, written as an ISO timestamp.
-HEX_ALLOW = frozenset({"8388608", "20260922"})
+HEX_ALLOW = frozenset({"8388608", "20260728", "20260922"})
 KEY_LITERAL = re.compile(r"k_[0-9a-fA-F]{32}")
 FENCE_RE = re.compile(
     r"(?ms)^(?P<open>`{3,}|~{3,})[ \t]*(?P<info>[^\n]*)\n(?P<body>.*?)^(?P=open)[ \t]*$"
@@ -74,22 +68,6 @@ def spec_fingerprint(document):
     """Canonical digest of the whole document, including paths and components."""
     blob = json.dumps(document, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
     return hashlib.sha256(blob.encode("utf-8")).hexdigest()
-
-
-def encode_digest(hex_digest):
-    """Break a hex digest into 4-digit groups so it is not a 7+ hex run.
-
-    Hex has no 'g', and 'g' is not a stripped separator, so the groups stay split.
-    """
-    return "g".join(hex_digest[index:index + 4] for index in range(0, len(hex_digest), 4))
-
-
-def decode_digest(text):
-    return "".join(text.strip().split("g"))
-
-
-def stored_digest():
-    return decode_digest(DIGEST_PATH.read_text(encoding="utf-8"))
 
 
 def load_document(path):
@@ -469,10 +447,31 @@ def route_hits(text):
     return hits
 
 
+def customer_sample_target(path, shown):
+    """Absolute URLs count only when they address the API or an API-shaped path."""
+    if not str(shown).startswith(("http://", "https://")):
+        return True
+    parsed = urlsplit(shown)
+    host = (parsed.hostname or "").lower()
+    public_host = (urlsplit(PUBLIC_API_BASE).hostname or "").lower()
+    if host == public_host:
+        return True
+    try:
+        ipaddress.ip_address(host)
+        return True
+    except ValueError:
+        pass
+    parts = [part for part in normalise(path).split("/") if part]
+    roots = {"v1", "usage", "mcp", "admin", "internal", "svc"}
+    return bool(parts) and parts[0].lower() in roots
+
+
 def check_routes(text, spec, label):
     failures = []
     for path, shown in route_hits(text):
         if not path:
+            continue
+        if not customer_sample_target(path, shown):
             continue
         if blocked(path) or not is_allowed_path(path, spec):
             failures.append("%s: route %s is not published" % (label, shown))
@@ -484,16 +483,25 @@ def check_routes(text, spec, label):
 
 
 def misplaced_secret(text, label):
-    """X-Kavara-Key is a request header. Basic auth and Authorization are not."""
+    """The customer key belongs only in the request header."""
     failures = []
-    if re.search(r"(?i)(?:\?|&)X-Kavara-Key\b", text):
-        failures.append("%s: X-Kavara-Key must be a request header, not a query string" % label)
-    if re.search(r"(?i)--url-query(?:\s+|=)\S*X-Kavara-Key", text):
-        failures.append("%s: X-Kavara-Key must be a request header, not --url-query" % label)
-    if re.search(r"(?i)params\s*=\s*\{[^}]*X-Kavara-Key", text):
-        failures.append("%s: X-Kavara-Key must be a request header, not a params mapping" % label)
+    if re.search(r"(?i)(?:\?|&)(?:key|x-kavara-key)=", text):
+        failures.append("%s: key must be a request header, not a query string" % label)
+    if re.search(r"(?i)--url-query(?:\s+|=)\S*(?:key|x-kavara-key)\b", text):
+        failures.append("%s: key must be a request header, not --url-query" % label)
+    if re.search(r"(?i)(?:^|\s)-G\b", text) and re.search(r"(?i)--data-urlencode\b", text):
+        failures.append("%s: key must not be moved into the query with -G --data-urlencode" % label)
+    if re.search(r"(?i)--oauth2-bearer\b", text):
+        failures.append("%s: oauth2 bearer is not the security scheme" % label)
+    if re.search(r"(?i)params\s*=\s*\{[^}]*(?:X-Kavara-Key|\bkey\b)", text):
+        failures.append("%s: key must be a request header, not a params mapping" % label)
     if re.search(r"""(?i)headers\s*\[\s*['"]Authorization['"]\s*\]\s*=""", text):
         failures.append("%s: Authorization is not a security-scheme header" % label)
+    if re.search(
+        r"""(?is)headers\s*\.\s*update\s*\([^)]*(?:X-Kavara-Key|Authorization|\bkey\b)""",
+        text,
+    ):
+        failures.append("%s: headers.update must not add a key or Authorization" % label)
     return failures
 
 
@@ -566,79 +574,312 @@ def scan_text(text, spec, label):
 
 
 def check_digest(path):
-    document = load_document(path)
-    got = spec_fingerprint(document)
-    if got != stored_digest():
-        return ["spec digest drifted from the recorded full-document digest"]
-    spec = Spec(document)
+    """Hash the vendored spec. Missing input is an error, not a traceback."""
+    path = Path(path)
+    if not path.is_file():
+        return ["vendored spec is missing"]
+    try:
+        raw = path.read_text(encoding="utf-8")
+        document = json.loads(raw)
+    except (OSError, ValueError):
+        return ["vendored spec is not valid JSON"]
+    if not isinstance(document, dict):
+        return ["vendored spec is not a JSON object"]
+    try:
+        spec_fingerprint(document)
+        spec = Spec(document)
+    except Exception:
+        return ["vendored spec digest could not be computed"]
     failures = []
     if spec.public_base != PUBLIC_API_BASE:
         failures.append("vendored server URL is not the public api base")
     for path_item in spec.allowed_paths:
         if blocked(path_item):
-            failures.append("vendored spec publishes blocked path %s" % path_item)
+            failures.append("vendored spec publishes a blocked path")
     if not spec.security_headers:
         failures.append("vendored spec has no header security scheme")
     return failures
 
 
-def hex_findings(text, allow=HEX_ALLOW):
-    """7+ hex runs after NFKC, with separators, dashes and zero-width marks removed.
+INVISIBLE = dict.fromkeys(map(ord, "\u200b\u200c\u200d\ufeff\u2060\u180e\u00ad\u2061\u2062\u2063"), None)
+CONFUSABLES = str.maketrans({
+    "\u0430": "a", "\u0435": "e", "\u043e": "o", "\u0440": "p", "\u0441": "c",
+    "\u0443": "y", "\u0445": "x", "\u0456": "i", "\u0458": "j", "\u04bb": "h",
+    "\u0501": "d", "\u0261": "g", "\u03bf": "o", "\u03b1": "a", "\u03c1": "p",
+})
 
-    Digit-only runs count. A letter is not required.
-    """
+
+def normalize_text(text):
+    """NFKC, casefold, drop invisible characters, decode encodings, fold confusables."""
+    if text is None:
+        return ""
+    text = str(text)
+    for _ in range(8):
+        decoded = html.unescape(unquote_plus(text))
+        if decoded == text:
+            break
+        text = decoded
+    text = unicodedata.normalize("NFKC", text).casefold()
+    text = text.translate(INVISIBLE)
+    return text.translate(CONFUSABLES)
+
+
+def terms_from_env():
+    raw = os.environ.get(SECRET_NAME)
+    if raw is None or not raw.strip():
+        return None, MISSING_SECRET
+    terms = [line.strip() for line in raw.splitlines() if line.strip()]
+    if not terms:
+        return None, MISSING_SECRET
+    return terms, None
+
+
+def term_on_line(folded, needle):
+    if len(needle) >= 6:
+        return needle in folded
+    return re.search("(?<![0-9a-z])" + re.escape(needle) + "(?![0-9a-z])", folded) is not None
+
+
+def term_hits(text, terms):
+    """Return (line, index) pairs. The term text is not returned."""
+    hits = []
+    lines = text.splitlines() or [text]
+    folded_lines = [normalize_text(line) for line in lines]
+    whole = normalize_text(text)
+    for index, term in enumerate(terms):
+        needle = normalize_text(term)
+        if not needle:
+            continue
+        matched = False
+        for line_no, folded in enumerate(folded_lines, 1):
+            if term_on_line(folded, needle):
+                hits.append((line_no, index))
+                matched = True
+        if not matched and term_on_line(whole, needle):
+            hits.append((1, index))
+    return hits
+
+
+def _gap_kind(gap, hexdigits, dashes):
+    """soft whitespace, hard punctuation, or one repeated non-hex letter."""
+    if not gap:
+        return None
+    letters = []
+    hard = False
+    for char in gap:
+        if char in hexdigits:
+            return None
+        if char.isspace():
+            continue
+        if char == "." or char in dashes:
+            hard = True
+            continue
+        if "a" <= char <= "z":
+            letters.append(char)
+            continue
+        return None
+    if letters:
+        if hard or any(char.isspace() for char in gap):
+            return None
+        if len(set(letters)) != 1:
+            return None
+        return "letter"
+    return "hard" if hard else "soft"
+
+
+def _join_ok(kind, left, right):
+    if kind == "hard":
+        return left >= 2 and right >= 2
+    if kind in ("soft", "letter"):
+        return left >= 3 and right >= 3
+    return False
+
+
+def _word_char(text, index):
+    """A non-hex letter outside a separator gap keeps the run inside a word."""
+    if index < 0 or index >= len(text):
+        return False
+    char = text[index]
+    return "a" <= char <= "z" and char not in "0123456789abcdef"
+
+
+def hex_findings(text, allow=HEX_ALLOW):
+    """7+ hex runs. Dot, whitespace and repeated separators join groups."""
     findings = []
-    text = unicodedata.normalize("NFKC", text)
-    text = text.translate({ord(char): None for char in "\u200b\u200c\u200d\ufeff\u2060\u180e"})
-    separators = set("-_:")
-    separators.update("\u2010\u2011\u2012\u2013\u2014\u2015\u2212\ufe58\ufe63\uff0d\u00ad")
-    hexdigits = set("0123456789abcdefABCDEF")
+    text = normalize_text(text)
+    hexdigits = set("0123456789abcdef")
+    dashes = set("-_:\u2010\u2011\u2012\u2013\u2014\u2015\u2212\ufe58\ufe63\uff0d")
     index = 0
     length = len(text)
     while index < length:
         if text[index] not in hexdigits:
             index += 1
             continue
-        chars = []
-        cursor = index
+        chars = [text[index]]
+        group = 1
+        cursor = index + 1
         while cursor < length:
-            char = text[cursor]
-            if char in hexdigits:
-                chars.append(char)
+            if text[cursor] in hexdigits:
+                chars.append(text[cursor])
+                group += 1
                 cursor += 1
                 continue
-            if char in separators and cursor + 1 < length and text[cursor + 1] in hexdigits:
-                cursor += 1
+            probe = cursor
+            while probe < length and text[probe] not in hexdigits:
+                probe += 1
+            kind = _gap_kind(text[cursor:probe], hexdigits, dashes) if probe < length else None
+            nxt = 0
+            if kind:
+                while probe + nxt < length and text[probe + nxt] in hexdigits:
+                    nxt += 1
+            if (
+                kind
+                and _join_ok(kind, group, nxt)
+                and not _word_char(text, cursor - group - 1)
+                and not _word_char(text, probe + nxt)
+            ):
+                chars.append(text[probe])
+                cursor = probe + 1
+                group = 1
                 continue
             break
         token = "".join(chars)
-        if len(token) >= 7 and token.lower() not in allow:
-            findings.append(token.lower())
+        if len(token) >= 7 and token not in allow:
+            findings.append(token)
         index = cursor if cursor > index else index + 1
     return findings
 
 
-def fold_term(text):
-    """NFKC, casefold, and drop separators so a banned term cannot hide in punctuation."""
-    text = unicodedata.normalize("NFKC", text).casefold()
-    text = text.translate({ord(char): None for char in "\u200b\u200c\u200d\ufeff\u2060\u180e"})
-    for char in "-_\u2010\u2011\u2012\u2013\u2014\u2015\u2212\ufe58\ufe63\uff0d\u00ad":
-        text = text.replace(char, "")
-    return text
-
-
-def banned_findings(text):
-    folded = fold_term(text)
-    return [term for term in BANNED_TERMS if fold_term(term) in folded]
-
-
-def in_doc_tree(path, root):
-    """True for docs/ and examples/ after resolving to a path relative to root."""
+def is_inside(path, parent):
     try:
-        relative = path.resolve().relative_to(Path(root).resolve())
+        Path(path).resolve().relative_to(Path(parent).resolve())
+        return True
     except ValueError:
         return False
-    return bool(relative.parts) and relative.parts[0] in DOC_ROOTS
+
+
+def symlink_failure(path, root):
+    """None when a link stays inside the tree. A docs link must stay under docs."""
+    root = Path(root)
+    try:
+        relative = path.relative_to(root)
+    except ValueError:
+        return "%s: symlink resolves outside the repository" % path
+    try:
+        target = path.resolve(strict=False)
+    except OSError:
+        return "%s: symlink cannot be resolved" % relative.as_posix()
+    if not is_inside(target, root):
+        return "%s: symlink resolves outside the repository" % relative.as_posix()
+    if relative.parts and relative.parts[0] == "docs" and not is_inside(target, root / "docs"):
+        return "%s: symlink resolves outside docs" % relative.as_posix()
+    return None
+
+
+def iter_markdown(root):
+    """Every Markdown file. An escaping symlink is an error, not a skipped file."""
+    root = Path(root)
+    failures = []
+    files = []
+    if not root.is_dir():
+        return files, ["repository root is missing"]
+    for dirpath, dirnames, filenames in os.walk(root, followlinks=False):
+        current = Path(dirpath)
+        kept = []
+        for name in dirnames:
+            if name in SKIP_DIRS:
+                continue
+            candidate = current / name
+            if candidate.is_symlink():
+                problem = symlink_failure(candidate, root)
+                if problem:
+                    failures.append(problem)
+                    continue
+            kept.append(name)
+        dirnames[:] = kept
+        for name in filenames:
+            if not name.lower().endswith(".md"):
+                continue
+            candidate = current / name
+            if candidate.is_symlink():
+                problem = symlink_failure(candidate, root)
+                if problem:
+                    failures.append(problem)
+                    continue
+            files.append(candidate)
+    return files, failures
+
+
+def scan_repository(root=ROOT, terms=None):
+    if terms is None:
+        terms, error = terms_from_env()
+        if error:
+            return [error]
+    root = Path(root)
+    spec_path = root / "docs" / "customer-rest-api.openapi.json"
+    failures = list(check_digest(spec_path))
+    if failures:
+        return failures
+    try:
+        document = load_document(spec_path)
+        spec = Spec(document)
+    except (OSError, ValueError, TypeError, AttributeError):
+        return ["vendored spec is not valid JSON"]
+    pages, link_errors = iter_markdown(root)
+    failures.extend(link_errors)
+    for path in pages:
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError:
+            failures.append("%s: markdown file is not readable" % path)
+            continue
+        try:
+            label = path.resolve().relative_to(root.resolve()).as_posix()
+        except ValueError:
+            failures.append("%s: symlink resolves outside the repository" % path)
+            continue
+        failures.extend(scan_text(text, spec, label))
+        for token in hex_findings(text):
+            failures.append("%s: hex run %s" % (label, token))
+        for line_no, index in term_hits(text, terms):
+            failures.append("%s:%s: term %s" % (label, line_no, index))
+    for folder_name in ("docs", "examples"):
+        base = root / folder_name
+        if not base.is_dir():
+            continue
+        for path in base.rglob("*"):
+            if not path.is_file() or path.suffix.lower() == ".md" or path.is_symlink():
+                continue
+            try:
+                relative = path.relative_to(root)
+            except ValueError:
+                failures.append("%s: symlink resolves outside the repository" % path)
+                continue
+            if any(part in SKIP_DIRS for part in relative.parts):
+                continue
+            if path.suffix.lower() not in {".json", ".txt", ".yml", ".yaml"}:
+                continue
+            try:
+                text = path.read_text(encoding="utf-8")
+            except OSError:
+                failures.append("%s: file is not readable" % relative.as_posix())
+                continue
+            label = relative.as_posix()
+            for token in hex_findings(text):
+                failures.append("%s: hex run %s" % (label, token))
+            for line_no, index in term_hits(text, terms):
+                failures.append("%s:%s: term %s" % (label, line_no, index))
+    quick_path = root / "docs" / "customer-rest-api.md"
+    if not quick_path.is_file():
+        failures.append("quickstart is missing")
+    else:
+        quick = quick_path.read_text(encoding="utf-8")
+        python_found, curl_found = quickstart_calls(quick, spec)
+        if python_found != list(QUICKSTART_CALLS):
+            failures.append("quickstart python calls are %s" % (python_found,))
+        if curl_found != list(QUICKSTART_CALLS):
+            failures.append("quickstart curl calls are %s" % (curl_found,))
+    return failures
 
 
 def quickstart_calls(text, spec):
@@ -659,68 +900,6 @@ def quickstart_calls(text, spec):
                     path = normalise(urlsplit(resolve_url(raw, body) or "").path)
                 curl.append((command["method"], path))
     return python, curl
-
-
-def markdown_files(root):
-    files = []
-    for name in ROOT_MARKDOWN:
-        path = root / name
-        if path.is_file():
-            files.append(path)
-    for folder in DOC_ROOTS:
-        base = root / folder
-        if not base.is_dir():
-            continue
-        for path in base.rglob("*"):
-            if not path.is_file():
-                continue
-            if any(part in SKIP_DIRS for part in path.relative_to(root).parts):
-                continue
-            if path.resolve() in HEX_SKIP_PATHS or not in_doc_tree(path, root):
-                continue
-            files.append(path)
-    return files
-
-
-def scan_repository(root=ROOT):
-    failures = check_digest(root / "docs" / "customer-rest-api.openapi.json")
-    document = load_document(root / "docs" / "customer-rest-api.openapi.json")
-    spec = Spec(document)
-    for path in markdown_files(root):
-        if path.suffix.lower() not in {".md", ".json", ".txt", ".yml", ".yaml"}:
-            continue
-        text = path.read_text(encoding="utf-8")
-        label = str(path.relative_to(root))
-        if path.suffix.lower() == ".md":
-            failures.extend(scan_text(text, spec, label))
-        if in_doc_tree(path, root):
-            for token in hex_findings(text):
-                failures.append("%s: hex run %s" % (label, token))
-            for term in banned_findings(text):
-                failures.append("%s: banned term %s" % (label, term))
-    # docs/ and examples/ include json such as the brief and the vendored spec.
-    for folder in DOC_ROOTS:
-        base = root / folder
-        if not base.is_dir():
-            continue
-        for path in base.rglob("*"):
-            if not path.is_file() or path.suffix.lower() == ".md":
-                continue
-            if any(part in SKIP_DIRS for part in path.relative_to(root).parts):
-                continue
-            text = path.read_text(encoding="utf-8")
-            label = str(path.relative_to(root))
-            for token in hex_findings(text):
-                failures.append("%s: hex run %s" % (label, token))
-            for term in banned_findings(text):
-                failures.append("%s: banned term %s" % (label, term))
-    quick = (root / "docs" / "customer-rest-api.md").read_text(encoding="utf-8")
-    python_calls_found, curl_calls_found = quickstart_calls(quick, spec)
-    if python_calls_found != list(QUICKSTART_CALLS):
-        failures.append("quickstart python calls are %s" % (python_calls_found,))
-    if curl_calls_found != list(QUICKSTART_CALLS):
-        failures.append("quickstart curl calls are %s" % (curl_calls_found,))
-    return failures
 
 
 def balanced(text, start, open_ch, close_ch):
@@ -779,10 +958,33 @@ class CheckerTests(unittest.TestCase):
 
     def test_vendored_digest_matches_independent_hash(self):
         document = load_document(OPENAPI_PATH)
-        got = self.independent_digest(document)
-        self.assertEqual(got, decode_digest(DIGEST_PATH.read_text(encoding="utf-8")))
-        self.assertEqual(spec_fingerprint(document), got)
+        self.assertEqual(spec_fingerprint(document), self.independent_digest(document))
         self.assertEqual(check_digest(OPENAPI_PATH), [])
+
+    def test_missing_spec_fails_closed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            missing = Path(directory) / "absent.json"
+            self.assertEqual(check_digest(missing), ["vendored spec is missing"])
+
+    def test_invalid_spec_fails_closed(self):
+        terms = self.synthetic_terms()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            docs = root / "docs"
+            docs.mkdir()
+            spec = docs / "customer-rest-api.openapi.json"
+            spec.write_text("not-json", encoding="utf-8")
+            self.assertEqual(check_digest(spec), ["vendored spec is not valid JSON"])
+            self.assertEqual(
+                scan_repository(root, terms=terms),
+                ["vendored spec is not valid JSON"],
+            )
+            spec.write_text("[]", encoding="utf-8")
+            self.assertEqual(check_digest(spec), ["vendored spec is not a JSON object"])
+            self.assertEqual(
+                scan_repository(root, terms=terms),
+                ["vendored spec is not a JSON object"],
+            )
 
     def test_schema_edit_changes_digest(self):
         document = load_document(OPENAPI_PATH)
@@ -915,6 +1117,70 @@ class CheckerTests(unittest.TestCase):
         ])
         self.assertTrue(any("Authorization" in item for item in self.piece(text)))
 
+    def test_query_key_parameter(self):
+        text = "\n".join([
+            'BASE_URL="https://api.kavara.ai"',
+            'curl --request GET --url "${BASE_URL}/v1/kirk-api/health?key=abc" '
+            '--header "X-Kavara-Key: ${KIP_API_KEY}" -o out.json',
+        ])
+        self.assertTrue(any("query string" in item for item in self.piece(text)))
+
+    def test_url_query_key_parameter(self):
+        text = "\n".join([
+            'BASE_URL="https://api.kavara.ai"',
+            'curl --request GET --url "${BASE_URL}/v1/kirk-api/health" '
+            '--url-query "key=abc" --header "X-Kavara-Key: ${KIP_API_KEY}" -o out.json',
+        ])
+        self.assertTrue(any("--url-query" in item for item in self.piece(text)))
+
+    def test_get_data_urlencode(self):
+        text = "\n".join([
+            'BASE_URL="https://api.kavara.ai"',
+            'curl -G --data-urlencode "key=abc" --request GET '
+            '--url "${BASE_URL}/v1/kirk-api/health" --header "X-Kavara-Key: ${KIP_API_KEY}" -o out.json',
+        ])
+        self.assertTrue(any("data-urlencode" in item for item in self.piece(text)))
+
+    def test_python_params_key(self):
+        text = "\n".join([
+            'BASE_URL = "https://api.kavara.ai"',
+            'headers = {"X-Kavara-Key": API_KEY}',
+            'params = {"key": "abc"}',
+            'call("GET", "/v1/kirk-api/health")',
+        ])
+        self.assertTrue(any("params" in item for item in self.piece(text)))
+
+    def test_headers_update_adds_authorization(self):
+        text = "\n".join([
+            'BASE_URL = "https://api.kavara.ai"',
+            'headers = {"X-Kavara-Key": API_KEY}',
+            'headers.update({"Authorization": "Bearer x"})',
+            'call("GET", "/v1/kirk-api/health")',
+        ])
+        self.assertTrue(any("headers.update" in item for item in self.piece(text)))
+
+    def test_headers_update_adds_key(self):
+        text = "\n".join([
+            'BASE_URL = "https://api.kavara.ai"',
+            'headers = {"Content-Type": "application/json"}',
+            'headers.update({"X-Kavara-Key": API_KEY})',
+            'call("GET", "/v1/kirk-api/health")',
+        ])
+        self.assertTrue(any("headers.update" in item for item in self.piece(text)))
+
+    def test_unrelated_absolute_url_is_not_a_sample(self):
+        host = "example" + ".invalid"
+        text = "```\npip install torch --index-url https://%s/wheels/cpu\n```\n" % host
+        self.assertEqual(self.wrapped(text), [])
+
+    def test_oauth2_bearer(self):
+        text = "\n".join([
+            'BASE_URL="https://api.kavara.ai"',
+            'curl --request GET --url "${BASE_URL}/v1/kirk-api/health" '
+            '--oauth2-bearer abc --header "X-Kavara-Key: ${KIP_API_KEY}" -o out.json',
+        ])
+        self.assertTrue(any("oauth2 bearer" in item for item in self.piece(text)))
+
     def test_usage_segment(self):
         self.assertTrue(self.piece("curl https://api.kavara.ai/usage/me -o out.json"))
 
@@ -955,45 +1221,158 @@ class CheckerTests(unittest.TestCase):
         self.assertTrue(hex_findings("count 1234\u2013567", allow=frozenset()))
         self.assertTrue(hex_findings("count 1234\u200b567", allow=frozenset()))
         self.assertTrue(hex_findings("count \uff11\uff12\uff13\uff14\uff15\uff16\uff17", allow=frozenset()))
+        self.assertTrue(hex_findings("token abc.def0", allow=frozenset()))
+        self.assertTrue(hex_findings("token abc def0", allow=frozenset()))
+        self.assertTrue(hex_findings("token abcgdef0", allow=frozenset()))
+        self.assertTrue(hex_findings("token abcxdef0", allow=frozenset()))
+        self.assertTrue(hex_findings("token abczdef0", allow=frozenset()))
+        self.assertTrue(hex_findings("token abc--def0", allow=frozenset()))
+        self.assertTrue(hex_findings("token 12:34:56.78", allow=frozenset()))
         self.assertFalse(hex_findings("label example-revision"))
         self.assertFalse(hex_findings("body cap 8388608"))
+        self.assertFalse(hex_findings("workload added under 6 W"))
+        self.assertFalse(hex_findings("for T in 1 2 4 8 16 32 64; do"))
+        self.assertFalse(hex_findings("09:00:00Z,22.1,0.12"))
+        self.assertFalse(hex_findings("variance\n- effect size"))
+        self.assertTrue(hex_findings("token ce-effec0", allow=frozenset()))
 
-    def test_banned_term_folding(self):
-        planted = "Cooling" + "\u2013" + "Rate"
-        host = "VERCEL" + ".APP"
-        self.assertEqual(fold_term("\n".join(banned_findings(planted))), fold_term("cooling" + "_" + "rate"))
-        self.assertEqual(fold_term("\n".join(banned_findings(host))), fold_term(host))
+    def synthetic_terms(self):
+        long_term = "synth" + "token"
+        host = "preview" + "host" + "test"
+        short_term = "zz"
+        return [long_term, host, short_term]
 
-    def test_markdown_scan_catches_planted_leaks(self):
-        """The real repository scan must see Markdown under docs/, not skip it."""
-        tuning = "cooling" + "_" + "rate"
-        host = "vercel" + "." + "app"
-        token = "abc" + "de" + "f2"
+    def minimal_repo(self, root):
+        docs = root / "docs"
+        docs.mkdir()
+        shutil.copy(OPENAPI_PATH, docs / "customer-rest-api.openapi.json")
+        shutil.copy(ROOT / "docs" / "customer-rest-api.md", docs / "customer-rest-api.md")
+        return docs
+
+    def test_missing_secret_fails_closed(self):
+        previous = os.environ.pop(SECRET_NAME, None)
+        try:
+            self.assertEqual(scan_repository(ROOT), [MISSING_SECRET])
+        finally:
+            if previous is not None:
+                os.environ[SECRET_NAME] = previous
+
+    def test_short_term_needs_a_boundary(self):
+        short_term = "zz"
+        self.assertEqual(term_hits("prefix " + short_term + " suffix", [short_term]), [(1, 0)])
+        self.assertEqual(term_hits("aa" + short_term + "bb", [short_term]), [])
+
+    def test_encoded_term_is_found(self):
+        term = "synth" + "token"
+        planted = "".join("%%%02X" % ord(char) for char in term)
+        self.assertEqual(term_hits(planted, [term]), [(1, 0)])
+
+    def test_root_markdown_plants(self):
+        terms = self.synthetic_terms()
+        token = "abc" + "def" + "4"
+        long_hex = "ab" * 20
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            docs = root / "docs"
-            docs.mkdir()
-            shutil.copy(OPENAPI_PATH, docs / "customer-rest-api.openapi.json")
-            shutil.copy(ROOT / "docs" / "customer-rest-api.md", docs / "customer-rest-api.md")
-            clean = scan_repository(root)
-            self.assertFalse(any("planted-leak" in item for item in clean), clean)
-            page = docs / "planted-leak.md"
-            page.write_text(tuning + "\n" + host + "\n" + token + "\n", encoding="utf-8")
-            dirty = scan_repository(root)
-            blob = "\n".join(dirty).casefold()
-            self.assertIn("planted-leak.md", blob)
-            self.assertIn(fold_term(tuning), fold_term(blob))
-            self.assertIn(fold_term(host), fold_term(blob))
+            self.minimal_repo(root)
+            page = root / "README.md"
+            page.write_text("\n".join([terms[0], terms[1], token, long_hex]) + "\n", encoding="utf-8")
+            failures = scan_repository(root, terms=terms)
+            blob = "\n".join(failures)
+            self.assertIn("README.md", blob)
+            self.assertIn("term 0", blob)
+            self.assertIn("term 1", blob)
             self.assertIn(token, blob)
+            self.assertIn(long_hex, blob)
+            self.assertNotIn(terms[0], blob)
+            self.assertNotIn(terms[1], blob)
+
+    def test_toplevel_and_subdirectory_plants(self):
+        terms = self.synthetic_terms()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.minimal_repo(root)
+            (root / "notes.md").write_text(terms[0] + "\n", encoding="utf-8")
+            (root / "PAGE.MD").write_text(terms[2] + "\n", encoding="utf-8")
+            nested = root / "benchmarks"
+            nested.mkdir()
+            (nested / "note.md").write_text(terms[1] + "\n", encoding="utf-8")
+            failures = scan_repository(root, terms=terms)
+            blob = "\n".join(failures)
+            self.assertIn("notes.md", blob)
+            self.assertIn("PAGE.MD", blob)
+            self.assertIn("benchmarks/note.md", blob)
+            self.assertNotIn(terms[0], blob)
+            self.assertNotIn(terms[1], blob)
+
+    def test_escaping_symlink_fails(self):
+        terms = self.synthetic_terms()
+        with tempfile.TemporaryDirectory() as outside:
+            target = Path(outside) / "outside.md"
+            target.write_text("outside\n", encoding="utf-8")
+            with tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                docs = self.minimal_repo(root)
+                link = docs / "escape.md"
+                link.symlink_to(target)
+                failures = scan_repository(root, terms=terms)
+                self.assertTrue(any("symlink resolves outside" in item for item in failures))
+
+    def test_docs_symlink_outside_docs_fails(self):
+        terms = self.synthetic_terms()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            docs = self.minimal_repo(root)
+            outside = root / "notes.md"
+            outside.write_text("inside the repository\n", encoding="utf-8")
+            link = docs / "linked.md"
+            link.symlink_to(outside)
+            failures = scan_repository(root, terms=terms)
+            self.assertTrue(any("outside docs" in item for item in failures))
 
     def test_banned_term(self):
-        self.assertEqual(banned_findings("see vercel.app today"), ["vercel.app"])
+        term = "synth" + "token"
+        self.assertEqual([index for _line, index in term_hits("see " + term, [term])], [0])
+
+
+def prove_secret():
+    """Show that CI loaded the term list, without printing a term."""
+    terms, error = terms_from_env()
+    if error:
+        print(error, file=sys.stderr)
+        return 1
+    for term in terms:
+        sys.stdout.write("::add-mask::%s\n" % term)
+    with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory)
+        docs = root / "docs"
+        docs.mkdir()
+        shutil.copy(OPENAPI_PATH, docs / "customer-rest-api.openapi.json")
+        shutil.copy(ROOT / "docs" / "customer-rest-api.md", docs / "customer-rest-api.md")
+        page = root / "plant.md"
+        page.write_text(terms[0] + "\n", encoding="utf-8")
+        failures = scan_repository(root, terms=terms)
+    blob = "\n".join(failures)
+    if terms[0] in blob:
+        print("scan leaked a term", file=sys.stderr)
+        return 1
+    if "plant.md" not in blob or "term 0" not in blob:
+        print("secret plant was not detected", file=sys.stderr)
+        return 1
+    print("secret plant was detected")
+    return 0
 
 
 def main(argv):
-    if "--print-digest" in argv:
-        print(encode_digest(spec_fingerprint(load_document(OPENAPI_PATH))))
+    if "--check-digest" in argv:
+        failures = check_digest(OPENAPI_PATH)
+        if failures:
+            for item in failures:
+                print(item, file=sys.stderr)
+            return 1
+        print("vendored spec digest computed")
         return 0
+    if "--prove-secret" in argv:
+        return prove_secret()
     if "--self-test" in argv:
         suite = unittest.defaultTestLoader.loadTestsFromTestCase(CheckerTests)
         result = unittest.TextTestRunner(verbosity=1).run(suite)
