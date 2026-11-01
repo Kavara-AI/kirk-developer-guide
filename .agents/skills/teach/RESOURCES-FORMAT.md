@@ -19,7 +19,7 @@
 - [r/weightroom](https://reddit.com/r/weightroom)
   High-signal subreddit, moderated against bro-science. Use for: programme critique, plateau troubleshooting.
 - Local: Tuesday strength class at {gym name}
-  Use for: real-time coaching comments on lifts.
+  Use for: real-time coaching feedback on lifts.
 ```
 
 ## Rules

@@ -30,7 +30,10 @@ Learn and score send that snapshot with square samples. Earlier preview routes a
 hosted MCP surface is described in [Connect your Claude](docs/connect-your-claude.md).
 
 `python3 scripts/check_customer_samples.py` checks that fenced samples use only
-published customer routes.
+published customer routes. Its term list is one trimmed line per entry. A line
+that starts with `/` is a route and matches only the whole normalised path; a
+trailing `*` marks a prefix of that path. `short:` marks a short root and does
+not apply to routes.
 
 ## Start here
 

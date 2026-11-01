@@ -15,7 +15,7 @@ This skill has you show commands, outputs and captured artifacts. **Redact every
 
 If the redacted output is not enough to diagnose the bug, say so and ask the user.
 
-## Phase 1: Build a comments loop
+## Phase 1: Build a feedback loop
 
 **This is the skill.** Everything else is mechanical. If you have a **tight** pass/fail signal for the bug (one that goes red on _this_ bug), you will find the cause; bisection, hypothesis-testing, and instrumentation all just consume it. If you don't have one, no amount of staring at code will save you.
 
@@ -34,7 +34,7 @@ Spend disproportionate effort here. **Be aggressive. Be creative. Refuse to give
 9. **Differential loop.** Run the same input through old-version vs new-version (or two configs) and diff outputs.
 10. **HITL bash script.** Last resort. If a human must click, drive _them_ with `scripts/hitl-loop.template.sh` so the loop is still structured. Captured output feeds back to you.
 
-Build the right comments loop, and the bug is 90% fixed.
+Build the right feedback loop, and the bug is 90% fixed.
 
 ### Tighten the loop
 
@@ -125,7 +125,7 @@ If a correct seam exists:
 2. Watch it fail. If you forced the red by mutating code or a fixture, `diff` against a pristine copy to prove the mutation landed before you trust it.
 3. Apply the fix.
 4. Watch it pass.
-5. Re-run the Phase 1 comments loop against the original (un-minimised) scenario.
+5. Re-run the Phase 1 feedback loop against the original (un-minimised) scenario.
 
 ## Phase 6: Cleanup
 

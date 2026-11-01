@@ -6,7 +6,7 @@ Plot the following on a shared time axis:
 2. true synthetic regime
 3. Kirk output
 4. baseline outputs
-5. detected change points
+5. found change points
 
 ## Interpretation questions
 

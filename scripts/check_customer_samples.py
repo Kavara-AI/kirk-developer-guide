@@ -1,10 +1,19 @@
 #!/usr/bin/env python3
 """Fail closed on customer samples that drift from the vendored spec.
 
-Scans every Markdown file. Unknown fence languages are scanned, not skipped.
+Scans text in the repository. Unknown fence languages are scanned, not skipped.
 The operation allow-list is loaded from docs/customer-rest-api.openapi.json
 at runtime. Term matching uses KDG_BANNED_TERMS and refuses to run when that
 list is missing.
+
+Secret lines are trimmed and blank lines are ignored. A line that starts with
+``/`` is a route entry: it matches only the whole normalised path. A trailing
+``*`` marks a prefix entry (the path, or that path plus further segments).
+Normalisation is NFKC, casefold, URL-decoding, slash collapsing, and removal
+of whitespace, line breaks, dashes and dots between the path's characters.
+The base64 and rot13 of the whole path are checked. A route is never matched
+by segment. ``short:`` never applies to a route. ``short:`` (any case) marks
+a short root matched on a token boundary. Any other line is a long root.
 """
 
 from __future__ import annotations
@@ -251,14 +260,14 @@ def validate_call(method, path, url, headers, body, output, spec, label):
     failures = []
     bare = normalise(path)
     if blocked(bare) or bare not in spec.allowed_paths:
-        failures.append("%s: %s %s is not a published customer operation" % (label, method, bare))
+        failures.append("%s: operation 0" % label)
         return failures
     if url is None:
-        failures.append("%s: %s %s has no resolvable base URL" % (label, method, bare))
+        failures.append("%s: operation 0" % label)
     else:
         reason = bad_base(url, spec.public_base)
         if reason:
-            failures.append("%s: %s (%s)" % (label, reason, url))
+            failures.append("%s: base 0" % label)
         if bad_base(url, PUBLIC_API_BASE):
             failures.append("%s: sample base is not %s" % (label, PUBLIC_API_BASE))
     if spec.public_base != PUBLIC_API_BASE:
@@ -507,6 +516,21 @@ def misplaced_secret(text, label):
         failures.append("%s: key must be a request header, not a urlencode query" % label)
     if re.search(r"(?i)\bauth\s*=", text):
         failures.append("%s: httpx auth is not the security-scheme header" % label)
+    if re.search(r"(?i)\bparams\s*=\s*\(", text):
+        failures.append("%s: key must be a request header, not a params tuple" % label)
+    if re.search(r"\*\*\s*opts\b", text):
+        failures.append("%s: key must be a request header, not a spread argument" % label)
+    if re.search(r"(?i)(?:\bs\.params\b|\.params\b)", text):
+        failures.append("%s: key must be a request header, not an attribute params" % label)
+    if re.search(r"(?i)\bcookies\s*=", text):
+        failures.append("%s: key must be a request header, not cookies" % label)
+    if re.search(
+        r"(?i)\b(?:data|json)\s*=\s*\{[^}]*(?:X-Kavara-Key|\bkey\b|Authorization)",
+        text,
+    ):
+        failures.append("%s: key must be a request header, not a body field" % label)
+    if re.search(r"(?i)['\"]Authorization['\"]\s*:", text):
+        failures.append("%s: Authorization is not a security-scheme header" % label)
     if re.search(r"""(?i)headers\s*\[\s*['"]Authorization['"]\s*\]\s*=""", text):
         failures.append("%s: Authorization is not a security-scheme header" % label)
     if re.search(
@@ -690,32 +714,43 @@ def fold_for_terms(text):
     return normalize_text(text).translate(HYPHEN_VARIANTS)
 
 
-def squash_for_terms(text):
-    """Drop whitespace, dashes and repeated slashes so a split route still matches."""
-    folded = fold_for_terms(text)
-    folded = re.sub(r"\s+", "", folded)
-    folded = folded.replace("-", "")
-    return re.sub(r"/+", "/", folded)
-
-
-def terms_from_env():
+def terms_from_env(raw=None):
     """One secret entry per line, trimmed. Blank lines are ignored.
 
-    ``short:`` marks a short root. Anything else is a long root. The checker
-    does not decide that from the length of the text.
+    A line that starts with ``/`` is a route. It matches only as the whole
+    normalised path. A trailing ``*`` marks a prefix entry: the path itself
+    and any longer path under it. Normalisation is NFKC, casefold,
+    URL-decoding, slash collapsing, and removal of whitespace, line breaks,
+    dashes and dots between the path's characters. The base64 and rot13 forms
+    of the whole path are checked too. A route is never matched by segment,
+    and ``short:`` does not apply to it.
+
+    ``short:`` (any case) marks a short root, matched on a token boundary.
+    A one-letter short root, or a short root that itself starts with
+    ``short:``, is rejected. The error text does not contain the entry.
+    Every other non-blank line is a long root. Parts split on that term's own
+    separators match in order with any run of separators between them.
+    Adjacent words are not glued. Length is not used.
     """
-    raw = os.environ.get(SECRET_NAME)
-    if raw is None or not raw.strip():
+    if raw is None:
+        raw = os.environ.get(SECRET_NAME)
+    if raw is None or not str(raw).strip():
         return None, MISSING_SECRET
     entries = []
-    for line in raw.splitlines():
+    for line in str(raw).splitlines():
         line = line.strip()
         if not line:
             continue
-        if line.startswith(SHORT_PREFIX):
+        if line.lower().startswith(SHORT_PREFIX):
             root = line[len(SHORT_PREFIX):].strip()
-            if root:
-                entries.append(("bound", root))
+            if len(root) < 2 or root.lower().startswith(SHORT_PREFIX):
+                return None, "short root is not accepted"
+            if root.startswith("/"):
+                return None, "short root is not accepted"
+            entries.append(("bound", root))
+            continue
+        if line.startswith("/"):
+            entries.append(("route", line))
             continue
         entries.append(("any", line))
     if not entries:
@@ -727,7 +762,7 @@ def _as_entries(entries, shorts=None):
     if entries is None:
         parsed = []
     elif entries and isinstance(entries[0], str):
-        parsed = [("any", item) for item in entries]
+        parsed = [("route" if item.startswith("/") else "any", item) for item in entries]
     else:
         parsed = list(entries)
     for item in shorts or []:
@@ -745,62 +780,130 @@ def _b64_forms(term):
     standard = getattr(base64, "b64" + "encode")
     urlsafe = getattr(base64, "urlsafe_" + "b64" + "encode")
     for encoded in (standard(raw), urlsafe(raw)):
-        text = encoded.decode("ascii")
-        forms.append(text)
-        forms.append(text.rstrip("="))
+        form = encoded.decode("ascii")
+        forms.append(form)
+        forms.append(form.rstrip("="))
     return forms
+
+
+def _rot13(text):
+    out = []
+    for char in text:
+        if "a" <= char <= "z":
+            out.append(chr((ord(char) - 97 + 13) % 26 + 97))
+        elif "A" <= char <= "Z":
+            out.append(chr((ord(char) - 65 + 13) % 26 + 65))
+        else:
+            out.append(char)
+    return "".join(out)
+
+
+def _term_parts(term):
+    folded = fold_for_terms(term)
+    return [part for part in re.split(r"[-\s]+", folded) if part]
+
+
+def _part_pattern(parts):
+    gap = r"[\s\-]+"
+    body = gap.join(re.escape(part) for part in parts)
+    return re.compile("(?<![0-9a-z])" + body + "(?![0-9a-z])")
+
+
+def _route_canonical(term):
+    text = fold_for_terms(term).strip()
+    prefix = text.endswith("*")
+    if prefix:
+        text = text[:-1]
+    out = []
+    previous_slash = False
+    for char in text:
+        if char.isspace() or char == "-" or char == ".":
+            continue
+        if char == "/":
+            if previous_slash:
+                continue
+            out.append("/")
+            previous_slash = True
+            continue
+        previous_slash = False
+        out.append(char)
+    return "".join(out), prefix
+
+
+def _route_pattern(canon, prefix):
+    gap = r"[\s.\-]*"
+    body = []
+    for index, char in enumerate(canon):
+        if char == "/":
+            body.append(r"/+")
+            body.append(r"\s*")
+        else:
+            body.append(re.escape(char))
+            if index + 1 < len(canon) and canon[index + 1] != "/":
+                body.append(gap)
+    if prefix:
+        tail = r"(?![0-9a-z])(?:/.*)?"
+    else:
+        tail = r"(?![0-9a-z/])"
+    return re.compile("(?<![0-9a-z])" + "".join(body) + tail)
+
+
+def _line_of(text, index):
+    return text.count("\n", 0, index) + 1
 
 
 def term_hits(text, entries, shorts=None):
     """Return (line, index) pairs. The term text is not returned."""
     hits = []
-    lines = text.splitlines() or [text]
-    folded_lines = [fold_for_terms(line) for line in lines]
-    whole = fold_for_terms(text)
-    squashed_lines = [squash_for_terms(line) for line in lines]
-    squashed_whole = squash_for_terms(text)
-    raw_lines = lines
+    folded = fold_for_terms(text)
+    decoded = normalize_text(text)
     for index, (kind, term) in enumerate(_as_entries(entries, shorts)):
-        needle = fold_for_terms(term)
-        if not needle:
-            continue
-        squashed_needle = squash_for_terms(term)
-        segments = [part for part in needle.split("/") if part] if "/" in needle else []
-        encoded = _b64_forms(term)
-        matched_lines = set()
-        for line_no, folded in enumerate(folded_lines, 1):
-            hit = False
-            if kind == "bound":
-                hit = _boundary(folded, needle)
+        found_at = None
+        if kind == "route":
+            canon, prefix = _route_canonical(term)
+            if canon:
+                match = _route_pattern(canon, prefix).search(folded)
+                if match:
+                    found_at = _line_of(folded, match.start())
+            path = term[:-1] if term.endswith("*") else term
+            if found_at is None:
+                for form in _b64_forms(path):
+                    at = text.find(form)
+                    if at >= 0:
+                        found_at = _line_of(text, at)
+                        break
+            if found_at is None:
+                rotated = _rot13(path)
+                at = decoded.find(normalize_text(rotated))
+                if rotated and at >= 0:
+                    found_at = _line_of(decoded, at)
+        else:
+            parts = _term_parts(term)
+            if not parts:
+                continue
+            if len(parts) == 1:
+                needle = parts[0]
+                if kind == "bound":
+                    match = re.search(
+                        "(?<![0-9a-z])" + re.escape(needle) + "(?![0-9a-z])",
+                        folded,
+                    )
+                else:
+                    match = re.search(re.escape(needle), folded)
+                if match:
+                    found_at = _line_of(folded, match.start())
             else:
-                hit = needle in folded
-                if not hit and squashed_needle and squashed_needle in squashed_lines[line_no - 1]:
-                    hit = True
-                if not hit:
-                    for part in segments:
-                        if _boundary(folded, part):
-                            hit = True
-                            break
-            if not hit:
-                raw = raw_lines[line_no - 1]
-                hit = any(form and form in raw for form in encoded)
-            if hit:
-                hits.append((line_no, index))
-                matched_lines.add(line_no)
-        if matched_lines:
-            continue
-        whole_hit = _boundary(whole, needle) if kind == "bound" else needle in whole
-        if not whole_hit and kind != "bound" and squashed_needle and squashed_needle in squashed_whole:
-            whole_hit = True
-        if not whole_hit and kind != "bound":
-            for part in segments:
-                if _boundary(whole, part):
-                    whole_hit = True
-                    break
-        if not whole_hit and any(form and form in text for form in encoded):
-            whole_hit = True
-        if whole_hit:
-            hits.append((1, index))
+                match = _part_pattern(parts).search(folded)
+                if match:
+                    found_at = _line_of(folded, match.start())
+            if found_at is None:
+                for form in _b64_forms(term):
+                    at = text.find(form)
+                    if at >= 0:
+                        found_at = _line_of(text, at)
+                        break
+        if found_at is not None:
+            hits.append((found_at, index))
     return hits
 
 
@@ -828,8 +931,18 @@ def checked_allow(allow):
     return allow
 
 
+def _iso_edge(text, index):
+    """True when this side does not glue hex onto the date."""
+    if index < 0 or index >= len(text):
+        return True
+    char = text[index]
+    if char in _hex_digits() or char in _separators() or ("a" <= char <= "z"):
+        return False
+    return True
+
+
 def _mask_iso(text):
-    """Blank strict ISO 8601 dates and datetimes. Near-misses stay in place."""
+    """Blank a standalone strict ISO 8601 date or datetime. Attached hex stays."""
 
     def date_ok(year, month, day):
         try:
@@ -841,67 +954,46 @@ def _mask_iso(text):
     def time_ok(hour, minute, second):
         return 0 <= int(hour) <= 23 and 0 <= int(minute) <= 59 and 0 <= int(second) <= 60
 
-    def blank(match):
+    dt = re.compile(
+        r"(\d{4})-(\d{2})-(\d{2})[t ](\d{2}):(\d{2}):(\d{2})"
+        r"(?:\.(\d{1,9}))?(z|[+-]\d{2}:\d{2})"
+    )
+    day = re.compile(r"(\d{4})-(\d{2})-(\d{2})")
+
+    def blank_if(match, ok):
+        if not ok:
+            return match.group(0)
+        if not _iso_edge(text, match.start() - 1) or not _iso_edge(text, match.end()):
+            return match.group(0)
         return " " * len(match.group(0))
 
-    dt = re.compile(
-        r"(?<![0-9a-z])(\d{4})-(\d{2})-(\d{2})[t ](\d{2}):(\d{2}):(\d{2})"
-        r"(?:\.\d+)?(?:z|[+-]\d{2}:\d{2})?(?![0-9a-z])"
-    )
-    day = re.compile(r"(?<![0-9a-z])(\d{4})-(\d{2})-(\d{2})(?![0-9a-z])")
-
     def dt_sub(match):
-        if date_ok(match.group(1), match.group(2), match.group(3)) and time_ok(
-            match.group(4), match.group(5), match.group(6)
-        ):
-            return blank(match)
-        return match.group(0)
+        fraction = match.group(7)
+        ok = (
+            date_ok(match.group(1), match.group(2), match.group(3))
+            and time_ok(match.group(4), match.group(5), match.group(6))
+            and (fraction is None or len(fraction) <= 9)
+        )
+        return blank_if(match, ok)
 
     def day_sub(match):
-        if date_ok(match.group(1), match.group(2), match.group(3)):
-            return blank(match)
-        return match.group(0)
+        return blank_if(match, date_ok(match.group(1), match.group(2), match.group(3)))
 
     return day.sub(day_sub, dt.sub(dt_sub, text))
 
 
 def _reduce_token(token, hexdigits, separators):
-    """Strip non-space separators and a single-letter split. Return (pure, runs)."""
-    non_hex_letters = [
-        char for char in token
-        if "a" <= char <= "z" and char not in hexdigits and char not in separators
-    ]
-    # A single-letter split is one non-hex letter in an otherwise hex token.
-    allow_letter_split = len(non_hex_letters) == 1
-    runs = []
-    current = []
-    pure = True
-    index = 0
-    length = len(token)
-    while index < length:
-        char = token[index]
-        if char in hexdigits:
-            current.append(char)
-            index += 1
-            continue
-        if char in separators:
-            index += 1
-            continue
-        if allow_letter_split and char in non_hex_letters and current:
-            if index + 1 < length and token[index + 1] in hexdigits:
-                index += 1
-                continue
-        if current:
-            runs.append("".join(current))
-            current = []
-        pure = False
-        index += 1
-    if current:
-        runs.append("".join(current))
-    if pure and len(runs) == 1:
-        return True, runs[0]
-    if pure and not runs:
-        return True, ""
+    """Strip separators and letter gaps inside an otherwise hex token."""
+    simplified = "".join(char for char in token if char not in separators)
+    if re.fullmatch(r"[0-9a-f]+", simplified or ""):
+        return True, simplified
+    # One letter-gap of any length, or several single-letter gaps, when every
+    # hex piece is at least two characters (abcgdefg01, abggcdef0).
+    one_gap = re.fullmatch(r"[0-9a-f]{2,}[g-z]+[0-9a-f]{2,}", simplified or "")
+    many = re.fullmatch(r"[0-9a-f]{2,}(?:[g-z][0-9a-f]{2,})+", simplified or "")
+    if one_gap or many:
+        return True, re.sub(r"[g-z]+", "", simplified)
+    runs = re.findall(r"[0-9a-f]+", simplified or "")
     return False, runs
 
 
@@ -923,7 +1015,7 @@ def _ed_exempt(text, token):
         found = True
         before = text[index - 1] if index else ""
         after = text[index + len(token)] if index + len(token) < len(text) else ""
-        if before in hexdigits or after in hexdigits:
+        if before.isalnum() or after.isalnum():
             return False
         window = text[max(0, index - 48):index]
         if not re.search(r"""['"](?:alg|kty)['"]\s*:\s*['"]\s*$""", window):
@@ -1018,10 +1110,18 @@ def is_markdown_name(name):
     return lower.endswith(".markdown") or lower.endswith(".md")
 
 
-def hex_for_path(path, root, text, allow=HEX_ALLOW):
-    """Hex findings for a file. The stored digest path is the one exemption."""
-    if repo_relative(path, root) == DIGEST_RELATIVE:
+def _mask_lock_hashes(text):
+    """Drop only the hash field of the skills lock. Other hex in that file stays."""
+    return re.sub(r'("computedHash"\s*:\s*")[^"]*"', r'\1"', text)
+
+
+def hex_for_path(path, root, text, allow=None):
+    """Hex findings for a file. Two exact paths have a narrow exemption."""
+    relative = repo_relative(path, root)
+    if relative == DIGEST_RELATIVE:
         return []
+    if relative == "skills-lock.json":
+        text = _mask_lock_hashes(text)
     return hex_findings(text, allow)
 
 
@@ -1463,6 +1563,22 @@ class CheckerTests(unittest.TestCase):
         ])
         self.assertTrue(any("httpx auth" in item for item in self.piece(text)))
 
+    def test_more_key_carriers(self):
+        common = [
+            'BASE_URL = "https://api.kavara.ai"',
+            'headers = {"X-Kavara-Key": API_KEY}',
+        ]
+        samples = [
+            common + ['params = ("key", API_KEY)', 'call("GET", "/v1/kirk-api/health")'],
+            common + ['client.get(BASE_URL + "/v1/kirk-api/health", **opts)'],
+            common + ['session.params = {"key": API_KEY}', 'call("GET", "/v1/kirk-api/health")'],
+            common + ['cookies = {"key": API_KEY}', 'call("GET", "/v1/kirk-api/health")'],
+            common + ['data = {"key": API_KEY}', 'call("GET", "/v1/kirk-api/health")'],
+            common + ['json = {"Authorization": API_KEY}', 'call("GET", "/v1/kirk-api/health")'],
+        ]
+        for sample in samples:
+            self.assertTrue(self.piece("\n".join(sample)))
+
     def test_headers_update_adds_authorization(self):
         text = "\n".join([
             'BASE_URL = "https://api.kavara.ai"',
@@ -1514,7 +1630,8 @@ class CheckerTests(unittest.TestCase):
             'headers = {"X-Kavara-Key": API_KEY}',
             'call("GET", "/v1/kirk-api/health")',
         ])
-        self.assertTrue(any("sample base is not" in item for item in self.piece(text)))
+        self.assertTrue(any("base 0" in item for item in self.piece(text)))
+        self.assertFalse(any("192.0.2.1" in item for item in self.piece(text)))
 
     def test_security_scheme_change(self):
         document = load_document(OPENAPI_PATH)
@@ -1611,17 +1728,103 @@ class CheckerTests(unittest.TestCase):
         self.assertIsNone(error)
         self.assertEqual(entries, [("any", "alpha"), ("bound", "zz")])
 
-    def test_route_term_survives_splits_and_base64(self):
-        term = "v1/" + "synthetic-extra"
-        spaced = "v1 / " + "synthetic-extra"
-        broken = "v1/\n" + "synthetic-extra"
-        bare = "synthetic-extra"
-        encoded = getattr(base64, "b64" + "encode")(term.encode("utf-8")).decode("ascii")
-        self.assertTrue(term_hits(spaced, [term]))
-        self.assertTrue(term_hits(broken, [term]))
-        self.assertTrue(term_hits("see " + bare + " here", [term]))
-        self.assertTrue(term_hits(encoded, [term]))
-        self.assertNotIn(term, "\n".join("%s:%s" % pair for pair in [(1, 0)]))
+    def test_concatenated_words_are_not_a_term(self):
+        term = "synth" + "token"
+        self.assertEqual(term_hits("synth token", [term]), [])
+        self.assertTrue(term_hits("see " + term + " now", [term]))
+
+    def test_internal_break_allows_space_or_hyphen(self):
+        term = "synth" + "-" + "token"
+        self.assertTrue(term_hits("synth token", [term]))
+        self.assertTrue(term_hits("synth-token", [term]))
+        self.assertTrue(term_hits("synth_token", [term]))
+        self.assertEqual(term_hits("syntoken", [term]), [])
+
+    def test_path_entry_matches_only_the_full_path(self):
+        term = "/" + "qa" + "/" + "one"
+        self.assertTrue(term_hits("call " + term + " now", [term]))
+        self.assertTrue(term_hits("call /" + "qa" + "//" + "one" + " now", [term]))
+        self.assertEqual(term_hits("see one here", [term]), [])
+        self.assertEqual(term_hits("call " + term + "/more", [term]), [])
+        self.assertEqual(term_hits("call /" + "qa" + "one", [term]), [])
+
+    def test_path_prefix_marker(self):
+        term = "/" + "zz" + "*"
+        self.assertTrue(term_hits("see /zz now", [term]))
+        self.assertTrue(term_hits("see /zz/anything now", [term]))
+        self.assertEqual(term_hits("see /zzy now", [term]), [])
+        self.assertEqual(term_hits("see zz now", [term]), [])
+
+    def test_letter_gaps_of_two_or_more_still_fold(self):
+        plant = "abc" + "g" + "def" + "g" + "01"
+        self.assertTrue(hex_findings(plant, allow=frozenset()))
+
+    def test_slash_and_comma_do_not_fold_hex(self):
+        self.assertFalse(hex_findings("ab/cd/ef/" + "01", allow=frozenset()))
+        self.assertFalse(hex_findings("ab,cd,ef," + "01", allow=frozenset()))
+
+    def test_iso_adjacency_still_hits(self):
+        day = "2026" + "-07-" + "28"
+        tail = "abc" + "def" + "0"
+        cases = [
+            day + "-" + tail,
+            tail + "-" + day,
+            day + "_" + tail,
+            day + "." + tail,
+            day + ":" + tail,
+            day + "\u00b7" + tail,
+            day + "\u2013" + tail,
+            day + "g" + tail,
+            day + "T" + "09:" + "30:" + "00Z-" + tail,
+            tail + "." + day,
+        ]
+        self.assertEqual(len(cases), 10)
+        for case in cases:
+            self.assertTrue(hex_findings(case, allow=frozenset()), case)
+        quiet = "1234" + "-12-" + "12"
+        self.assertFalse(hex_findings("on " + quiet + " only"))
+
+    def test_short_root_rejections_print_no_term(self):
+        for raw in ("short:a", "SHORT:b", "short:short:x"):
+            entries, error = terms_from_env(raw)
+            self.assertIsNone(entries)
+            self.assertEqual(error, "short root is not accepted")
+            self.assertNotIn("short:", error.lower().replace("short root", ""))
+
+    def test_synthetic_secret_has_no_false_hits(self):
+        lines = []
+        for root in ("q" + "z" + "q", "q" + "x" + "q", "q" + "v" + "q", "q" + "k" + "q"):
+            lines.append("short:" + root)
+        lines.append("/" + ("q" + "z" + "q") + "*")
+        lines.append("/" + "qa" + "/" + "one")
+        lines.append("/" + "qb" + "/" + "two")
+        lines.append("/" + "qc" + "/" + "three")
+        for index in range(32):
+            lines.append("longroot" + "q" + str(index))
+        self.assertEqual(len(lines), 40)
+        self.assertEqual(sum(1 for line in lines if line.startswith("short:")), 4)
+        entries, error = terms_from_env("\n".join(lines))
+        self.assertIsNone(error)
+        self.assertEqual(len(entries), 40)
+        failures = scan_repository(ROOT, terms=entries)
+        term_hits_only = [item for item in failures if ": term " in item]
+        self.assertEqual(term_hits_only, [])
+
+    def test_lock_hash_field_is_exempt_only_there(self):
+        token = "ab" * 32
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.minimal_repo(root)
+            lock = root / "skills-lock.json"
+            lock.write_text(
+                '{"computedHash": "%s", "note": "%s"}\n' % (token, token),
+                encoding="utf-8",
+            )
+            exempt = hex_for_path(lock, root, lock.read_text(encoding="utf-8"))
+            self.assertTrue(any(token in item or item == token for item in exempt))
+            only_hash = root / "other.json"
+            only_hash.write_text('{"computedHash": "%s"}\n' % token, encoding="utf-8")
+            self.assertTrue(hex_for_path(only_hash, root, only_hash.read_text(encoding="utf-8")))
 
     def test_encoded_term_is_found(self):
         term = "synth" + "token"

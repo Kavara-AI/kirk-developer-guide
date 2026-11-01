@@ -65,7 +65,7 @@ Kirk's cost per output scalar depends on the deployment path:
 
 | path | what you can measure | what you cannot |
 |---|---|---|
-| **In-process / sealed engine on your own host** | engine throughput **and** RAPL energy | — |
+| **In-process on your own host** | local throughput **and** RAPL energy | — |
 | **Hosted surface, on a documented route** | end-to-end throughput of that route | engine energy — the number is network round-trip, not compute |
 
 The batch caller scores ten-level price books. It does not accept the
