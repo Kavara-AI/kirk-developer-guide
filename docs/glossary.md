@@ -20,15 +20,12 @@ The input-shape contract a call accepts. For the v1 customer REST contract,
 `samples` are `n` squares of `V` × `V`, and every real and imaginary part lies
 in [-1, 1]. See [Customer REST API](customer-rest-api.md).
 
-**Engine**  
-Not a field in the v1 customer REST contract. `GET /v1/engine` is not part of v1.
-
 **Feature**  
 One measured stream you may place on an axis when you build the square matrix for a step.
 
 **Model**  
-Not an argument of the v1 customer REST contract. `GET /v1/models` is not part
-of v1. Create takes `hyperparameters`. Learn and score take a snapshot and samples.
+Earlier preview routes are not part of the v1 customer API and are not supported.
+Create takes `hyperparameters`. Learn and score take a snapshot and samples.
 
 **Non-stationary**  
 Having statistical behaviour that changes over time.
@@ -46,7 +43,7 @@ A change in how two or more variables behave together.
 The `entropy` array (float32, one value per submitted square) in a learn or score
 response. `outputs=entropy` returns that array alone. `outputs=all` and
 `outputs=features` also return `feature_arr`, `feature_vec` and `feature_scalar`.
-`POST /v1/score-book` is not part of v1.
+Earlier preview routes are not part of the v1 customer API and are not supported.
 
 **Stride**  
 How many source observations the next matrix advances. You choose it when you build

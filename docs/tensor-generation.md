@@ -64,8 +64,8 @@ Submit the square matrices through the [customer REST contract](customer-rest-ap
 `POST /v1/kirk-api/score` take that snapshot plus `samples`, `n` squares of
 `V` × `V`, with every real and imaginary part in [-1, 1].
 
-`GET /v1/engine`, `GET /v1/models` and `POST /v1/score-book` are not part of
-v1. Do not reshape unrelated columns into a price book to fit a retired call.
+Earlier preview routes are not part of the v1 customer API and are not supported.
+Do not reshape unrelated columns into a price book to fit a retired call.
 Read [Customer REST API](customer-rest-api.md) for the methods, headers and
 response members. Where a surface has no documented way to submit the matrices
 you built, contact Kavara.

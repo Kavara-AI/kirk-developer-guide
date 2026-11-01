@@ -1,7 +1,7 @@
 # Connect your Claude
 
 This page covers the connector that puts the Kirk MCP tools directly into a
-Claude conversation. Hosted MCP (`https://kirk-mcp.kavara.ai/mcp`) can also
+Claude conversation. Hosted MCP at https://kirk-mcp.kavara.ai/mcp can also
 be called directly from code. For REST calls from code, Postman or an agent,
 use the [Customer REST API](customer-rest-api.md). For which calls need a key,
 and how a refusal is returned, see the [MCP auth contract](mcp-auth-contract.md).
@@ -13,7 +13,7 @@ A customer API key. Key creation is self-service: sign in at
 in the [console](https://kavara.ai/console) and create a key. The key is bound to
 your Kavara account.
 
-Send the key against the bare `/mcp` path. The
+Send the key against the bare MCP path. The
 [auth contract](mcp-auth-contract.md) is the rule for the handshake, the demo
 tools, and a bad key.
 
@@ -23,25 +23,21 @@ tools, and a bad key.
   existing clients, and it is deprecated. Do not put a key in a URL for a new
   client. If a URL key and a header are both present, the URL key wins.
 - **Cloudflare Access service token** — a client id and secret, used against the
-  bare `/mcp` path. Kavara issues these.
+  bare MCP path. Kavara issues these.
 
 A key can spend real balance on metered tools, so treat it as a secret: do not
 commit it, paste it into an issue, or share it in chat.
 
 ## Claude Code
 
-Pass the key as a header:
-
-```sh
-claude mcp add --transport http kirk https://kirk-mcp.kavara.ai/mcp \
-  -H "Authorization: Bearer <key>"
-```
+Pass the key as a header on the hosted MCP URL named above. Use the client's
+command for adding an HTTP connector. Do not paste the key into a shared transcript.
 
 Confirm with `claude mcp list`.
 
 ## Claude Desktop and claude.ai
 
-Add the connector at `https://kirk-mcp.kavara.ai/mcp`. Do not put a key in a
+Add the connector at https://kirk-mcp.kavara.ai/mcp. Do not put a key in a
 connector URL.
 
 Some organizations have a Request headers section in the Add custom connector
@@ -62,27 +58,19 @@ Anthropic describes the dialog in
 and in
 [Get started with custom connectors using remote MCP](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp).
 
-## Check it worked
-
-Ask Claude to run `kirk_verify_engine`. A working connection returns
-`status: ok`.
-
-That call is hosted MCP. It is not a customer REST operation. The v1 REST
-quick-start is [Customer REST API](customer-rest-api.md). `GET /v1/engine`,
-`GET /v1/models` and `POST /v1/score-book` are not part of v1.
-
 ## Free and metered tools
 
 Start with the free ones — they cost nothing and answer most orientation
 questions.
 
+Earlier preview routes are not part of the v1 customer API and are not supported.
+
 | Tool | Cost | What it does |
 | --- | --- | --- |
-| `kirk_verify_engine` | 0 IU | connection check (`status: ok`) |
 | `kirk_list_models` | 0 IU | names the server currently lists |
 | `kirk_render_book` | 0 IU | inspect a tensor without scoring |
 | `kirk_bulk_howto` | 0 IU | returns a stdlib Python client for bulk work |
-| `kirk_billing_show` / `kirk_billing_usage` | 0 IU | balance and usage |
+| `kirk_billing_show` | 0 IU | balance |
 | `kirk_score_book` | 1 IU per call | score one snapshot |
 | `kirk_score_book_batch` | 1 IU per 50 books | score many independent snapshots |
 | `kirk_score_l2_book` | 1 IU per call | score full L2 books as one ordered chain |
@@ -105,10 +93,6 @@ the expensive way to do the same work.
 
 ## Troubleshooting
 
-- **A 403 that looks like an authentication failure.** Often it is the
-  `User-Agent`: Cloudflare rejects some default client agents on this zone with
-  a 1010 "browser signature banned" error that surfaces as a 403. Set an
-  explicit `User-Agent` before debugging credentials.
 - **A 402.** The account balance is exhausted. `kirk_billing_show` confirms it.
 - **A key that stops working.** Keys can be revoked. An unknown or revoked key
   is refused outright rather than being silently downgraded to an

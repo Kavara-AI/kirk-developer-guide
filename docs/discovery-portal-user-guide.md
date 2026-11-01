@@ -1,6 +1,6 @@
 # Kirk discovery portal: user guide
 
-[Open the Kirk discovery portal](https://kirk-discovery-portal.vercel.app/)
+Open the Kavara discovery portal (URL provided at onboarding).
 
 **For agents:** start with [the agent guide](agent-guide.md). It gives the ordered
 procedure, structured catalogue, JSON intake example and runtime prerequisites.
@@ -11,7 +11,7 @@ and explore how Kirk evidence could feed a Jev decision workflow. You can begin
 without a predefined phenomenon, domain selection or file.
 
 **Observed — portal version checked on 22 September 2026:** the instructions below
-cover the [published deployment](https://kirk-discovery-portal-lp11os8f5-kavara.vercel.app/).
+cover the Kavara discovery portal (URL provided at onboarding).
 The portal provides local preparation and illustrative handoffs. It does not run
 Kirk or Jev inference, collect payments, or submit your brief to Kavara.
 
@@ -60,7 +60,7 @@ Search the catalogue by domain, observation or behaviour. For example, try
 **Explore all … domains** reveals the remaining cards.
 
 The catalogue contains 32 domains and 256 prompts, drawn from this guide's
-[catalogue](phenomena-catalogue.md) at revision `9d2e119`.
+[catalogue](phenomena-catalogue.md) as of 2026-10-31.
 
 - Choose **+ Add** to add a domain to your starting point. Choose **✓ Added** or
   its removal control in the summary to remove it.

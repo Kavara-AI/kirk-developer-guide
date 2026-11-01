@@ -30,8 +30,7 @@ For customer REST calls at `https://api.kavara.ai`, use
 [Customer REST API](docs/customer-rest-api.md) and its
 [OpenAPI specification](docs/customer-rest-api.openapi.json). The first calls
 are readiness, the published limits, and create. Learn and score take the
-snapshot from create. `GET /v1/engine`, `GET /v1/models` and `POST /v1/score-book`
-are not part of v1. Keep `X-Kavara-Receipt` from a metered success. Paid
+snapshot from create. Earlier preview routes are not part of the v1 customer API and are not supported. Keep `X-Kavara-Receipt` from a metered success. Paid
 workflow activation is separate from these calls.
 
 For the separate MCP surface, calling Kirk needs a credential and costs real

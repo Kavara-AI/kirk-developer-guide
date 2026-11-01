@@ -2,7 +2,7 @@
 
 [`discovery-brief.json`](discovery-brief.json) is a complete, synthetic,
 description-only preparation artifact. It follows the version 1 export structure
-of the [portal deployment checked on 22 September 2026](https://kirk-discovery-portal-lp11os8f5-kavara.vercel.app/).
+of the Kavara discovery portal (URL provided at onboarding).
 No file was inspected and no model was called. Its timestamp is an example value.
 Its manufacturing selection illustrates navigation, not a validated capability.
 
@@ -18,7 +18,7 @@ request, JSON Schema, or inference response.
 | `schema_version` | Integer `1` for this brief format. Handle other versions explicitly. The catalogue's separately versioned schema is not an API version either. |
 | `created_at` | ISO 8601 creation time. Set it to the actual time for a new brief. |
 | `purpose` | Preparation for a data-fit review. |
-| `source` | Catalogue repository URL, revision actually read and `catalogue_claim_status: "Hypothesis"`. This example pins `9d2e119`; update for a different source revision. |
+| `source` | Catalogue repository URL, revision actually read and `catalogue_claim_status: "Hypothesis"`. This example is labelled as of 2026-10-31; update the label for a different source revision. |
 | `status` | Explicit preparation-only status. Preserve these values for a brief without contract review or execution. A later run has its own manifest/evidence. |
 | `customer_declarations.dataset_description` | Known source description, or null when unknown. Mark synthetic examples explicitly. |
 | `customer_declarations.exploration_question` | Optional question or null; open-ended discovery is valid. |
@@ -64,5 +64,4 @@ network access or model calls are needed.
 unestablished and engine run not performed. To request live equipment analysis,
 the next step is the square-matrix contract in
 [tensor generation](../../docs/tensor-generation.md) and the customer routes in
-[Customer REST API](../../docs/customer-rest-api.md). `GET /v1/engine`,
-`GET /v1/models` and `POST /v1/score-book` are not part of v1.
+[Customer REST API](../../docs/customer-rest-api.md). Earlier preview routes are not part of the v1 customer API and are not supported.

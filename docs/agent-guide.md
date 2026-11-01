@@ -22,8 +22,7 @@ discovery and the required evidence.
 | “Use Kirk before Jev” | Steps 1–6 | Evidence handoff and separately recorded decision, or an explicitly illustrative request |
 | “Drive the website” | [Portal user guide](discovery-portal-user-guide.md); browser tool section below | Downloaded preparation artifacts |
 
-**Observed — interface baseline, 22 September 2026:** the
-[published portal](https://kirk-discovery-portal-lp11os8f5-kavara.vercel.app/)
+**Observed — interface baseline, 22 September 2026:** the Kavara discovery portal (URL provided at onboarding)
 supports local preparation and illustrative exports. It performs no Kirk or Jev
 inference and has no generic upload/scoring API. The separate hosted MCP runtime
 has its own credentials, contracts and metering. Discover its current schemas
@@ -116,15 +115,14 @@ Choose the surface first. For customer REST at
 **`https://api.kavara.ai`**, follow [Customer REST API](customer-rest-api.md):
 account and key setup, then `GET /v1/kirk-api/health`, `GET /v1/kirk-api/contract`
 and `POST /v1/kirk-api/create`. Learn and score send the snapshot from create
-with square samples. `GET /v1/engine`, `GET /v1/models` and `POST /v1/score-book`
-are not part of v1. Paths, bodies and errors are in the
+with square samples. Earlier preview routes are not part of the v1 customer API and are not supported. Paths, bodies and errors are in the
 [OpenAPI specification](customer-rest-api.openapi.json). This path needs no MCP
 client. Supply `KIP_API_KEY` through the environment's secret controls. The
 header is `X-Kavara-Key`.
 
 For a live MCP run, use the [connection guide](connect-your-claude.md). Configure
 credentials through the client's secret mechanism. The hosted MCP endpoint is
-`https://kirk-mcp.kavara.ai/mcp`; it is separate from the Vercel portal.
+https://kirk-mcp.kavara.ai/mcp; it is separate from the discovery portal.
 
 1. Read server instructions and discover tools with MCP `tools/list` through your
    client. Inspect schemas, cost policy and available resources. Tool names in
@@ -160,54 +158,7 @@ can be complete while requested inference remains blocked.
 
 ### Agent-driven configuration sweeps
 
-**Observed — GitHub source checked 2 October 2026:** the canonical
-[Kavara Visual Studio](https://github.com/Kavara-AI/visual-studio) has an agent
-CLI that plans sweeps against an owned Studio workspace. Its `start` command
-permits bounded **local synthetic Kirk stub** sweeps only. The hosted customer contract is the operation set in
-[Customer REST API](customer-rest-api.md). Create accepts `hyperparameters`,
-including `visible_nodes`. A Studio plan or stub result is not that contract
-and is not a credit quote. The Studio stub's `cooling_rate` decays tau
-multiplicatively, while the measured
-[PyKirk operating-envelope work](https://github.com/Kavara-AI/kirk-operating-envelope)
-describes an additive tau increment. Do not transfer a tuned value between them.
-
-For an authorised local Studio experiment, read that repository's `README.md`,
-`docs/MODELS.md` and CLI help. The CLI reads `KVS_STUDIO_TOKEN`; supply the
-current Studio session token through a
-secret mechanism, never a committed file or command argument. Put the bounded
-axes and seeds in a JSON request file and plan before starting:
-
-```sh
-python -m kvs config list --studio-url https://YOUR_STUDIO_ORIGIN
-python -m kvs config show --studio-url https://YOUR_STUDIO_ORIGIN \
-  --processor kirk_model
-python -m kvs sweep plan --studio-url https://YOUR_STUDIO_ORIGIN \
-  --workspace YOUR_WORKSPACE_ID --request sweep.json
-python -m kvs sweep start --studio-url https://YOUR_STUDIO_ORIGIN \
-  --workspace YOUR_WORKSPACE_ID --request sweep.json \
-  --max-runs 8 --execute
-python -m kvs sweep result --studio-url https://YOUR_STUDIO_ORIGIN \
-  --workspace YOUR_WORKSPACE_ID --sweep-id YOUR_SWEEP_ID
-python -m kvs sweep compare --studio-url https://YOUR_STUDIO_ORIGIN \
-  --workspace YOUR_WORKSPACE_ID --sweep-id YOUR_SWEEP_ID \
-  --baseline-run-id YOUR_BASELINE_RUN_ID --metric YOUR_METRIC_KEY
-```
-
-`config list/show` read Studio's own processor registry. The result says
-`agent_sweep_policy: "stub-only"` and
-`hosted_kirk_raw_hp_admission: false`. Those field names are Studio's registry,
-not the customer REST contract. Recovery of an existing sweep intent remains
-available after a form change.
-
-The `start` command replans, caps the expanded run count and binds execution
-to the workspace digest. It refuses a live Kirk backend. The CLI also provides
-`status`, `list`, `recover` and `cancel`; recover the saved intent and inspect
-results after an uncertain start rather than silently starting a second sweep.
-`compare` reads one completed sweep and reports observed metric differences
-from the named baseline run's parameter group; it does not choose a winner or
-establish a causal effect. Label all stub outputs as synthetic. They are useful
-for checking pipeline wiring and agent procedure, not for claiming Kirk's
-performance.
+Studio stub settings are not customer contract parameters.
 
 For a **hosted** sweep, first obtain a server-declared catalogue of admitted
 field names and ranges, the matrix input, state and reset semantics, maximum

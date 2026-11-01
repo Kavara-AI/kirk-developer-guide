@@ -378,7 +378,7 @@
         "type": "apiKey",
         "in": "header",
         "name": "X-Kavara-Key",
-        "description": "k_ followed by 32 hex. No key or a malformed key is 401. A well-formed key that is unknown or revoked is 403. Do not send Authorization."
+        "description": "k_ followed by 32 hex. No key or a malformed key is 401. A well-formed key that is unknown or revoked is 403."
       }
     },
     "parameters": {

@@ -5,8 +5,7 @@ Use **`https://api.kavara.ai`** for customer REST calls from Python or curl.
 - [OpenAPI specification](customer-rest-api.openapi.json)
 - [Create an account or manage keys](https://kavara.ai/console)
 
-`GET /v1/engine`, `GET /v1/models` and `POST /v1/score-book` are not part of v1.
-This page does not include a sample for them.
+Earlier preview routes are not part of the v1 customer API and are not supported.
 
 Hosted MCP is a separate surface. See [Connect your Claude](connect-your-claude.md).
 Do not send MCP calls to `api.kavara.ai`.
@@ -20,8 +19,7 @@ Do not send MCP calls to `api.kavara.ai`.
 2. Inject the key as `KIP_API_KEY`. Do not commit it, put it in a URL, or paste
    it into a shared transcript.
 3. Send exactly one `X-Kavara-Key` header on every request. A customer key has
-   the form `k_` followed by 32 hex characters. Do not send an `Authorization`
-   header. The contract answers `400` with `{"error":"invalid_headers"}`.
+   the form `k_` followed by 32 hex characters.
 4. If your environment restricts outbound domains, allow HTTPS to `api.kavara.ai`.
 
 A **snapshot** is the byte string returned by create. Learn and score send that
@@ -54,7 +52,7 @@ The limit is 300 calls per account per fixed 60 second window, counting every
 ### Python
 
 Python 3 standard library only. Set `KIP_API_KEY` before starting. The script
-sends `User-Agent` on every call. It does not retry.
+does not retry. A create response is bytes; the script prints JSON bodies only.
 
 ```python
 import json
@@ -64,15 +62,10 @@ import urllib.request
 
 BASE_URL = "https://api.kavara.ai"
 API_KEY = os.environ["KIP_API_KEY"]
-USER_AGENT = "kavara-quickstart/1.0"
 
 
 def call(method, path, payload=None):
-    headers = {
-        "X-Kavara-Key": API_KEY,
-        "Accept": "application/json, application/octet-stream, application/x-kirk-npz",
-        "User-Agent": USER_AGENT,
-    }
+    headers = {"X-Kavara-Key": API_KEY}
     body = None
     if payload is not None:
         headers["Content-Type"] = "application/json"
@@ -83,17 +76,12 @@ def call(method, path, payload=None):
     try:
         with urllib.request.urlopen(request, timeout=40) as response:
             raw = response.read()
-            print(
-                response.status,
-                response.headers.get("Content-Type"),
-                response.headers.get("X-Kavara-Receipt"),
-            )
+            print(response.status, response.headers.get("Content-Type"))
             content_type = response.headers.get("Content-Type") or ""
             if content_type.startswith("application/json"):
                 print(json.loads(raw.decode("utf-8")))
             return raw
     except urllib.error.HTTPError as error:
-        # Status and error body only. Do not print request headers or the key.
         print("HTTP", error.code, error.read().decode("utf-8", "replace"))
         raise SystemExit(1)
 
@@ -105,40 +93,32 @@ call("POST", "/v1/kirk-api/create", {"hyperparameters": {"visible_nodes": 1}})
 
 ### curl
 
-The same three calls, with the same headers and the same JSON body.
+The same three calls, with the same headers and the same JSON body. `-o` writes each response body to a file.
 
 ```bash
 set -eu
 : "${KIP_API_KEY:?}"
 BASE_URL="https://api.kavara.ai"
 
-call() {
-  method="$1"
-  path="$2"
-  body="${3-}"
-  if [ -n "$body" ]; then
-    curl --silent --show-error --fail-with-body \
-      --request "$method" \
-      --url "${BASE_URL}${path}" \
-      --header "X-Kavara-Key: ${KIP_API_KEY}" \
-      --header "Accept: application/json, application/octet-stream, application/x-kirk-npz" \
-      --header "User-Agent: kavara-quickstart/1.0" \
-      --header "Content-Type: application/json" \
-      --data "$body"
-  else
-    curl --silent --show-error --fail-with-body \
-      --request "$method" \
-      --url "${BASE_URL}${path}" \
-      --header "X-Kavara-Key: ${KIP_API_KEY}" \
-      --header "Accept: application/json, application/octet-stream, application/x-kirk-npz" \
-      --header "User-Agent: kavara-quickstart/1.0"
-  fi
-  printf '\n'
-}
+curl --silent --show-error --fail-with-body \
+  --request GET \
+  --url "${BASE_URL}/v1/kirk-api/health" \
+  --header "X-Kavara-Key: ${KIP_API_KEY}" \
+  -o health.json
 
-call GET /v1/kirk-api/health
-call GET /v1/kirk-api/contract
-call POST /v1/kirk-api/create '{"hyperparameters":{"visible_nodes":1}}'
+curl --silent --show-error --fail-with-body \
+  --request GET \
+  --url "${BASE_URL}/v1/kirk-api/contract" \
+  --header "X-Kavara-Key: ${KIP_API_KEY}" \
+  -o contract.json
+
+curl --silent --show-error --fail-with-body \
+  --request POST \
+  --url "${BASE_URL}/v1/kirk-api/create" \
+  --header "X-Kavara-Key: ${KIP_API_KEY}" \
+  --header "Content-Type: application/json" \
+  --data '{"hyperparameters":{"visible_nodes":1}}' \
+  -o snapshot.bin
 ```
 
 ## Response excerpts
@@ -220,7 +200,6 @@ Bodies below are the contract's error objects.
 | HTTP | Body | When |
 | --- | --- | --- |
 | 401 | `{"error":"invalid_api_key"}` | No key, a repeated key header, or a key that is not `k_` plus 32 hex |
-| 400 | `{"error":"invalid_headers"}` | `Transfer-Encoding`, a repeated `Content-Length`, or an `Authorization` header |
 | 403 | `{"error":"request_denied"}` | Unknown key, revoked key, or a key with no tenant row. One body for all three |
 | 404 | `{"error":"route_not_found"}` | Unknown path or method |
 | 413 | `{"error":"request_too_large"}` | Body over 8388608 bytes |
