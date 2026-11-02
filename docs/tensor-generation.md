@@ -67,11 +67,11 @@ ask_px   10 ask prices, level 1 first
 inspection result:
 
 ```json
-{"shape": [20, 20], "dtype": "complex128", "non_zero_cells": 50,
+{"shape": [20, 20], "dtype": "complex", "non_zero_cells": 50,
  "mid_price": 223.095, "spread_ticks": 1.0}
 ```
 
-On this route the inspection result is a **20 × 20 complex128** tensor whose
+On this route the inspection result is a **20 x 20 complex-valued tensor** whose
 rows are `Bid1..Bid10` and `Ask1..Ask10`. That result belongs to the book
 route. See [Customer REST API](customer-rest-api.md). The customer REST score is
 `POST /v1/score-book` with the same ten-and-ten prices.
@@ -117,11 +117,7 @@ Each output should be traceable to:
 - observation index
 - start and end timestamps
 - preprocessing configuration, including window, stride and missing-data rule
-- **Kirk engine sha** (`kirk_version`, stamped on every response)
 - run parameters, including chain length and warm-up
-
-The engine sha matters more than the rest: results from different engine builds are not
-interchangeable, and a result without its sha cannot be placed in a lineage later.
 
 ## Proposed upload-and-data-fit handoff
 

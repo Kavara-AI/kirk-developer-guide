@@ -65,16 +65,14 @@ Kirk's cost per output scalar depends on the deployment path:
 
 | path | what you can measure | what you cannot |
 |---|---|---|
-| **In-process / sealed engine on your own host** | engine throughput **and** RAPL energy | — |
-| **Hosted surface, on a documented route** | end-to-end throughput of that route | engine energy — the number is network round-trip, not compute |
+| **Hosted Kirk, on a documented route** | end-to-end throughput of that route | a network round-trip is not a compute-energy figure |
 
 `kirk_score_book_batch` scores ten-level price books. It does not accept the
 square matrices built from this benchmark's channel panel. A hosted throughput
 number is comparable only for the route you actually called, with that route's
 input recorded.
 
-Use the in-process path for the energy column. If you only have a hosted surface,
-report throughput and **leave the energy cell empty** rather than filling it with a
+On a hosted route, report throughput and **leave the energy cell empty** rather than filling it with a
 round-trip figure; a network-bound number in an energy column is worse than no number.
 
 Hyperparameters are a property of your deployment and are not published in this

@@ -108,7 +108,7 @@ account key.
 
 ### Other zero-cost tools
 
-`kirk_verify_engine`, `kirk_list_models`, `kirk_render_book`,
+`kirk_list_models`, `kirk_render_book`,
 `kirk_bulk_howto`, and the `kirk_billing_*` tools are priced at 0, so the
 balance check does not stop them. This revision has no separate "key
 required" gate for them. Send your own key when the result has to be

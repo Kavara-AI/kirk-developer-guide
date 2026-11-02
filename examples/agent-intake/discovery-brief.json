@@ -11,7 +11,7 @@
     "input_contract": "Not established",
     "model_selection": "Not established",
     "admission": "Not assessed",
-    "engine_run": "Not performed",
+    "run_status": "Not performed",
     "payment": "Not collected"
   },
   "customer_declarations": {

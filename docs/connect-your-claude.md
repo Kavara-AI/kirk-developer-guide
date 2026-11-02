@@ -64,12 +64,8 @@ and in
 
 ## Check it worked
 
-Ask Claude to run `kirk_verify_engine`. A working connection returns
-`status: ok` and a `kirk_version` sha.
-
-**Record that sha.** Results from different engine builds are not
-interchangeable, and a result kept without its `kirk_version` cannot be placed
-in a lineage afterwards.
+Ask Claude to run `kirk_list_models`. A working connection returns the
+registered model ids.
 
 ## Free and metered tools
 
@@ -78,8 +74,7 @@ questions.
 
 | Tool | Cost | What it does |
 | --- | --- | --- |
-| `kirk_verify_engine` | 0 IU | engine identity and sha |
-| `kirk_list_models` | 0 IU | registered model ids and their engines |
+| `kirk_list_models` | 0 IU | registered model ids |
 | `kirk_render_book` | 0 IU | inspect the rendered tensor without scoring |
 | `kirk_bulk_howto` | 0 IU | returns a stdlib Python client for bulk work |
 | `kirk_billing_show` / `kirk_billing_usage` | 0 IU | balance and usage |
