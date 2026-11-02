@@ -16,7 +16,7 @@ discovery and the required evidence.
 | --- | --- | --- |
 | “Could Kirk help with this data?” | Steps 1–3 below; [capability fit](capability-fit.md) | Discovery brief and unresolved fit questions |
 | “Prepare this sample” | Steps 1–3; [sample inspection](discovery-portal-user-guide.md#3-inspect-a-sample-if-useful) | Brief with measured sample facts separated from declarations |
-| “Connect the customer API / use Postman” | [Customer REST API](customer-rest-api.md) and [OpenAPI specification](customer-rest-api.openapi.json) | Three verified responses using a customer key, or an exact access error |
+| “Connect the customer API / use Postman” | [Customer REST API](customer-rest-api.md) and [OpenAPI specification](customer-rest-api.openapi.json) | One verified HTTP 200 response from `POST /v1/score-book` using a customer key, or an exact access error |
 | “Run Kirk” | Steps 1–5; [connection guide](connect-your-claude.md), live tool schemas and input contract | Reproducible run and evidence, or a precise unmet prerequisite |
 | “Sweep hyperparameters” | Steps 1–5; the sweep boundary below and the runtime's own parameter catalogue | Bounded, comparable experiment receipts or a precise unmet runtime binding |
 | “Use Kirk before Jev” | Steps 1–6 | Evidence handoff and separately recorded decision, or an explicitly illustrative request |
@@ -222,7 +222,8 @@ new idempotency keys to retry an uncertain execution.
 
 Execute only through the established contract. Keep input references, effective
 configuration, ordered processing or independent-snapshot semantics, state/reset
-history, model id, raw responses, usage and errors in a run manifest.
+history, model id, `release_id` (when supplied by the runtime, or note that none is
+supplied), raw responses, usage and errors in a run manifest.
 Preserve server field names for outputs; do not invent a universal
 response schema. Before retrying an uncertain metered call, establish whether it
 already executed or consumed usage.
