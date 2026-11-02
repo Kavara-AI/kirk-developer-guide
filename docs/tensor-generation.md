@@ -67,14 +67,14 @@ ask_px   10 ask prices, level 1 first
 inspection result:
 
 ```json
-{"shape": [20, 20], "dtype": "complex128", "non_zero_cells": 50,
+{"shape": [20, 20], "dtype": "complex", "non_zero_cells": 50,
  "mid_price": 223.095, "spread_ticks": 1.0}
 ```
 
-On this route the inspection result is a **20 × 20 complex128** tensor whose
+On this route the inspection result is a **20 x 20 complex-valued tensor** whose
 rows are `Bid1..Bid10` and `Ask1..Ask10`. That result belongs to the book
-route. See [Customer REST API](customer-rest-api.md). Scoring is not
-available through this API.
+route. See [Customer REST API](customer-rest-api.md). The customer REST score is
+`POST /v1/score-book` with the same ten-and-ten prices.
 
 Documented call behaviour differs by tool. `kirk_score_l2_book` scores books
 as one ordered chain. `kirk_score_book_batch` scores many snapshots
@@ -117,7 +117,6 @@ Each output should be traceable to:
 - observation index
 - start and end timestamps
 - preprocessing configuration, including window, stride and missing-data rule
-- the full response and its request ID
 - run parameters, including chain length and warm-up
 
 ## Proposed upload-and-data-fit handoff
@@ -210,7 +209,7 @@ python3 scripts/render_phenomena_catalogue.py --check
 
 The script uses the Python standard library, validates unique identifiers and profile
 references, and checks that the published Markdown matches its source. It reads no
-customer files and uploads nothing. Keep existing IDs stable; add
+customer files, uploads nothing and calls no engine. Keep existing IDs stable; add
 new IDs for new prompts instead of renumbering or reusing old ones. Each entry inherits
 the catalogue's `Hypothesis` label. Put measured findings and their evidence in the
 benchmark/result records rather than relabeling this inspiration catalogue.

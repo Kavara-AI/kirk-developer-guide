@@ -1,7 +1,10 @@
 # Glossary
 
 **Binary**  
-The sealed Kirk build that computes a score.
+The build that computes a score.
+
+**Release identifier**  
+`release_id` is the release you're calling.
 
 **Change point**  
 A time associated with a transition in data-generating behaviour.
@@ -16,7 +19,7 @@ configuration, and they will score the same input to different values.
 
 **Data envelope**  
 The input-shape contract a model accepts. For Kirk, that is one square real- or
-complex-valued matrix per step. A model may report a null envelope, which means no
+complex-valued matrix per step. A model may report no data envelope (null), which means no
 contract has been derived for it yet — that is stated rather than omitted.
 
 **Feature**  
@@ -41,9 +44,9 @@ An individual observation considered unusual relative to a reference.
 A change in how two or more variables behave together.
 
 **Score**  
-An entropy (surprise) value returned for one step. Evaluation access can also return
-an embedding of the evolving structure or a prediction of masked input. Some public
-routes return the entropy score only.
+An entropy (surprise) value returned for one step. Its accompanying fields depend on
+the execution surface and model. Evaluation access can also return an embedding of the evolving structure
+or a prediction of masked input. Some public routes return the entropy score only.
 
 **Stride**  
 How many source observations the next matrix advances. You choose it when you build

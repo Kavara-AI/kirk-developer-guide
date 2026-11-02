@@ -6,25 +6,27 @@ Postman or an agent with HTTPS access. No Claude connector is required.
 - [OpenAPI specification](customer-rest-api.openapi.json)
 - [Create an account or manage keys](https://kavara.ai/console)
 
-**Observed — 2 October 2026:** a customer account completed a model-list
-request through this hostname in Postman. It returned HTTP 200. This is
-bounded customer-access validation, not a throughput, latency or scale guarantee.
+**Observed — 2 October 2026:** a customer account completed a single-book score
+request through this hostname in Postman. It returned HTTP 200; account receipts
+recorded zero credits for this data-fit path. This is bounded customer-access
+validation, not a throughput, latency or scale guarantee.
 
 ## Choose REST or MCP
 
 | Surface | Endpoint | Contract |
 | --- | --- | --- |
-| Customer REST | `https://api.kavara.ai` | The routes below, JSON bodies and `X-Kavara-Key` |
+| Customer REST | `https://api.kavara.ai` | The route below, JSON bodies and `X-Kavara-Key` |
 | Hosted MCP | `https://kirk-mcp.kavara.ai/mcp` | MCP JSON-RPC tools; see [Connect your Claude](connect-your-claude.md) for its credential header and current tool policy |
 
 Both use HTTPS. MCP is also callable directly from code; it does not require
 Claude. These surfaces have different contracts. Do not send MCP JSON-RPC to
 `api.kavara.ai` or assume REST routes exist beneath the MCP URL.
 
-The REST service does not expose arbitrary file upload, tensor rendering, batch
-scoring, billing or MCP routes. The general input contract — one square matrix
-per step, built by you — is described in [tensor generation](tensor-generation.md).
-For other data, start with the [agent intake workflow](agent-guide.md).
+The REST service currently admits a fixed, ten-level price-book input. It does
+not expose arbitrary file upload, tensor rendering, batch scoring, billing or
+MCP routes. The general input contract — one square matrix per step, built by
+you — is described in [tensor generation](tensor-generation.md). For other data,
+start with the [agent intake workflow](agent-guide.md).
 
 ## Account, key and network access
 
@@ -48,24 +50,14 @@ For other data, start with the [agent intake workflow](agent-guide.md).
 For an agent, use a separate customer key and revoke it when no longer needed.
 Availability of a credential does not authorize unrelated workloads or spending.
 
-## Routes
+## Supported call
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| GET | `/v1/models` | Read available models and select a compatible model ID |
-| POST | `/v1/score-book` | Unavailable: this route is no longer offered. |
+| POST | `/v1/score-book` | Score one ten-level bid/ask price book |
 
-Do not append query strings. A successful `GET /v1/models` response is:
-
-```json
-{"result": {"models": [{"id": "example-model", "kind": "example-kind",
- "description": "Example description.", "tool": "example-tool"}],
- "release_id": "example-release"}}
-```
-
-Each model object has `id`, `kind`, and `description`. `tool` may be omitted.
-`release_id` is the release identifier. The response has no other fields.
-Keep the returned response and its request ID.
+Do not append query strings. Successful responses have the envelope
+`{"result": ...}`. Model-specific output is not a universal response schema.
 
 ### Python
 
@@ -77,14 +69,20 @@ import json
 import os
 import urllib.error
 import urllib.request
+import uuid
 
 BASE_URL = "https://api.kavara.ai"
 API_KEY = os.environ["KIRK_API_KEY"]
 
 
-def call(path):
+def call(path, payload=None, request_id=None):
     headers = {"X-Kavara-Key": API_KEY, "Accept": "application/json"}
-    request = urllib.request.Request(BASE_URL + path, headers=headers)
+    body = None
+    if payload is not None:
+        headers["Content-Type"] = "application/json"
+        headers["Idempotency-Key"] = request_id
+        body = json.dumps(payload, allow_nan=False).encode("utf-8")
+    request = urllib.request.Request(BASE_URL + path, data=body, headers=headers)
     try:
         with urllib.request.urlopen(request, timeout=40) as response:
             result = json.load(response)
@@ -96,14 +94,39 @@ def call(path):
         raise SystemExit(1)
 
 
-call("/v1/models")
+# Select model_id from the OpenAPI specification.
+model_id = "kirk-test1-binary-threshold-v1"
+score_id = str(uuid.uuid4())
+print("Retain this score Idempotency-Key for any retry:", score_id)
+call("/v1/score-book", {
+    "bid_px": [99.99, 99.98, 99.97, 99.96, 99.95, 99.94, 99.93, 99.92, 99.91, 99.90],
+    "ask_px": [100.01, 100.02, 100.03, 100.04, 100.05, 100.06, 100.07, 100.08, 100.09, 100.10],
+    "model_id": model_id,
+}, request_id=score_id)
 ```
 
-Scoring is not available through this API.
+Select `model_id` from the [OpenAPI specification](customer-rest-api.openapi.json)
+or your Kavara console account documentation. The supported model for this
+ten-level book route is `kirk-test1-binary-threshold-v1`. The script does not
+retry automatically.
 
-Paid ongoing workflow activation is separate. This page does not establish
-pricing for MCP scoring or other contracts. Check current account policy
-before extending the workload.
+## Score input and retries
+
+The JSON object must contain **exactly** `bid_px`, `ask_px` and `model_id`.
+Each price array must contain exactly ten finite, positive JSON numbers;
+strings and booleans are invalid. Send level 1 first: descending bids and ascending
+asks, with the best bid below the best ask, as in the synthetic example.
+`model_id` must match `[a-z0-9][a-z0-9_-]{0,127}` and name an available model.
+The maximum request body is 256 KiB. Use `Content-Type: application/json`.
+
+Every score POST requires **`Idempotency-Key`**, a canonical lowercase UUID v4.
+Generate one for each new logical score. If a response is lost, retain that UUID
+and the identical body for any retry; do not turn an uncertain request into a new
+operation.
+
+The current customer data-fit path records zero credits. Paid ongoing workflow
+activation is separate; this does not establish pricing for MCP scoring or other
+contracts. Check current account policy before extending the workload.
 
 ## Errors and completion checks
 
@@ -112,15 +135,19 @@ The adapter returns JSON errors as `{"error": "code"}`:
 | HTTP | Code | Check |
 | --- | --- | --- |
 | 400 | `invalid_headers` | Missing or duplicated key header, or invalid header framing |
+| 400 | `missing_idempotency_key` / `invalid_idempotency_key` | UUID v4 on POST only |
+| 400 | `invalid_json` / `invalid_request` | JSON syntax, exact fields, dimensions and value types |
 | 401 | `invalid_api_key` | Key format |
+| 402 | `insufficient_credits` | Account allowance for the requested operation |
 | 403 | `request_denied` | Key/account validity and required permissions |
-| 404 | `route_not_found` | Exact method/path, no query string |
-| 429 | `rate_limited` | Reduce request rate |
+| 404 | `route_not_found` / `model_not_found` | Exact method/path, no query string, available model |
+| 413 | `request_too_large` | Body size and content length |
+| 429 | `rate_limited` | Reduce request rate; retain score operation identity for retries |
 | 502 / 503 | `origin_unavailable` | Service availability; report request ID to support |
 
 Adapter responses include `Cache-Control: no-store` and `X-Request-Id`.
 Errors generated earlier by infrastructure can have a different envelope.
 For support, retain status, request ID and a redacted input description, never the
-key. A successful setup has a real HTTP 200 from model listing, with the
-response and its request ID retained. A reachable login page or imported
-collection alone does not establish working API access.
+key. A successful setup has a real HTTP 200 response. A reachable login page
+or imported collection alone
+does not establish working API access.

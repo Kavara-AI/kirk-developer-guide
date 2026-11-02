@@ -24,12 +24,12 @@ Benchmark 001 currently defines an experiment. It does not claim validated
 performance, and nothing should describe it as though it does until a real run
 and its outputs are committed.
 
-## Running live calls
+## Running anything against the live engine
 
 For customer REST calls at `https://api.kavara.ai`, use
 [Customer REST API](docs/customer-rest-api.md) and its
-[OpenAPI specification](docs/customer-rest-api.openapi.json). Paid workflow
-activation is separate.
+[OpenAPI specification](docs/customer-rest-api.openapi.json). The current fixed-book
+customer data-fit path is zero credits; paid workflow activation is separate.
 
 For the separate MCP surface, calling Kirk needs a credential and costs real
 balance on the metered tools.
@@ -37,8 +37,6 @@ See [Connect your Claude](docs/connect-your-claude.md) for the connector and for
 creating a key in the console. Free tools
 (`kirk_list_models`, `kirk_render_book`,
 `kirk_bulk_howto`, `kirk_billing_*`) cost 0 IU and answer most questions.
-
-Retain the response and its request ID with any result you keep.
 
 Never commit a credential, and never put one in an example.
 
