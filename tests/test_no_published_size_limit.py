@@ -13,7 +13,7 @@ GAP = (
 )
 TARGET = (
     rf"(?:\b{NUM}\s*(?:x|\u00d7)\s*{NUM}\b"
-    rf"|\b(?:n|visible[_ ]nodes|matrix\s+size|dimension)\s*(?:=|of|is)?\s*{NUM}\b"
+    rf"|\b(?:n|visible[_ ]nodes|matrix\s+size|dimension)\s*(?:=|:|of|is)?\s*{NUM}\b"
     rf"|\b{NUM}\s*visible[_ ]nodes\b)"
 )
 LIMIT = re.compile(
@@ -63,13 +63,14 @@ def test_no_page_states_a_maximum_matrix_size():
             cwd=ROOT,
             capture_output=True,
             text=True,
+            encoding="utf-8",
             check=True,
         ).stdout.split("\0")
         if f and not f.startswith("tests/")
     ]
     found = {
         f: statements(
-            (ROOT / f).read_text(errors="replace"),
+            (ROOT / f).read_text(encoding="utf-8", errors="replace"),
             is_json=Path(f).suffix in {".json", ".ipynb"},
         )
         for f in files
@@ -84,6 +85,7 @@ def test_control():
         "Kirk accepts up to 4000 \u00d7 4000.",
         "Kirk accepts up to 1,024 \u00d7 1,024.",
         "Kirk supports up to 64 visible nodes.",
+        "Maximum visible nodes: 64",
         "visible_nodes <= 64",
         "visible_nodes <= 8",
         "limited to N = 1024",
