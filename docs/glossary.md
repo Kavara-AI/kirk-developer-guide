@@ -44,8 +44,8 @@ An individual observation considered unusual relative to a reference.
 A change in how two or more variables behave together.
 
 **Score**  
-An entropy (surprise) value returned for one step, carrying the binary identity that
-produced it. Evaluation access can also return an embedding of the evolving structure
+An entropy (surprise) value returned for one step. Its accompanying fields depend on
+the execution surface and model. Evaluation access can also return an embedding of the evolving structure
 or a prediction of masked input. Some public routes return the entropy score only.
 
 **Stride**  

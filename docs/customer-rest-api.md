@@ -105,9 +105,10 @@ call("/v1/score-book", {
 }, request_id=score_id)
 ```
 
-Select `model_id` from the [OpenAPI specification](customer-rest-api.openapi.json).
-An example model is `kirk-test1-binary-threshold-v1`; use it only while
-it remains available and compatible. The script does not retry automatically.
+Select `model_id` from the [OpenAPI specification](customer-rest-api.openapi.json)
+or your Kavara console account documentation. The supported model for this
+ten-level book route is `kirk-test1-binary-threshold-v1`. The script does not
+retry automatically.
 
 ## Score input and retries
 
