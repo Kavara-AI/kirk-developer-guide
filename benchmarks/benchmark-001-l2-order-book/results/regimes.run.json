@@ -1,0 +1,47 @@
+{
+  "data": "data/regimes.npz",
+  "data_manifest": "data/regimes.manifest.json",
+  "window": 256,
+  "stride": 16,
+  "warmup_end": 2000,
+  "n_windows": 1235,
+  "n_warmup_windows": 1745,
+  "constructions": {
+    "lag": "16x16: 10 feature rows (+6 zero rows) x 16 block changes of 16 steps (primary, Ulysses guide)",
+    "corr": "10x10 Pearson correlation over the window",
+    "cov": "10x10 covariance of window-demeaned features / warm-up sd"
+  },
+  "renderer": "kavara-preprocess/0.2.1",
+  "render_recipe": "rms-tanh/1",
+  "kirk": {
+    "visible_nodes": {
+      "lag": 16,
+      "corr": 10,
+      "cov": 10
+    },
+    "learning_rates": [
+      0.005,
+      0.0005,
+      5e-05
+    ],
+    "primary_learning_rate": 0.005,
+    "enforce_purity": true,
+    "random_state": 7,
+    "outputs": "entropy",
+    "modes": [
+      "frozen",
+      "online"
+    ]
+  },
+  "service_release_id": "kip-customer",
+  "contract_release_id": "kip-customer",
+  "api_calls": 101,
+  "non_200": [],
+  "reproducibility": {
+    "construction": "lag",
+    "learning_rate": 0.005,
+    "frozen_max_abs_diff": 0.0,
+    "online_max_abs_diff": 0.0
+  },
+  "elapsed_s": 47.9
+}
