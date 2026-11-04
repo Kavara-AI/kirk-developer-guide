@@ -23,6 +23,7 @@
 
 ## Reference
 
+- [Customer REST API](customer-rest-api.md)
 - [Frequently asked questions](faq.md)
 - [Glossary](glossary.md)
 

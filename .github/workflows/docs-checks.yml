@@ -1,16 +1,50 @@
 name: docs-checks
+
 on:
-  push:
-    branches: [main]
   pull_request:
+  push:
+    branches:
+      - main
+
 permissions:
   contents: read
+
 jobs:
-  checks:
+  docs-checks:
     runs-on: ubuntu-latest
+    env:
+      KDG_BANNED_TERMS: ${{ secrets.KDG_BANNED_TERMS }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Mask term list
+        run: |
+          python3 -c 'import os, sys
+          raw = os.environ.get("KDG_BANNED_TERMS") or ""
+          for line in raw.splitlines():
+              term = line.strip()
+              if not term:
+                  continue
+              sys.stdout.write("::add-mask::%s\n" % term)
+              if term.lower().startswith("short:"):
+                  root = term.split(":", 1)[1].strip()
+                  if root:
+                      sys.stdout.write("::add-mask::%s\n" % root)
+          '
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Setup Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
-          python-version: "3.12"
-      - run: python -m pip install --quiet pytest && python -m pytest -q tests/
+          python-version: "3.11"
+      - name: Self-test the checker
+        run: python3 scripts/check_customer_samples.py --self-test
+      - name: Scan the tree with a synthetic term list
+        run: python3 scripts/check_customer_samples.py --scan-synthetic
+      - name: Check vendored spec digest
+        run: python3 scripts/check_customer_samples.py --check-digest
+      - name: Check customer samples
+        run: python3 scripts/check_customer_samples.py
+      - name: Prove banned-term secret
+        if: always()
+        run: python3 scripts/check_customer_samples.py --prove-secret
+      - name: Run pytest checks
+        run: python3 -m pip install --quiet pytest && python3 -m pytest -p no:cacheprovider -q tests/

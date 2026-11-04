@@ -32,5 +32,5 @@ Define before final analysis:
 - detection delay
 - false alarms per 1,000 windows
 - missed boundaries
-- within-regime variance
-- effect size between regimes
+- variance inside one regime
+- size of the effect between regimes
