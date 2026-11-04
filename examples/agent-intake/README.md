@@ -61,7 +61,7 @@ runtime compatibility. No dependencies beyond Python's standard library, credent
 network access or model calls are needed.
 
 **Expected completion:** a valid preparation brief, with model/input contract
-unestablished and engine run not performed. To request live equipment analysis,
+unestablished and run not performed. To request live equipment analysis,
 the next step is the square-matrix contract in
 [tensor generation](../../docs/tensor-generation.md) and the customer routes in
 [Customer REST API](../../docs/customer-rest-api.md). Earlier preview routes are not part of the v1 customer API and are not supported.
