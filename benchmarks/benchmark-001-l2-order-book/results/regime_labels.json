@@ -1,0 +1,962 @@
+{
+  "_sel": {
+    "baseline_univariate_z": {
+      "regimes": {
+        "ari": 0.525,
+        "nmi": 0.598,
+        "acc": 0.66,
+        "switches": 27
+      },
+      "null_trend_control": {
+        "ari": 0.021,
+        "nmi": 0.041,
+        "acc": 0.274,
+        "switches": 245
+      }
+    },
+    "baseline_lag_dist_ref": {
+      "regimes": {
+        "ari": 0.496,
+        "nmi": 0.552,
+        "acc": 0.688,
+        "switches": 31
+      },
+      "null_trend_control": {
+        "ari": 0.036,
+        "nmi": 0.058,
+        "acc": 0.291,
+        "switches": 133
+      }
+    },
+    "baseline_lag_dist_lag": {
+      "regimes": {
+        "ari": 0.53,
+        "nmi": 0.605,
+        "acc": 0.669,
+        "switches": 10
+      },
+      "null_trend_control": {
+        "ari": 0.031,
+        "nmi": 0.049,
+        "acc": 0.297,
+        "switches": 98
+      }
+    },
+    "baseline_corr_dist_ref": {
+      "regimes": {
+        "ari": 0.199,
+        "nmi": 0.308,
+        "acc": 0.424,
+        "switches": 113
+      },
+      "null_trend_control": {
+        "ari": 0.011,
+        "nmi": 0.017,
+        "acc": 0.268,
+        "switches": 294
+      }
+    },
+    "baseline_corr_dist_lag": {
+      "regimes": {
+        "ari": 0.024,
+        "nmi": 0.041,
+        "acc": 0.272,
+        "switches": 308
+      },
+      "null_trend_control": {
+        "ari": 0.006,
+        "nmi": 0.023,
+        "acc": 0.254,
+        "switches": 337
+      }
+    },
+    "baseline_cov_dist_ref": {
+      "regimes": {
+        "ari": 0.48,
+        "nmi": 0.564,
+        "acc": 0.667,
+        "switches": 31
+      },
+      "null_trend_control": {
+        "ari": 0.026,
+        "nmi": 0.037,
+        "acc": 0.26,
+        "switches": 209
+      }
+    },
+    "baseline_cov_dist_lag": {
+      "regimes": {
+        "ari": 0.494,
+        "nmi": 0.593,
+        "acc": 0.679,
+        "switches": 27
+      },
+      "null_trend_control": {
+        "ari": 0.025,
+        "nmi": 0.045,
+        "acc": 0.276,
+        "switches": 210
+      }
+    },
+    "kirk_lag_lr0.005_frozen": {
+      "regimes": {
+        "ari": 0.31,
+        "nmi": 0.447,
+        "acc": 0.497,
+        "switches": 51
+      },
+      "null_trend_control": {
+        "ari": 0.065,
+        "nmi": 0.088,
+        "acc": 0.308,
+        "switches": 271
+      }
+    },
+    "kirk_lag_lr0.005_online": {
+      "regimes": {
+        "ari": 0.403,
+        "nmi": 0.558,
+        "acc": 0.595,
+        "switches": 459
+      },
+      "null_trend_control": {
+        "ari": 0.382,
+        "nmi": 0.511,
+        "acc": 0.509,
+        "switches": 717
+      }
+    },
+    "kirk_lag_lr0.0005_frozen": {
+      "regimes": {
+        "ari": 0.436,
+        "nmi": 0.551,
+        "acc": 0.566,
+        "switches": 293
+      },
+      "null_trend_control": {
+        "ari": 0.002,
+        "nmi": 0.005,
+        "acc": 0.231,
+        "switches": 931
+      }
+    },
+    "kirk_lag_lr0.0005_online": {
+      "regimes": {
+        "ari": 0.357,
+        "nmi": 0.534,
+        "acc": 0.535,
+        "switches": 961
+      },
+      "null_trend_control": {
+        "ari": 0.213,
+        "nmi": 0.368,
+        "acc": 0.468,
+        "switches": 945
+      }
+    },
+    "kirk_lag_lr5e-05_frozen": {
+      "regimes": {
+        "ari": 0.369,
+        "nmi": 0.497,
+        "acc": 0.515,
+        "switches": 43
+      },
+      "null_trend_control": {
+        "ari": 0.046,
+        "nmi": 0.062,
+        "acc": 0.308,
+        "switches": 433
+      }
+    },
+    "kirk_lag_lr5e-05_online": {
+      "regimes": {
+        "ari": 0.322,
+        "nmi": 0.494,
+        "acc": 0.481,
+        "switches": 890
+      },
+      "null_trend_control": {
+        "ari": 0.36,
+        "nmi": 0.543,
+        "acc": 0.529,
+        "switches": 949
+      }
+    },
+    "kirk_corr_lr0.005_frozen": {
+      "regimes": {
+        "ari": 0.137,
+        "nmi": 0.207,
+        "acc": 0.373,
+        "switches": 191
+      },
+      "null_trend_control": {
+        "ari": 0.009,
+        "nmi": 0.015,
+        "acc": 0.259,
+        "switches": 229
+      }
+    },
+    "kirk_corr_lr0.005_online": {
+      "regimes": {
+        "ari": 0.24,
+        "nmi": 0.379,
+        "acc": 0.476,
+        "switches": 527
+      },
+      "null_trend_control": {
+        "ari": 0.355,
+        "nmi": 0.507,
+        "acc": 0.555,
+        "switches": 397
+      }
+    },
+    "kirk_corr_lr0.0005_frozen": {
+      "regimes": {
+        "ari": 0.02,
+        "nmi": 0.042,
+        "acc": 0.273,
+        "switches": 227
+      },
+      "null_trend_control": {
+        "ari": 0.007,
+        "nmi": 0.012,
+        "acc": 0.259,
+        "switches": 262
+      }
+    },
+    "kirk_corr_lr0.0005_online": {
+      "regimes": {
+        "ari": 0.266,
+        "nmi": 0.439,
+        "acc": 0.456,
+        "switches": 1124
+      },
+      "null_trend_control": {
+        "ari": 0.2,
+        "nmi": 0.339,
+        "acc": 0.376,
+        "switches": 1124
+      }
+    },
+    "kirk_corr_lr5e-05_frozen": {
+      "regimes": {
+        "ari": 0.064,
+        "nmi": 0.113,
+        "acc": 0.327,
+        "switches": 216
+      },
+      "null_trend_control": {
+        "ari": 0.006,
+        "nmi": 0.011,
+        "acc": 0.244,
+        "switches": 240
+      }
+    },
+    "kirk_corr_lr5e-05_online": {
+      "regimes": {
+        "ari": 0.212,
+        "nmi": 0.352,
+        "acc": 0.427,
+        "switches": 1124
+      },
+      "null_trend_control": {
+        "ari": 0.198,
+        "nmi": 0.365,
+        "acc": 0.442,
+        "switches": 1124
+      }
+    },
+    "kirk_cov_lr0.005_frozen": {
+      "regimes": {
+        "ari": 0.235,
+        "nmi": 0.37,
+        "acc": 0.437,
+        "switches": 83
+      },
+      "null_trend_control": {
+        "ari": 0.014,
+        "nmi": 0.041,
+        "acc": 0.263,
+        "switches": 216
+      }
+    },
+    "kirk_cov_lr0.005_online": {
+      "regimes": {
+        "ari": 0.309,
+        "nmi": 0.462,
+        "acc": 0.463,
+        "switches": 445
+      },
+      "null_trend_control": {
+        "ari": 0.341,
+        "nmi": 0.431,
+        "acc": 0.537,
+        "switches": 325
+      }
+    },
+    "kirk_cov_lr0.0005_frozen": {
+      "regimes": {
+        "ari": 0.386,
+        "nmi": 0.488,
+        "acc": 0.61,
+        "switches": 61
+      },
+      "null_trend_control": {
+        "ari": 0.008,
+        "nmi": 0.031,
+        "acc": 0.256,
+        "switches": 222
+      }
+    },
+    "kirk_cov_lr0.0005_online": {
+      "regimes": {
+        "ari": 0.384,
+        "nmi": 0.505,
+        "acc": 0.525,
+        "switches": 908
+      },
+      "null_trend_control": {
+        "ari": 0.478,
+        "nmi": 0.587,
+        "acc": 0.587,
+        "switches": 869
+      }
+    },
+    "kirk_cov_lr5e-05_frozen": {
+      "regimes": {
+        "ari": 0.427,
+        "nmi": 0.558,
+        "acc": 0.596,
+        "switches": 38
+      },
+      "null_trend_control": {
+        "ari": 0.005,
+        "nmi": 0.015,
+        "acc": 0.248,
+        "switches": 240
+      }
+    },
+    "kirk_cov_lr5e-05_online": {
+      "regimes": {
+        "ari": 0.186,
+        "nmi": 0.307,
+        "acc": 0.409,
+        "switches": 1124
+      },
+      "null_trend_control": {
+        "ari": 0.17,
+        "nmi": 0.334,
+        "acc": 0.404,
+        "switches": 1124
+      }
+    },
+    "combo_kirk_named+univariate_z": {
+      "regimes": {
+        "ari": 0.534,
+        "nmi": 0.606,
+        "acc": 0.69,
+        "switches": 25
+      },
+      "null_trend_control": {
+        "ari": 0.02,
+        "nmi": 0.039,
+        "acc": 0.27,
+        "switches": 236
+      }
+    }
+  },
+  "_c1": {
+    "baseline_univariate_z": {
+      "regimes": {
+        "ari": 0.495,
+        "nmi": 0.557,
+        "acc": 0.674,
+        "switches": 37
+      },
+      "null_trend_control": {
+        "ari": 0.022,
+        "nmi": 0.034,
+        "acc": 0.294,
+        "switches": 208
+      }
+    },
+    "baseline_lag_dist_ref": {
+      "regimes": {
+        "ari": 0.478,
+        "nmi": 0.543,
+        "acc": 0.699,
+        "switches": 32
+      },
+      "null_trend_control": {
+        "ari": 0.035,
+        "nmi": 0.056,
+        "acc": 0.287,
+        "switches": 123
+      }
+    },
+    "baseline_lag_dist_lag": {
+      "regimes": {
+        "ari": 0.499,
+        "nmi": 0.598,
+        "acc": 0.695,
+        "switches": 23
+      },
+      "null_trend_control": {
+        "ari": 0.042,
+        "nmi": 0.062,
+        "acc": 0.297,
+        "switches": 71
+      }
+    },
+    "baseline_corr_dist_ref": {
+      "regimes": {
+        "ari": 0.172,
+        "nmi": 0.241,
+        "acc": 0.403,
+        "switches": 188
+      },
+      "null_trend_control": {
+        "ari": 0.017,
+        "nmi": 0.028,
+        "acc": 0.269,
+        "switches": 274
+      }
+    },
+    "baseline_corr_dist_lag": {
+      "regimes": {
+        "ari": 0.065,
+        "nmi": 0.099,
+        "acc": 0.346,
+        "switches": 297
+      },
+      "null_trend_control": {
+        "ari": 0.006,
+        "nmi": 0.019,
+        "acc": 0.259,
+        "switches": 300
+      }
+    },
+    "baseline_cov_dist_ref": {
+      "regimes": {
+        "ari": 0.54,
+        "nmi": 0.602,
+        "acc": 0.729,
+        "switches": 36
+      },
+      "null_trend_control": {
+        "ari": 0.048,
+        "nmi": 0.08,
+        "acc": 0.292,
+        "switches": 164
+      }
+    },
+    "baseline_cov_dist_lag": {
+      "regimes": {
+        "ari": 0.398,
+        "nmi": 0.522,
+        "acc": 0.63,
+        "switches": 41
+      },
+      "null_trend_control": {
+        "ari": 0.038,
+        "nmi": 0.078,
+        "acc": 0.308,
+        "switches": 159
+      }
+    },
+    "kirk_lag_lr5e-05_frozen": {
+      "regimes": {
+        "ari": 0.298,
+        "nmi": 0.432,
+        "acc": 0.546,
+        "switches": 62
+      },
+      "null_trend_control": {
+        "ari": 0.034,
+        "nmi": 0.079,
+        "acc": 0.284,
+        "switches": 62
+      }
+    },
+    "kirk_lag_lr5e-05_online": {
+      "regimes": {
+        "ari": 0.285,
+        "nmi": 0.463,
+        "acc": 0.448,
+        "switches": 904
+      },
+      "null_trend_control": {
+        "ari": 0.327,
+        "nmi": 0.505,
+        "acc": 0.495,
+        "switches": 898
+      }
+    },
+    "kirk_corr_lr5e-05_frozen": {
+      "regimes": {
+        "ari": 0.056,
+        "nmi": 0.083,
+        "acc": 0.324,
+        "switches": 229
+      },
+      "null_trend_control": {
+        "ari": 0.015,
+        "nmi": 0.018,
+        "acc": 0.269,
+        "switches": 256
+      }
+    },
+    "kirk_corr_lr5e-05_online": {
+      "regimes": {
+        "ari": 0.127,
+        "nmi": 0.249,
+        "acc": 0.372,
+        "switches": 1124
+      },
+      "null_trend_control": {
+        "ari": 0.136,
+        "nmi": 0.305,
+        "acc": 0.405,
+        "switches": 1124
+      }
+    },
+    "kirk_cov_lr5e-05_frozen": {
+      "regimes": {
+        "ari": 0.234,
+        "nmi": 0.374,
+        "acc": 0.439,
+        "switches": 76
+      },
+      "null_trend_control": {
+        "ari": 0.011,
+        "nmi": 0.024,
+        "acc": 0.268,
+        "switches": 243
+      }
+    },
+    "kirk_cov_lr5e-05_online": {
+      "regimes": {
+        "ari": 0.181,
+        "nmi": 0.299,
+        "acc": 0.385,
+        "switches": 1124
+      },
+      "null_trend_control": {
+        "ari": 0.248,
+        "nmi": 0.381,
+        "acc": 0.453,
+        "switches": 1124
+      }
+    },
+    "combo_kirk_named+univariate_z": {
+      "regimes": {
+        "ari": 0.508,
+        "nmi": 0.587,
+        "acc": 0.662,
+        "switches": 32
+      },
+      "null_trend_control": {
+        "ari": 0.021,
+        "nmi": 0.039,
+        "acc": 0.297,
+        "switches": 190
+      }
+    }
+  },
+  "_c2": {
+    "baseline_univariate_z": {
+      "regimes": {
+        "ari": 0.431,
+        "nmi": 0.527,
+        "acc": 0.62,
+        "switches": 23
+      },
+      "null_trend_control": {
+        "ari": 0.038,
+        "nmi": 0.06,
+        "acc": 0.31,
+        "switches": 174
+      }
+    },
+    "baseline_lag_dist_ref": {
+      "regimes": {
+        "ari": 0.344,
+        "nmi": 0.489,
+        "acc": 0.516,
+        "switches": 33
+      },
+      "null_trend_control": {
+        "ari": 0.03,
+        "nmi": 0.05,
+        "acc": 0.315,
+        "switches": 126
+      }
+    },
+    "baseline_lag_dist_lag": {
+      "regimes": {
+        "ari": 0.444,
+        "nmi": 0.544,
+        "acc": 0.599,
+        "switches": 28
+      },
+      "null_trend_control": {
+        "ari": 0.056,
+        "nmi": 0.104,
+        "acc": 0.336,
+        "switches": 90
+      }
+    },
+    "baseline_corr_dist_ref": {
+      "regimes": {
+        "ari": 0.151,
+        "nmi": 0.254,
+        "acc": 0.373,
+        "switches": 120
+      },
+      "null_trend_control": {
+        "ari": 0.018,
+        "nmi": 0.035,
+        "acc": 0.273,
+        "switches": 300
+      }
+    },
+    "baseline_corr_dist_lag": {
+      "regimes": {
+        "ari": 0.01,
+        "nmi": 0.02,
+        "acc": 0.248,
+        "switches": 263
+      },
+      "null_trend_control": {
+        "ari": 0.024,
+        "nmi": 0.042,
+        "acc": 0.291,
+        "switches": 328
+      }
+    },
+    "baseline_cov_dist_ref": {
+      "regimes": {
+        "ari": 0.446,
+        "nmi": 0.549,
+        "acc": 0.611,
+        "switches": 24
+      },
+      "null_trend_control": {
+        "ari": 0.032,
+        "nmi": 0.05,
+        "acc": 0.316,
+        "switches": 171
+      }
+    },
+    "baseline_cov_dist_lag": {
+      "regimes": {
+        "ari": 0.359,
+        "nmi": 0.474,
+        "acc": 0.594,
+        "switches": 48
+      },
+      "null_trend_control": {
+        "ari": 0.036,
+        "nmi": 0.071,
+        "acc": 0.278,
+        "switches": 146
+      }
+    },
+    "kirk_lag_lr5e-05_frozen": {
+      "regimes": {
+        "ari": 0.35,
+        "nmi": 0.484,
+        "acc": 0.521,
+        "switches": 41
+      },
+      "null_trend_control": {
+        "ari": 0.051,
+        "nmi": 0.083,
+        "acc": 0.304,
+        "switches": 139
+      }
+    },
+    "kirk_lag_lr5e-05_online": {
+      "regimes": {
+        "ari": 0.297,
+        "nmi": 0.47,
+        "acc": 0.45,
+        "switches": 884
+      },
+      "null_trend_control": {
+        "ari": 0.267,
+        "nmi": 0.407,
+        "acc": 0.483,
+        "switches": 925
+      }
+    },
+    "kirk_corr_lr5e-05_frozen": {
+      "regimes": {
+        "ari": 0.095,
+        "nmi": 0.163,
+        "acc": 0.356,
+        "switches": 171
+      },
+      "null_trend_control": {
+        "ari": 0.025,
+        "nmi": 0.044,
+        "acc": 0.28,
+        "switches": 272
+      }
+    },
+    "kirk_corr_lr5e-05_online": {
+      "regimes": {
+        "ari": 0.24,
+        "nmi": 0.375,
+        "acc": 0.451,
+        "switches": 1124
+      },
+      "null_trend_control": {
+        "ari": 0.245,
+        "nmi": 0.402,
+        "acc": 0.447,
+        "switches": 1124
+      }
+    },
+    "kirk_cov_lr5e-05_frozen": {
+      "regimes": {
+        "ari": 0.389,
+        "nmi": 0.496,
+        "acc": 0.589,
+        "switches": 47
+      },
+      "null_trend_control": {
+        "ari": 0.018,
+        "nmi": 0.036,
+        "acc": 0.28,
+        "switches": 246
+      }
+    },
+    "kirk_cov_lr5e-05_online": {
+      "regimes": {
+        "ari": 0.109,
+        "nmi": 0.203,
+        "acc": 0.364,
+        "switches": 1124
+      },
+      "null_trend_control": {
+        "ari": 0.262,
+        "nmi": 0.422,
+        "acc": 0.409,
+        "switches": 1124
+      }
+    },
+    "combo_kirk_named+univariate_z": {
+      "regimes": {
+        "ari": 0.453,
+        "nmi": 0.551,
+        "acc": 0.625,
+        "switches": 31
+      },
+      "null_trend_control": {
+        "ari": 0.035,
+        "nmi": 0.056,
+        "acc": 0.308,
+        "switches": 174
+      }
+    }
+  },
+  "_c3": {
+    "baseline_univariate_z": {
+      "regimes": {
+        "ari": 0.501,
+        "nmi": 0.609,
+        "acc": 0.64,
+        "switches": 26
+      },
+      "null_trend_control": {
+        "ari": 0.031,
+        "nmi": 0.059,
+        "acc": 0.308,
+        "switches": 174
+      }
+    },
+    "baseline_lag_dist_ref": {
+      "regimes": {
+        "ari": 0.452,
+        "nmi": 0.555,
+        "acc": 0.628,
+        "switches": 33
+      },
+      "null_trend_control": {
+        "ari": 0.023,
+        "nmi": 0.041,
+        "acc": 0.307,
+        "switches": 131
+      }
+    },
+    "baseline_lag_dist_lag": {
+      "regimes": {
+        "ari": 0.444,
+        "nmi": 0.524,
+        "acc": 0.657,
+        "switches": 22
+      },
+      "null_trend_control": {
+        "ari": 0.04,
+        "nmi": 0.067,
+        "acc": 0.306,
+        "switches": 89
+      }
+    },
+    "baseline_corr_dist_ref": {
+      "regimes": {
+        "ari": 0.172,
+        "nmi": 0.271,
+        "acc": 0.408,
+        "switches": 176
+      },
+      "null_trend_control": {
+        "ari": 0.02,
+        "nmi": 0.032,
+        "acc": 0.28,
+        "switches": 267
+      }
+    },
+    "baseline_corr_dist_lag": {
+      "regimes": {
+        "ari": 0.027,
+        "nmi": 0.056,
+        "acc": 0.285,
+        "switches": 308
+      },
+      "null_trend_control": {
+        "ari": 0.01,
+        "nmi": 0.017,
+        "acc": 0.256,
+        "switches": 316
+      }
+    },
+    "baseline_cov_dist_ref": {
+      "regimes": {
+        "ari": 0.531,
+        "nmi": 0.637,
+        "acc": 0.666,
+        "switches": 25
+      },
+      "null_trend_control": {
+        "ari": 0.039,
+        "nmi": 0.06,
+        "acc": 0.308,
+        "switches": 163
+      }
+    },
+    "baseline_cov_dist_lag": {
+      "regimes": {
+        "ari": 0.417,
+        "nmi": 0.502,
+        "acc": 0.651,
+        "switches": 51
+      },
+      "null_trend_control": {
+        "ari": 0.044,
+        "nmi": 0.071,
+        "acc": 0.301,
+        "switches": 184
+      }
+    },
+    "kirk_lag_lr5e-05_frozen": {
+      "regimes": {
+        "ari": 0.255,
+        "nmi": 0.375,
+        "acc": 0.451,
+        "switches": 75
+      },
+      "null_trend_control": {
+        "ari": 0.017,
+        "nmi": 0.027,
+        "acc": 0.257,
+        "switches": 665
+      }
+    },
+    "kirk_lag_lr5e-05_online": {
+      "regimes": {
+        "ari": 0.284,
+        "nmi": 0.464,
+        "acc": 0.442,
+        "switches": 907
+      },
+      "null_trend_control": {
+        "ari": 0.303,
+        "nmi": 0.48,
+        "acc": 0.504,
+        "switches": 949
+      }
+    },
+    "kirk_corr_lr5e-05_frozen": {
+      "regimes": {
+        "ari": 0.063,
+        "nmi": 0.101,
+        "acc": 0.339,
+        "switches": 219
+      },
+      "null_trend_control": {
+        "ari": 0.011,
+        "nmi": 0.034,
+        "acc": 0.275,
+        "switches": 260
+      }
+    },
+    "kirk_corr_lr5e-05_online": {
+      "regimes": {
+        "ari": 0.228,
+        "nmi": 0.377,
+        "acc": 0.43,
+        "switches": 1124
+      },
+      "null_trend_control": {
+        "ari": 0.234,
+        "nmi": 0.391,
+        "acc": 0.444,
+        "switches": 1124
+      }
+    },
+    "kirk_cov_lr5e-05_frozen": {
+      "regimes": {
+        "ari": 0.23,
+        "nmi": 0.375,
+        "acc": 0.42,
+        "switches": 79
+      },
+      "null_trend_control": {
+        "ari": 0.01,
+        "nmi": 0.036,
+        "acc": 0.27,
+        "switches": 206
+      }
+    },
+    "kirk_cov_lr5e-05_online": {
+      "regimes": {
+        "ari": 0.179,
+        "nmi": 0.349,
+        "acc": 0.38,
+        "switches": 1075
+      },
+      "null_trend_control": {
+        "ari": 0.22,
+        "nmi": 0.357,
+        "acc": 0.444,
+        "switches": 1124
+      }
+    },
+    "combo_kirk_named+univariate_z": {
+      "regimes": {
+        "ari": 0.558,
+        "nmi": 0.623,
+        "acc": 0.738,
+        "switches": 25
+      },
+      "null_trend_control": {
+        "ari": 0.029,
+        "nmi": 0.056,
+        "acc": 0.302,
+        "switches": 176
+      }
+    }
+  }
+}
