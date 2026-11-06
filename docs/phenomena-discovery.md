@@ -44,7 +44,7 @@ Record ordering, units, sampling, information cutoff, missingness and state poli
 
 The deliverable is an inspectable phenomena catalogue. Retain the input context and
 raw outputs so descriptions, thresholds and episode groupings can be revised without
-repeating the engine run. Changing the input representation or model configuration
+repeating the run. Changing the input representation or configuration
 may still require another run.
 
 Do not make a downstream payoff a prerequisite for recording a phenomenon. For example,
@@ -77,9 +77,9 @@ Each entry should identify:
 - **Context:** input histories before and after the selected observation, missingness,
   exact-zero counts, warmup and reset information. Later observations are retrospective
   context and must not influence an earlier detection.
-- **Reproducibility:** data reference, model id, release identity from the
-  documented execution surface (or record that none is provided), effective configuration,
-  input contract, state history or replay procedure, and analysis version.
+- **Reproducibility:** data reference, input contract, snapshot handling, the
+  receipt id when a response includes one, state history or replay procedure,
+  and analysis version.
 - **Recurrence and comparison:** distinct episodes separately from elevated observations;
   eligible non-event windows, selection rules and relevant existing-method results.
 - **Interpretation:** what was observed, what remains a hypothesis, and any linked external
@@ -116,10 +116,10 @@ other machine-learning architectures can retain and update state too.
 
 The practical question is whether each sensing unit is fast and inexpensive enough
 to run at the required cadence, across the intended number of streams. Report latency
-for the actual work being sold: one observation scored by a specified model, with its
-required state update and output. Record release identity from the documented
-execution surface (or record that none is provided), configuration, input shape,
-hardware, thread count, batch size, timing boundary and latency distribution.
+for the actual work being sold: one observation scored under the published
+contract, with its required state update and output. Record the receipt id when
+a response includes one, configuration, input shape, hardware, thread count,
+batch size, timing boundary and latency distribution.
 
 Keep solver-only timings, complete model steps and end-to-end API latency separate.
 Amortized time per item in a batch is not necessarily single-observation latency.

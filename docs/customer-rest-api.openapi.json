@@ -1,9 +1,10 @@
 {
-  "openapi": "3.0.3",
+  "openapi": "3.1.0",
   "info": {
-    "title": "Kirk Customer REST API",
-    "version": "1.0.0",
-    "description": "Customer route for fixed ten-level price-book data fit. Separate from the hosted MCP service. Supply a customer key through local secret controls."
+    "title": "Kirk API, customer contract",
+    "version": "1",
+    "summary": "Customer routes, inputs and outputs.",
+    "description": "Operations a customer can call. Paths, methods, bodies and response shapes follow the published customer contract. Supply the key through local secret controls."
   },
   "servers": [
     {
@@ -12,135 +13,360 @@
   ],
   "security": [
     {
-      "KavaraKey": []
+      "kavaraKey": []
     }
   ],
   "paths": {
-    "/v1/score-book": {
-      "post": {
-        "operationId": "scoreBook",
-        "summary": "Score one ten-level price book",
+    "/v1/kirk-api/health": {
+      "get": {
+        "operationId": "health",
+        "summary": "Readiness",
         "responses": {
           "200": {
-            "description": "Successful result.",
+            "description": "Ready. readiness is required. release_id is an optional string.",
+            "headers": {
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/RateRemaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/RateReset"
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "required": [
-                    "result"
-                  ],
-                  "properties": {
-                    "result": {}
-                  },
-                  "additionalProperties": false
+                  "$ref": "#/components/schemas/Health"
+                },
+                "example": {
+                  "readiness": "ready"
                 }
               }
             }
           },
-          "default": {
-            "description": "Adapter error; infrastructure-generated errors can use a different envelope. See customer-rest-api.md for status/code mapping.",
+          "401": {
+            "$ref": "#/components/responses/NoKey"
+          },
+          "403": {
+            "$ref": "#/components/responses/Denied"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/v1/kirk-api/contract": {
+      "get": {
+        "operationId": "contract",
+        "summary": "Limits, outputs and the rate block",
+        "responses": {
+          "200": {
+            "description": "The published contract fields.",
+            "headers": {
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/RateRemaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/RateReset"
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "required": [
-                    "error"
-                  ],
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    }
+                  "$ref": "#/components/schemas/Contract"
+                },
+                "example": {
+                  "readiness": "ready",
+                  "max_body_bytes": 8388608,
+                  "outputs": ["all", "entropy", "features"],
+                  "rate_limit": {
+                    "per_account_per_minute": 300,
+                    "window": "fixed",
+                    "window_seconds": 60,
+                    "scope": "every /v1/kirk-api/* call by one account",
+                    "headers": [
+                      "X-RateLimit-Limit",
+                      "X-RateLimit-Remaining",
+                      "X-RateLimit-Reset",
+                      "Retry-After"
+                    ]
                   }
                 }
               }
             }
+          },
+          "401": {
+            "$ref": "#/components/responses/NoKey"
+          },
+          "403": {
+            "$ref": "#/components/responses/Denied"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "description": "No query strings. Maximum body 256 KiB. Use an available compatible model. Current customer data-fit scoring is zero credits; paid workflow activation is separate. Reuse the same UUID and identical body for an uncertain retry.",
-        "parameters": [
-          {
-            "name": "Idempotency-Key",
-            "in": "header",
-            "required": true,
-            "description": "Canonical lowercase UUID v4, unique per logical score operation.",
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        }
+      }
+    },
+    "/v1/kirk-api/openapi.json": {
+      "get": {
+        "operationId": "openapi",
+        "summary": "This contract. The key is required.",
+        "responses": {
+          "200": {
+            "description": "The customer contract document. Counts against the rate limit.",
+            "headers": {
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/RateRemaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/RateReset"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
             }
+          },
+          "401": {
+            "$ref": "#/components/responses/NoKey"
+          },
+          "403": {
+            "$ref": "#/components/responses/Denied"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
           }
-        ],
+        }
+      }
+    },
+    "/v1/kirk-api/create": {
+      "post": {
+        "operationId": "create",
+        "summary": "Create a snapshot",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "required": [
-                  "bid_px",
-                  "ask_px",
-                  "model_id"
-                ],
-                "additionalProperties": false,
-                "properties": {
-                  "bid_px": {
-                    "type": "array",
-                    "minItems": 10,
-                    "maxItems": 10,
-                    "items": {
-                      "type": "number",
-                      "minimum": 0,
-                      "exclusiveMinimum": true
-                    },
-                    "description": "Finite positive prices, level 1 first. Descending bids; ascending asks."
-                  },
-                  "ask_px": {
-                    "type": "array",
-                    "minItems": 10,
-                    "maxItems": 10,
-                    "items": {
-                      "type": "number",
-                      "minimum": 0,
-                      "exclusiveMinimum": true
-                    },
-                    "description": "Finite positive prices, level 1 first. Descending bids; ascending asks."
-                  },
-                  "model_id": {
-                    "type": "string",
-                    "pattern": "^[a-z0-9][a-z0-9_-]{0,127}$",
-                    "maxLength": 128
-                  }
-                }
+                "$ref": "#/components/schemas/CreateRequest"
               },
               "example": {
-                "bid_px": [
-                  99.99,
-                  99.98,
-                  99.97,
-                  99.96,
-                  99.95,
-                  99.94,
-                  99.93,
-                  99.92,
-                  99.91,
-                  99.9
-                ],
-                "ask_px": [
-                  100.01,
-                  100.02,
-                  100.03,
-                  100.04,
-                  100.05,
-                  100.06,
-                  100.07,
-                  100.08,
-                  100.09,
-                  100.1
-                ],
-                "model_id": "kirk-test1-binary-threshold-v1"
+                "hyperparameters": {
+                  "visible_nodes": 1
+                }
               }
             }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Snapshot bytes. Metered.",
+            "headers": {
+              "X-Kavara-Receipt": {
+                "$ref": "#/components/headers/Receipt"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/RateRemaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/RateReset"
+              }
+            },
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "application/x-kirk-npz": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                },
+                "description": "When snapshot_binding is required. Members snapshot and snapshot_envelope."
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Refused"
+          },
+          "401": {
+            "$ref": "#/components/responses/NoKey"
+          },
+          "403": {
+            "$ref": "#/components/responses/Denied"
+          },
+          "413": {
+            "$ref": "#/components/responses/TooLarge"
+          },
+          "415": {
+            "$ref": "#/components/responses/WrongType"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "502": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      }
+    },
+    "/v1/kirk-api/learn": {
+      "post": {
+        "operationId": "learn",
+        "summary": "Learn from samples and return outputs plus the new snapshot",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Outputs"
+          }
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/Archive"
+        },
+        "responses": {
+          "200": {
+            "description": "npz with the chosen outputs and snapshot. Metered.",
+            "headers": {
+              "X-Kavara-Receipt": {
+                "$ref": "#/components/headers/Receipt"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/RateRemaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/RateReset"
+              }
+            },
+            "content": {
+              "application/x-kirk-npz": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                },
+                "description": "entropy float32 (n,), feature_arr complex64 (n,V,V), feature_vec complex64 (n,2V), feature_scalar complex64 (n,). all returns all four; entropy returns entropy; features returns the three feature members. Learn also returns snapshot (uint8)."
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Refused"
+          },
+          "401": {
+            "$ref": "#/components/responses/NoKey"
+          },
+          "403": {
+            "$ref": "#/components/responses/Denied"
+          },
+          "413": {
+            "$ref": "#/components/responses/TooLarge"
+          },
+          "415": {
+            "$ref": "#/components/responses/WrongType"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "502": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      }
+    },
+    "/v1/kirk-api/score": {
+      "post": {
+        "operationId": "score",
+        "summary": "Score samples against a snapshot",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Outputs"
+          }
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/Archive"
+        },
+        "responses": {
+          "200": {
+            "description": "npz with the chosen outputs. Metered.",
+            "headers": {
+              "X-Kavara-Receipt": {
+                "$ref": "#/components/headers/Receipt"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/RateLimit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/RateRemaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/RateReset"
+              }
+            },
+            "content": {
+              "application/x-kirk-npz": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                },
+                "description": "entropy float32 (n,), feature_arr complex64 (n,V,V), feature_vec complex64 (n,2V), feature_scalar complex64 (n,). all returns all four; entropy returns entropy; features returns the three feature members."
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Refused"
+          },
+          "401": {
+            "$ref": "#/components/responses/NoKey"
+          },
+          "403": {
+            "$ref": "#/components/responses/Denied"
+          },
+          "413": {
+            "$ref": "#/components/responses/TooLarge"
+          },
+          "415": {
+            "$ref": "#/components/responses/WrongType"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "502": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
           }
         }
       }
@@ -148,11 +374,377 @@
   },
   "components": {
     "securitySchemes": {
-      "KavaraKey": {
+      "kavaraKey": {
         "type": "apiKey",
         "in": "header",
         "name": "X-Kavara-Key",
-        "description": "Exactly one customer key header: k_ followed by 32 lowercase hex characters."
+        "description": "k_ followed by 32 hex. No key or a malformed key is 401. A well-formed key that is unknown or revoked is 403."
+      }
+    },
+    "parameters": {
+      "Outputs": {
+        "name": "outputs",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "enum": ["all", "entropy", "features"],
+          "default": "all"
+        },
+        "description": "Exactly one value. Anything else is 422 invalid_outputs."
+      }
+    },
+    "requestBodies": {
+      "Archive": {
+        "required": true,
+        "description": "npz (pickle off): snapshot (uint8, from create or a previous learn; plus snapshot_envelope when snapshot binding is required) and samples, n squares of V x V as float32, float64, complex64 or complex128, every real and imaginary part in [-1, 1]. At most 8 MiB.",
+        "content": {
+          "application/x-kirk-npz": {
+            "schema": {
+              "type": "string",
+              "format": "binary"
+            }
+          }
+        }
+      }
+    },
+    "headers": {
+      "Receipt": {
+        "description": "Receipt id of a metered success, rcpt_ and 32 hex, new for each call. Absent on health, contract and errors.",
+        "schema": {
+          "type": "string",
+          "pattern": "^rcpt_[0-9a-f]{32}$"
+        }
+      },
+      "RateLimit": {
+        "description": "Calls allowed per window for the account, 300.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "RateRemaining": {
+        "description": "Calls left in the current window.",
+        "schema": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "RateReset": {
+        "description": "Whole seconds to the end of the current fixed window, 1 to 60.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 60
+        }
+      },
+      "RetryAfter": {
+        "description": "On 429 only. Equals X-RateLimit-Reset.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 60
+        }
+      }
+    },
+    "responses": {
+      "NoKey": {
+        "description": "No key, a repeated key header, or a malformed key.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "error": "invalid_api_key"
+            }
+          }
+        }
+      },
+      "Denied": {
+        "description": "A well-formed key that is unknown, revoked, or has no tenant. One body for all.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "error": "request_denied"
+            }
+          }
+        }
+      },
+      "Refused": {
+        "description": "The request was refused. Body is the Error object.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "error": "invalid_request"
+            }
+          }
+        }
+      },
+      "TooLarge": {
+        "description": "Body over 8 MiB.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "error": "request_too_large"
+            }
+          }
+        }
+      },
+      "WrongType": {
+        "description": "Body type other than application/json (create) or application/x-kirk-npz (learn, score).",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "error": "unsupported_content_type"
+            }
+          }
+        }
+      },
+      "Unprocessable": {
+        "description": "invalid_outputs, or EnvelopeRefused.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/Error"
+                },
+                {
+                  "$ref": "#/components/schemas/EnvelopeRefused"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "RateLimited": {
+        "description": "Over the account limit.",
+        "headers": {
+          "Retry-After": {
+            "$ref": "#/components/headers/RetryAfter"
+          },
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/RateRemaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/RateReset"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/RateLimited"
+            },
+            "example": {
+              "error": "rate_limited",
+              "retry_after": 1
+            }
+          }
+        }
+      },
+      "Unavailable": {
+        "description": "origin_unavailable (500, 502, 503) or receipt_unavailable (503, no output returned).",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "error": "origin_unavailable"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "required": ["error"],
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9_]{0,63}$"
+          }
+        }
+      },
+      "RateLimited": {
+        "type": "object",
+        "required": ["error", "retry_after"],
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "const": "rate_limited"
+          },
+          "retry_after": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 60
+          }
+        }
+      },
+      "EnvelopeRefused": {
+        "type": "object",
+        "required": ["error", "rule", "message"],
+        "additionalProperties": true,
+        "properties": {
+          "error": {
+            "const": "EnvelopeRefused"
+          },
+          "rule": {
+            "enum": ["input_range", "chain_length"]
+          },
+          "spec": {
+            "type": "string"
+          },
+          "range": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "sample": {
+            "type": "integer"
+          },
+          "component": {
+            "type": "integer"
+          },
+          "part": {
+            "enum": ["real", "imag"]
+          },
+          "hint": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "Health": {
+        "type": "object",
+        "required": ["readiness"],
+        "additionalProperties": false,
+        "properties": {
+          "readiness": {
+            "const": "ready"
+          },
+          "release_id": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateRequest": {
+        "type": "object",
+        "required": ["hyperparameters"],
+        "properties": {
+          "hyperparameters": {
+            "type": "object",
+            "description": "Create-time parameters.",
+            "properties": {
+              "visible_nodes": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          },
+          "random_state": {
+            "type": "integer"
+          }
+        }
+      },
+      "Contract": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "readiness": {
+            "const": "ready"
+          },
+          "release_id": {
+            "type": "string"
+          },
+          "api_version": {
+            "type": "string"
+          },
+          "max_batch": {
+            "type": "integer"
+          },
+          "max_body_bytes": {
+            "description": "8 MiB (8 * 1024 * 1024).",
+            "const": 8388608
+          },
+          "outputs": {
+            "type": "array",
+            "items": {
+              "enum": ["all", "entropy", "features"]
+            }
+          },
+          "snapshot_binding": {
+            "enum": ["required", "off"]
+          },
+          "rate_limit": {
+            "$ref": "#/components/schemas/RateLimit"
+          }
+        }
+      },
+      "RateLimit": {
+        "type": "object",
+        "required": [
+          "per_account_per_minute",
+          "window",
+          "window_seconds",
+          "scope",
+          "headers"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "per_account_per_minute": {
+            "const": 300
+          },
+          "window": {
+            "const": "fixed"
+          },
+          "window_seconds": {
+            "const": 60
+          },
+          "scope": {
+            "const": "every /v1/kirk-api/* call by one account"
+          },
+          "headers": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "const": "X-RateLimit-Limit"
+              },
+              {
+                "const": "X-RateLimit-Remaining"
+              },
+              {
+                "const": "X-RateLimit-Reset"
+              },
+              {
+                "const": "Retry-After"
+              }
+            ]
+          }
+        }
       }
     }
   }

@@ -1,6 +1,6 @@
 # Kirk discovery portal: user guide
 
-[Open the Kirk discovery portal](https://kirk-discovery-portal.vercel.app/)
+Open the Kavara discovery portal (URL provided at onboarding).
 
 **For agents:** start with [the agent guide](agent-guide.md). It gives the ordered
 procedure, structured catalogue, JSON intake example and runtime prerequisites.
@@ -11,7 +11,7 @@ and explore how Kirk evidence could feed a Jev decision workflow. You can begin
 without a predefined phenomenon, domain selection or file.
 
 **Observed — portal version checked on 22 September 2026:** the instructions below
-cover the [published deployment](https://kirk-discovery-portal-lp11os8f5-kavara.vercel.app/).
+cover the Kavara discovery portal (URL provided at onboarding).
 The portal provides local preparation and illustrative handoffs. It does not run
 Kirk or Jev inference, collect payments, or submit your brief to Kavara.
 
@@ -60,7 +60,7 @@ Search the catalogue by domain, observation or behaviour. For example, try
 **Explore all … domains** reveals the remaining cards.
 
 The catalogue contains 32 domains and 256 prompts, drawn from this guide's
-[catalogue](phenomena-catalogue.md) at revision `9d2e119`.
+[catalogue](phenomena-catalogue.md), labelled example-revision.
 
 - Choose **+ Add** to add a domain to your starting point. Choose **✓ Added** or
   its removal control in the summary to remove it.
@@ -124,9 +124,9 @@ For a minimal file, save this as `example.csv`:
 
 ```csv
 timestamp,temperature_c,vibration_mm_s
-2026-01-01T09:00:00Z,22.1,0.12
-2026-01-01T09:01:00Z,22.3,
-2026-01-01T09:02:00Z,22.4,0
+09:00:00Z,22.1,0.12
+09:01:00Z,22.3,
+09:02:00Z,22.4,0
 ```
 
 **Observed inspection behaviour:** the portal measures all rows of the supplied
@@ -189,7 +189,7 @@ Return to **Kirk → Jev** and find **What would you pass to Jev?**
 
 **Hypothesis:** these scenarios demonstrate a proposed interface, not measured
 Kirk output, a Jev response or a validated integration. The illustrative evidence
-explicitly leaves measurements and the model unset. Editing or
+explicitly leaves measurements and run identity unset. Editing or
 exporting the example makes no model call.
 
 A developer implementing the pattern needs AI SDK 7+, configured AI Gateway
@@ -200,8 +200,9 @@ Running copied code elsewhere can make billable calls; this portal does not
 provide credentials or execute the code.
 
 A sample-quality report or exploration prompt is not a substitute for discovery
-evidence. Retain measurements, timestamps, input context, and the model,
-configuration, replay information, comparisons and uncertainty. Then evaluate
+evidence. Retain measurements, timestamps, input context, the receipt id when
+a customer call returns one, configuration, replay information, comparisons and
+uncertainty. Then evaluate
 Jev's decisions and your application policy separately. A typed decision alone
 does not establish a cause or authorise an action.
 
@@ -214,7 +215,7 @@ remain wherever your browser saves downloads.
 
 **Hypothesis — production architecture:** discovery would execute in Kirk's
 separately secured runtime, with only authorised evidence passed downstream.
-The portal neither executes the model nor verifies runtime attestation. A Vercel
+The portal does not execute a model or certify the runtime. A Vercel
 website deployment is not an AI Gateway model listing or a confidential-computing
 certification.
 

@@ -16,14 +16,13 @@ discovery and the required evidence.
 | --- | --- | --- |
 | “Could Kirk help with this data?” | Steps 1–3 below; [capability fit](capability-fit.md) | Discovery brief and unresolved fit questions |
 | “Prepare this sample” | Steps 1–3; [sample inspection](discovery-portal-user-guide.md#3-inspect-a-sample-if-useful) | Brief with measured sample facts separated from declarations |
-| “Connect the customer API / use Postman” | [Customer REST API](customer-rest-api.md) and [OpenAPI specification](customer-rest-api.openapi.json) | One verified HTTP 200 response from `POST /v1/score-book` using a customer key, or an exact access error |
+| “Connect the customer API” | [Customer REST API](customer-rest-api.md) and [OpenAPI specification](customer-rest-api.openapi.json) | HTTP 200 from health and contract, then HTTP 200 from create with a receipt, or an exact access error |
 | “Run Kirk” | Steps 1–5; [connection guide](connect-your-claude.md), live tool schemas and input contract | Reproducible run and evidence, or a precise unmet prerequisite |
 | “Sweep hyperparameters” | Steps 1–5; the sweep boundary below and the runtime's own parameter catalogue | Bounded, comparable experiment receipts or a precise unmet runtime binding |
 | “Use Kirk before Jev” | Steps 1–6 | Evidence handoff and separately recorded decision, or an explicitly illustrative request |
 | “Drive the website” | [Portal user guide](discovery-portal-user-guide.md); browser tool section below | Downloaded preparation artifacts |
 
-**Observed — interface baseline, 22 September 2026:** the
-[published portal](https://kirk-discovery-portal-lp11os8f5-kavara.vercel.app/)
+**Observed — interface baseline, 22 September 2026:** the Kavara discovery portal (URL provided at onboarding)
 supports local preparation and illustrative exports. It performs no Kirk or Jev
 inference and has no generic upload/scoring API. The separate hosted MCP runtime
 has its own credentials, contracts and metering. Discover its current schemas
@@ -112,120 +111,71 @@ was requested, continue to contract discovery rather than claiming a run occurre
 
 ## 4. Discover and match the runtime contract
 
-Choose the surface first. For the customer fixed-book REST service at
+Choose the surface first. For customer REST at
 **`https://api.kavara.ai`**, follow [Customer REST API](customer-rest-api.md):
-account/key setup and one compatible score.
-Its input, authentication and idempotency requirements are defined in the
+account and key setup, then `GET /v1/kirk-api/health`, `GET /v1/kirk-api/contract`
+and `POST /v1/kirk-api/create`. Learn and score send the snapshot from create
+with square samples. Earlier preview routes are not part of the v1 customer API and are not supported. Paths, bodies and errors are in the
 [OpenAPI specification](customer-rest-api.openapi.json). This path needs no MCP
-client or Claude connector. Keep its data-fit credit policy separate from MCP
-metering. Supply credentials through the environment's secret controls.
+client. Supply `KIP_API_KEY` through the environment's secret controls. The
+header is `X-Kavara-Key`.
 
 For a live MCP run, use the [connection guide](connect-your-claude.md). Configure
 credentials through the client's secret mechanism. The hosted MCP endpoint is
-`https://kirk-mcp.kavara.ai/mcp`; it is separate from the Vercel portal.
+https://kirk-mcp.kavara.ai/mcp; it is separate from the discovery portal.
 
 1. Read server instructions and discover tools with MCP `tools/list` through your
    client. Inspect schemas, cost policy and available resources. Tool names in
    prose are orientation, not permission to invent arguments.
-2. Use the advertised orientation tools (the guide documents `kirk_list_models`)
-   to record candidate model IDs. Follow
-   the current advertised schema if names differ. A listing alone is not liveness
-   or data compatibility.
-3. Match the source representation to an explicit model/input contract. Kirk
-   takes one square real- or complex-valued matrix per time step, typically
-   16 × 16 or 32 × 32. You choose what the rows and columns represent and you
-   do any windowing. Record axes, units, missingness, causal scaling, limits,
-   ordering, chain length, warm-up and reset behaviour. Kirk learns on every
-   step, so ordering and splitting a sequence across calls change results.
-   Record the contract reference and version. Obtain the applicable
-   security/attestation verification procedure if the workload requires it.
+2. Follow the connection guide and the tool schemas the server returns. Do not
+   treat that surface as the customer REST contract, and do not invent arguments.
+   A tool listing alone is not liveness or data compatibility.
+3. Match the source representation to the input contract in
+   [tensor generation](tensor-generation.md) and
+   [Customer REST API](customer-rest-api.md). Kirk takes one square real- or
+   complex-valued matrix per time step, typically 16 × 16 or 32 × 32. You
+   choose what the rows and columns represent and you do any windowing. Record
+   axes, units, missingness, causal scaling, limits, ordering, chain length,
+   warm-up and reset behaviour. Kirk learns on every step, so ordering and
+   splitting a sequence across calls change results. Record the contract
+   reference.
 4. Establish the requested execution scope and authorised spend using current
    runtime instructions and pricing. Use a bulk path where advertised, rather
    than a per-observation chat loop. Scope, credential and contract gaps are
    prerequisites to resolve, not grounds to fabricate a successful run.
 
-The repository's existing runnable example uses a fixed ten-level price-book
-route: 10 bid prices and 10 ask prices. That route is documented in
-[tensor generation](tensor-generation.md). It is one public adapter. For
-equipment, climate, event, graph or other data, build the square matrices the
-general contract describes, and obtain a documented way to submit them.
-Do not convert unrelated columns into bid/ask fields to make a call fit.
+The runnable customer example is the quick-start in
+[Customer REST API](customer-rest-api.md): health, contract, then create with
+`visible_nodes` of 1. Learn and score take the returned snapshot and the square
+matrices from [tensor generation](tensor-generation.md). For equipment, climate,
+event, graph or other data, build those matrices and submit them on the
+documented routes. Do not convert unrelated columns into bid and ask prices.
 
-**Done when:** model, contract, configuration, state semantics, runtime identity,
-data access and spend scope are recorded. If any prerequisite is missing, return
+**Done when:** contract, configuration, state semantics, data access and spend
+scope are recorded. If any prerequisite is missing, return
 the completed brief plus the exact missing item and who must provide it. Preparation
 can be complete while requested inference remains blocked.
 
 ### Agent-driven configuration sweeps
 
-**Observed — GitHub source checked 2 October 2026:** the canonical
-[Kavara Visual Studio](https://github.com/Kavara-AI/visual-studio) has an agent
-CLI that plans sweeps against an owned Studio workspace. Its `start` command
-permits bounded **local synthetic Kirk stub** sweeps only. The hosted customer
-Gateway currently exposes a fixed price-book score contract, not raw Kirk
-hyperparameter overrides. A Studio plan or stub result is not a hosted Kirk
-run or a credit quote. Studio stub parameters are not hosted Kirk parameters; do not transfer a tuned value between them.
+Studio stub settings are not customer contract parameters.
 
-For an authorised local Studio experiment, read that repository's `README.md`,
-`docs/MODELS.md` and CLI help. The CLI reads `KVS_STUDIO_TOKEN`; supply the
-current Studio session token through a
-secret mechanism, never a committed file or command argument. Put the bounded
-axes and seeds in a JSON request file and plan before starting. Inspect the
-internal schema first and retain its digest alongside the request:
-
-```sh
-python -m kvs config list --studio-url https://YOUR_STUDIO_ORIGIN
-python -m kvs config show --studio-url https://YOUR_STUDIO_ORIGIN \
-  --processor kirk_model
-python -m kvs sweep plan --studio-url https://YOUR_STUDIO_ORIGIN \
-  --workspace YOUR_WORKSPACE_ID --request sweep.json \
-  --expect-kirk-schema-sha256 YOUR_SAVED_SCHEMA_SHA256
-python -m kvs sweep start --studio-url https://YOUR_STUDIO_ORIGIN \
-  --workspace YOUR_WORKSPACE_ID --request sweep.json \
-  --expect-kirk-schema-sha256 YOUR_SAVED_SCHEMA_SHA256 --max-runs 8 --execute
-python -m kvs sweep result --studio-url https://YOUR_STUDIO_ORIGIN \
-  --workspace YOUR_WORKSPACE_ID --sweep-id YOUR_SWEEP_ID
-python -m kvs sweep compare --studio-url https://YOUR_STUDIO_ORIGIN \
-  --workspace YOUR_WORKSPACE_ID --sweep-id YOUR_SWEEP_ID \
-  --baseline-run-id YOUR_BASELINE_RUN_ID --metric YOUR_METRIC_KEY
-```
-
-`config list/show` read Studio's own processor registry. The Kirk result says
-`agent_sweep_policy: "stub-only"` and
-`hosted_kirk_raw_hp_admission: false`; its field names and defaults are **not**
-a hosted Kirk parameter catalogue. Save `schema_sha256` so later readers know which
-internal form the agent inspected. The optional pin stops a new plan or start
-when that form changes; it does not verify the hosted release. Recovery of an
-existing sweep intent remains available after a form change.
-
-The `start` command replans, caps the expanded run count and binds execution
-to the workspace digest. It refuses a live Kirk backend. The CLI also provides
-`status`, `list`, `recover` and `cancel`; recover the saved intent and inspect
-results after an uncertain start rather than silently starting a second sweep.
-`compare` reads one completed sweep and reports observed metric differences
-from the named baseline run's parameter group; it does not choose a winner or
-establish a causal effect. Label all stub outputs as synthetic. They are useful
-for checking pipeline wiring and agent procedure, not for claiming Kirk's
-performance.
-
-For a **hosted** sweep, first obtain a server-declared catalogue bound to the
-release_id and the supported Uhura representation. It must specify
-the admitted field names and ranges, matrix/input envelope, state and reset
-semantics, maximum combinations, timeout/capacity, the customer's identity and
-spending phase, and a receipt for each run. Ask the server for the quote and
-explicit paid activation before any charged series. If these are unavailable,
-deliver the proposed experiment grid and the missing prerequisite; do not
-guess values from Studio's form, call an arbitrary `/create` endpoint, or use
-new idempotency keys to retry an uncertain execution.
+For a **hosted** sweep, first obtain a server-declared catalogue of admitted
+field names and ranges, the matrix input, state and reset semantics, maximum
+combinations, timeout and capacity, and a receipt for each run. Ask the server
+for the quote and explicit paid activation before any charged series. If these
+are unavailable, deliver the proposed experiment grid and the missing
+prerequisite. Do not guess values from Studio's form or call a path outside
+the [customer contract](customer-rest-api.md). The documented create call is
+`POST /v1/kirk-api/create`.
 
 ## 5. Run a reproducible discovery evaluation
 
 Execute only through the established contract. Keep input references, effective
 configuration, ordered processing or independent-snapshot semantics, state/reset
-history, model id, `release_id` (when supplied by the runtime, or note that none is
-supplied), raw responses, usage and errors in a run manifest.
-Preserve server field names for outputs; do not invent a universal
-response schema. Before retrying an uncertain metered call, establish whether it
+history, the receipt id when a response includes one, raw responses and errors
+in a run manifest. Preserve server field names for outputs; do not invent a
+universal response schema. Before retrying an uncertain metered call, establish whether it
 already executed or consumed usage.
 
 Build the evidence catalogue using

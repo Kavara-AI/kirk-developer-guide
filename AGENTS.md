@@ -23,6 +23,8 @@ the repository root:
 
 ```sh
 python3 scripts/render_phenomena_catalogue.py --check
+python3 scripts/check_customer_samples.py
+python3 scripts/check_customer_samples.py --self-test
 python3 -m json.tool examples/agent-intake/discovery-brief.json >/dev/null
 ```
 

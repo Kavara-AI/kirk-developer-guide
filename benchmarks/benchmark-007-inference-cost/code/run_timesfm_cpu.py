@@ -23,7 +23,6 @@ a = ap.parse_args()
 
 # Must be set before torch imports its threading runtime.
 os.environ.setdefault("OMP_NUM_THREADS", str(a.threads))
-os.environ.setdefault("MKL_NUM_THREADS", str(a.threads))
 os.environ.setdefault("CUDA_VISIBLE_DEVICES", "")     # hard CPU lock
 
 import torch, timesfm

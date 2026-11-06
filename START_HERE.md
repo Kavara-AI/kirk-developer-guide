@@ -50,10 +50,11 @@ the axes, ordering, scaling and outputs.
 
 ## Connect first, if you want to follow along live
 
-For customer REST access from code, Postman or an agent, follow the
+For customer REST access from code or an agent, follow the
 [REST quickstart](docs/customer-rest-api.md) at **`https://api.kavara.ai`**. It
-includes account/key setup and a [machine-readable specification](docs/customer-rest-api.openapi.json).
-This is the fixed ten-level price-book data-fit path.
+includes account and key setup and a [machine-readable specification](docs/customer-rest-api.openapi.json).
+Check readiness and the published limits, then create a snapshot. Learn and
+score send that snapshot with square samples. Earlier preview routes are not part of the v1 customer API and are not supported.
 
 For the separate MCP tool surface:
 

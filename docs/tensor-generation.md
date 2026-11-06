@@ -37,14 +37,17 @@ missing-data rule.
 
 ## Outputs per step
 
-With evaluation access, a step can return:
+Learn and score in the [customer contract](customer-rest-api.md) return an
+archive. The members depend on `outputs`:
 
-- an embedding of the evolving structure
-- an entropy score (a surprise measure)
-- a prediction of masked input
+- `entropy`: float32, shape `(n,)`
+- `feature_arr`: complex64, shape `(n, V, V)`
+- `feature_vec`: complex64, shape `(n, 2V)`
+- `feature_scalar`: complex64, shape `(n,)`
 
-Some existing public routes return the entropy score only. Keep the field names
-that route actually returns. This page does not define a response schema.
+`outputs=all` returns all four. `outputs=entropy` returns `entropy` only.
+`outputs=features` returns the three feature members. Learn also returns the
+next `snapshot`. Keep those field names.
 
 ## Suitable data
 
@@ -53,37 +56,18 @@ continuously, where relationships between streams matter and the distribution
 drifts. Static, independently sampled data is a weak fit. The longer triage is
 in [capability fit](capability-fit.md).
 
-## An existing public route: ten-level price book
+## Customer calls
 
-The public routes documented in this repository accept a fixed ten-level price
-book. You send two arrays:
+Submit the square matrices through the [customer REST contract](customer-rest-api.md).
+`POST /v1/kirk-api/create` takes JSON `hyperparameters` (at least
+`visible_nodes`) and returns a snapshot. `POST /v1/kirk-api/learn` and
+`POST /v1/kirk-api/score` take that snapshot plus `samples`, `n` squares of
+`V` × `V`, with every real and imaginary part in [-1, 1].
 
-```text
-bid_px   10 bid prices, level 1 first
-ask_px   10 ask prices, level 1 first
-```
-
-`kirk_render_book` inspects that route without scoring and costs 0 IU. A typical
-inspection result:
-
-```json
-{"shape": [20, 20], "dtype": "complex", "non_zero_cells": 50,
- "mid_price": 223.095, "spread_ticks": 1.0}
-```
-
-On this route the inspection result is a **20 x 20 complex-valued tensor** whose
-rows are `Bid1..Bid10` and `Ask1..Ask10`. That result belongs to the book
-route. See [Customer REST API](customer-rest-api.md). The customer REST score is
-`POST /v1/score-book` with the same ten-and-ten prices.
-
-Documented call behaviour differs by tool. `kirk_score_l2_book` scores books
-as one ordered chain. `kirk_score_book_batch` scores many snapshots
-independently. Read [Connect your Claude](connect-your-claude.md) for the
-current tool list before assuming state crosses a call boundary.
-
-Do not reshape unrelated columns into bid and ask prices. Where a surface has
-no documented way to submit the square matrices you built, contact Kavara.
-This repository does not define that request body.
+Earlier preview routes are not part of the v1 customer API and are not supported.
+Read [Customer REST API](customer-rest-api.md) for the methods, headers and
+response members. Where a surface has no documented way to submit the matrices
+you built, contact Kavara.
 
 ## Decisions that remain yours
 
@@ -97,9 +81,6 @@ The matrix you send is your experiment and must be documented:
 6. Causal scaling
 7. Warm-up length
 8. Metadata attached to each matrix
-
-On the ten-level book route, also record which levels you capture and what you
-do when fewer than 10 are quoted.
 
 ## Avoid leakage
 
@@ -117,7 +98,11 @@ Each output should be traceable to:
 - observation index
 - start and end timestamps
 - preprocessing configuration, including window, stride and missing-data rule
+- the `X-Kavara-Receipt` value on a metered success (`rcpt_` and 32 hex characters)
 - run parameters, including chain length and warm-up
+
+Keep the receipt with the snapshot it belongs to. A result without that receipt
+cannot be matched to the call that produced it.
 
 ## Proposed upload-and-data-fit handoff
 
@@ -209,7 +194,7 @@ python3 scripts/render_phenomena_catalogue.py --check
 
 The script uses the Python standard library, validates unique identifiers and profile
 references, and checks that the published Markdown matches its source. It reads no
-customer files, uploads nothing and calls no engine. Keep existing IDs stable; add
+customer files, uploads nothing and calls no hosted API. Keep existing IDs stable; add
 new IDs for new prompts instead of renumbering or reusing old ones. Each entry inherits
 the catalogue's `Hypothesis` label. Put measured findings and their evidence in the
 benchmark/result records rather than relabeling this inspiration catalogue.
