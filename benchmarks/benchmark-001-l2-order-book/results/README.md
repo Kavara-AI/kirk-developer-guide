@@ -25,7 +25,7 @@ condition ("a simple baseline performs equally well with lower complexity"), Ben
 | Seeds | Selection seed pair: regimes 1 / null 2. Confirmation seed pairs: 101/201, 102/202, 103/203. |
 | Windows | 256 observations, stride 16 → 1,235 windows per stream; warm-up = observations 0–1,999. |
 | Constructions | **lag** (16×16: 10 feature rows + 6 zero rows × 16 columns of 16-step changes; the Kavara usage guide's time-series input; pre-declared primary), **corr** (10×10 Pearson), **cov** (10×10 covariance scaled by warm-up sd). All rendered with Uhura. |
-| Kirk | `enforce_purity=True`, `random_state=7`, entropy output. **frozen**: learn the warm-up, then score without learning. **online**: keep learning through the stream; score = entropy returned by learn. Learning rates 0.005 (pre-declared primary, from the kit notebook), 0.0005, 0.00005 (Kavara usage guide default). |
+| Kirk | `random_state=7`, entropy output. **frozen**: learn the warm-up, then score without learning. **online**: keep learning through the stream; score = entropy returned by learn. Learning rates 0.005 (pre-declared primary, from the kit notebook), 0.0005, 0.00005 (Kavara usage guide default). |
 | Baselines | per-feature z of window means; Frobenius distance of each construction's matrix from the warm-up mean (`dist_ref`) and from the matrix one full window earlier (`dist_lag`). |
 | Detector | `dev_t = s_t − mean(previous 16)`, alarm at the 99.5th percentile of `|dev|`, 16-window refractory, tolerance 768 observations after a boundary. Same for every method. |
 | API | 101 + 92 calls (selection) and 6 × 32 (confirmation), all `200`; no rate limiting. |

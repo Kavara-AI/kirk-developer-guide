@@ -25,7 +25,6 @@
       5e-05
     ],
     "primary_learning_rate": 0.005,
-    "enforce_purity": true,
     "random_state": 7,
     "outputs": "entropy",
     "modes": [
