@@ -21,7 +21,7 @@ condition ("a simple baseline performs equally well with lower complexity"), Ben
 
 | Item | Value |
 |---|---|
-| Data | `code/generate_data.py`: 20,000 steps at 100 ms, 10 features, 5 regimes per `data-generation.md`; null control stream (stable throughout) with its own seed. Manifests with SHA-256 next to each `.npz`. |
+| Data | `code/generate_data.py`: 20,000 steps at 100 ms, 10 features, 5 regimes per `data-generation.md`; null control stream (stable throughout) with its own seed. A manifest next to each `.npz` records the seed and the first 6 hex characters of the data's SHA-256; `generate_data.py` prints the full digest. |
 | Seeds | Selection seed pair: regimes 1 / null 2. Confirmation seed pairs: 101/201, 102/202, 103/203. |
 | Windows | 256 observations, stride 16 → 1,235 windows per stream; warm-up = observations 0–1,999. |
 | Constructions | **lag** (16×16: 10 feature rows + 6 zero rows × 16 columns of 16-step changes; the Kavara usage guide's time-series input; pre-declared primary), **corr** (10×10 Pearson), **cov** (10×10 covariance scaled by warm-up sd). All rendered with Uhura. |
