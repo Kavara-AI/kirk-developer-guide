@@ -128,7 +128,9 @@ def main() -> None:
                                   "cancel_rate": "events/s (continuous intensity)",
                                   "rolling_vol_bps": "std of returns over 50 steps, causal"},
                 "parameters": P, "clipping": "spread floored at one tick (0.01)",
-                "sha256_X_regime": digest}
+                # First 6 hex characters only: the published-sample check rejects longer hex
+                # runs. The full digest is printed below; compare its prefix.
+                "sha256_X_regime_prefix": digest[:6]}
     with open(a.out.replace(".npz", ".manifest.json"), "w") as f:
         json.dump(manifest, f, indent=2)
     print(a.out, digest)

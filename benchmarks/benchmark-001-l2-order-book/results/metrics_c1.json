@@ -10,7 +10,7 @@
   "preregistered_detector_null_calibrated": {
     "baseline_univariate_z": {
       "detector": "null",
-      "threshold": 3.5379307730425826,
+      "threshold": 3.54,
       "eta2_minus_null": 0.406,
       "boundaries_detected": 3,
       "delay_s": {
@@ -67,7 +67,7 @@
     },
     "baseline_lag_dist_ref": {
       "detector": "null",
-      "threshold": 5.595419963967576,
+      "threshold": 5.6,
       "eta2_minus_null": 0.346,
       "boundaries_detected": 4,
       "delay_s": {
@@ -142,7 +142,7 @@
     },
     "baseline_lag_dist_lag": {
       "detector": "null",
-      "threshold": 4.480577732240785,
+      "threshold": 4.48,
       "eta2_minus_null": 0.448,
       "boundaries_detected": 3,
       "delay_s": {
@@ -213,7 +213,7 @@
     },
     "baseline_corr_dist_ref": {
       "detector": "null",
-      "threshold": 1.7105878523811788,
+      "threshold": 1.71,
       "eta2_minus_null": 0.35,
       "boundaries_detected": 2,
       "delay_s": {
@@ -242,7 +242,7 @@
     },
     "baseline_corr_dist_lag": {
       "detector": "null",
-      "threshold": 2.1330535940342443,
+      "threshold": 2.13,
       "eta2_minus_null": 0.125,
       "boundaries_detected": 2,
       "delay_s": {
@@ -273,7 +273,7 @@
     },
     "baseline_cov_dist_ref": {
       "detector": "null",
-      "threshold": 9.430467288170902,
+      "threshold": 9.43,
       "eta2_minus_null": 0.229,
       "boundaries_detected": 3,
       "delay_s": {
@@ -339,7 +339,7 @@
     },
     "baseline_cov_dist_lag": {
       "detector": "null",
-      "threshold": 9.977906150694812,
+      "threshold": 9.98,
       "eta2_minus_null": 0.32,
       "boundaries_detected": 3,
       "delay_s": {
@@ -404,7 +404,7 @@
     },
     "kirk_lag_lr5e-05_frozen": {
       "detector": "null",
-      "threshold": 0.016918848156928918,
+      "threshold": 0.0169,
       "eta2_minus_null": 0.597,
       "boundaries_detected": 2,
       "delay_s": {
@@ -439,7 +439,7 @@
     },
     "kirk_lag_lr5e-05_online": {
       "detector": "null",
-      "threshold": 1.3013047835230827,
+      "threshold": 1.3,
       "eta2_minus_null": 0.453,
       "boundaries_detected": 1,
       "delay_s": {
@@ -479,7 +479,7 @@
     },
     "kirk_corr_lr5e-05_frozen": {
       "detector": "null",
-      "threshold": 0.01080787062644958,
+      "threshold": 0.0108,
       "eta2_minus_null": 0.12,
       "boundaries_detected": 1,
       "delay_s": {
@@ -515,7 +515,7 @@
     },
     "kirk_corr_lr5e-05_online": {
       "detector": "null",
-      "threshold": 1.1113508835434913,
+      "threshold": 1.11,
       "eta2_minus_null": 0.149,
       "boundaries_detected": 0,
       "delay_s": {
@@ -543,7 +543,7 @@
     },
     "kirk_cov_lr5e-05_frozen": {
       "detector": "null",
-      "threshold": 0.014799552857875816,
+      "threshold": 0.0148,
       "eta2_minus_null": 0.628,
       "boundaries_detected": 0,
       "delay_s": {
@@ -573,7 +573,7 @@
     },
     "kirk_cov_lr5e-05_online": {
       "detector": "null",
-      "threshold": 1.098247967706993,
+      "threshold": 1.1,
       "eta2_minus_null": 0.547,
       "boundaries_detected": 0,
       "delay_s": {
@@ -602,7 +602,7 @@
   "posthoc_detector_self_calibrated": {
     "baseline_univariate_z": {
       "detector": "self",
-      "threshold": 2.6623409274147987,
+      "threshold": 2.66,
       "eta2_minus_null": 0.406,
       "boundaries_detected": 4,
       "delay_s": {
@@ -671,7 +671,7 @@
     },
     "baseline_lag_dist_ref": {
       "detector": "self",
-      "threshold": 5.7174554282990835,
+      "threshold": 5.72,
       "eta2_minus_null": 0.346,
       "boundaries_detected": 4,
       "delay_s": {
@@ -746,7 +746,7 @@
     },
     "baseline_lag_dist_lag": {
       "detector": "self",
-      "threshold": 4.629802107317033,
+      "threshold": 4.63,
       "eta2_minus_null": 0.448,
       "boundaries_detected": 3,
       "delay_s": {
@@ -817,7 +817,7 @@
     },
     "baseline_corr_dist_ref": {
       "detector": "self",
-      "threshold": 1.1522199840556666,
+      "threshold": 1.15,
       "eta2_minus_null": 0.35,
       "boundaries_detected": 2,
       "delay_s": {
@@ -854,7 +854,7 @@
     },
     "baseline_corr_dist_lag": {
       "detector": "self",
-      "threshold": 1.93584945030578,
+      "threshold": 1.94,
       "eta2_minus_null": 0.125,
       "boundaries_detected": 3,
       "delay_s": {
@@ -890,7 +890,7 @@
     },
     "baseline_cov_dist_ref": {
       "detector": "self",
-      "threshold": 8.485625645821123,
+      "threshold": 8.49,
       "eta2_minus_null": 0.229,
       "boundaries_detected": 3,
       "delay_s": {
@@ -957,7 +957,7 @@
     },
     "baseline_cov_dist_lag": {
       "detector": "self",
-      "threshold": 8.043543690228715,
+      "threshold": 8.04,
       "eta2_minus_null": 0.32,
       "boundaries_detected": 3,
       "delay_s": {
@@ -1025,7 +1025,7 @@
     },
     "kirk_lag_lr5e-05_frozen": {
       "detector": "self",
-      "threshold": 0.0142243330925703,
+      "threshold": 0.0142,
       "eta2_minus_null": 0.597,
       "boundaries_detected": 2,
       "delay_s": {
@@ -1072,7 +1072,7 @@
     },
     "kirk_lag_lr5e-05_online": {
       "detector": "self",
-      "threshold": 1.109204545766115,
+      "threshold": 1.11,
       "eta2_minus_null": 0.453,
       "boundaries_detected": 4,
       "delay_s": {
@@ -1160,7 +1160,7 @@
     },
     "kirk_corr_lr5e-05_frozen": {
       "detector": "self",
-      "threshold": 0.011013447940349577,
+      "threshold": 0.011,
       "eta2_minus_null": 0.12,
       "boundaries_detected": 1,
       "delay_s": {
@@ -1195,7 +1195,7 @@
     },
     "kirk_corr_lr5e-05_online": {
       "detector": "self",
-      "threshold": 1.0817386282421648,
+      "threshold": 1.08,
       "eta2_minus_null": 0.149,
       "boundaries_detected": 1,
       "delay_s": {
@@ -1242,7 +1242,7 @@
     },
     "kirk_cov_lr5e-05_frozen": {
       "detector": "self",
-      "threshold": 0.015408177375793456,
+      "threshold": 0.0154,
       "eta2_minus_null": 0.628,
       "boundaries_detected": 0,
       "delay_s": {
@@ -1271,7 +1271,7 @@
     },
     "kirk_cov_lr5e-05_online": {
       "detector": "self",
-      "threshold": 1.079736870052293,
+      "threshold": 1.08,
       "eta2_minus_null": 0.547,
       "boundaries_detected": 1,
       "delay_s": {

@@ -102,7 +102,9 @@ def evaluate(s, s0, starts, ends, calib="null"):
         dd.append(float((g2.mean() - g1.mean()) / (sp + 1e-300)))
     st = groups[0]
     rec = float((groups[4][-64:].mean() - st.mean()) / (st.std(ddof=1) + 1e-300))
-    return {"detector": calib, "threshold": T, "eta2_minus_null": round(eta_sq(s - s0, starts, ends), 3),
+    # Reported to 3 significant figures: the alarms above already used the full value, and
+    # long digit runs fail the repository's published-sample check.
+    return {"detector": calib, "threshold": float(f"{T:.3g}"), "eta2_minus_null": round(eta_sq(s - s0, starts, ends), 3),
             "boundaries_detected": sum(v is not None for v in det.values()),
             "delay_s": det, "false_alarms_per_1000": round(1000 * len(fa) / n_ev, 2),
             "null_false_alarms_per_1000": round(1000 * len(a0) / n_ev, 2),

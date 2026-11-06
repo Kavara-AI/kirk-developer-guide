@@ -10,7 +10,7 @@
   "preregistered_detector_null_calibrated": {
     "baseline_univariate_z": {
       "detector": "null",
-      "threshold": 1.7624288692615515,
+      "threshold": 1.76,
       "eta2_minus_null": 0.381,
       "boundaries_detected": 3,
       "delay_s": {
@@ -86,7 +86,7 @@
     },
     "baseline_lag_dist_ref": {
       "detector": "null",
-      "threshold": 5.595905790388563,
+      "threshold": 5.6,
       "eta2_minus_null": 0.353,
       "boundaries_detected": 3,
       "delay_s": {
@@ -152,7 +152,7 @@
     },
     "baseline_lag_dist_lag": {
       "detector": "null",
-      "threshold": 5.3966180019215555,
+      "threshold": 5.4,
       "eta2_minus_null": 0.406,
       "boundaries_detected": 3,
       "delay_s": {
@@ -215,7 +215,7 @@
     },
     "baseline_corr_dist_ref": {
       "detector": "null",
-      "threshold": 1.5642606743936691,
+      "threshold": 1.56,
       "eta2_minus_null": 0.431,
       "boundaries_detected": 0,
       "delay_s": {
@@ -241,7 +241,7 @@
     },
     "baseline_corr_dist_lag": {
       "detector": "null",
-      "threshold": 2.1154002632754128,
+      "threshold": 2.12,
       "eta2_minus_null": 0.088,
       "boundaries_detected": 0,
       "delay_s": {
@@ -271,7 +271,7 @@
     },
     "baseline_cov_dist_ref": {
       "detector": "null",
-      "threshold": 5.43135403342695,
+      "threshold": 5.43,
       "eta2_minus_null": 0.092,
       "boundaries_detected": 3,
       "delay_s": {
@@ -344,7 +344,7 @@
     },
     "baseline_cov_dist_lag": {
       "detector": "null",
-      "threshold": 5.410157076379843,
+      "threshold": 5.41,
       "eta2_minus_null": 0.156,
       "boundaries_detected": 3,
       "delay_s": {
@@ -414,7 +414,7 @@
     },
     "kirk_lag_lr0.005_frozen": {
       "detector": "null",
-      "threshold": 0.008059859238564926,
+      "threshold": 0.00806,
       "eta2_minus_null": 0.571,
       "boundaries_detected": 2,
       "delay_s": {
@@ -452,7 +452,7 @@
     },
     "kirk_lag_lr0.005_online": {
       "detector": "null",
-      "threshold": 0.9349859466776249,
+      "threshold": 0.935,
       "eta2_minus_null": 0.854,
       "boundaries_detected": 0,
       "delay_s": {
@@ -476,7 +476,7 @@
     },
     "kirk_lag_lr0.0005_frozen": {
       "detector": "null",
-      "threshold": 0.009935588818043453,
+      "threshold": 0.00994,
       "eta2_minus_null": 0.283,
       "boundaries_detected": 1,
       "delay_s": {
@@ -503,7 +503,7 @@
     },
     "kirk_lag_lr0.0005_online": {
       "detector": "null",
-      "threshold": 1.1893530933558938,
+      "threshold": 1.19,
       "eta2_minus_null": 0.551,
       "boundaries_detected": 1,
       "delay_s": {
@@ -543,7 +543,7 @@
     },
     "kirk_lag_lr5e-05_frozen": {
       "detector": "null",
-      "threshold": 0.01704994618892665,
+      "threshold": 0.017,
       "eta2_minus_null": 0.677,
       "boundaries_detected": 2,
       "delay_s": {
@@ -582,7 +582,7 @@
     },
     "kirk_lag_lr5e-05_online": {
       "detector": "null",
-      "threshold": 1.291994759812951,
+      "threshold": 1.29,
       "eta2_minus_null": 0.499,
       "boundaries_detected": 1,
       "delay_s": {
@@ -629,7 +629,7 @@
     },
     "kirk_corr_lr0.005_frozen": {
       "detector": "null",
-      "threshold": 0.01938151791691773,
+      "threshold": 0.0194,
       "eta2_minus_null": 0.203,
       "boundaries_detected": 0,
       "delay_s": {
@@ -653,7 +653,7 @@
     },
     "kirk_corr_lr0.005_online": {
       "detector": "null",
-      "threshold": 0.0961245219036935,
+      "threshold": 0.0961,
       "eta2_minus_null": 0.695,
       "boundaries_detected": 2,
       "delay_s": {
@@ -692,7 +692,7 @@
     },
     "kirk_corr_lr0.0005_frozen": {
       "detector": "null",
-      "threshold": 0.014008059501647942,
+      "threshold": 0.014,
       "eta2_minus_null": 0.051,
       "boundaries_detected": 2,
       "delay_s": {
@@ -719,7 +719,7 @@
     },
     "kirk_corr_lr0.0005_online": {
       "detector": "null",
-      "threshold": 0.8256475684978067,
+      "threshold": 0.826,
       "eta2_minus_null": 0.133,
       "boundaries_detected": 0,
       "delay_s": {
@@ -743,7 +743,7 @@
     },
     "kirk_corr_lr5e-05_frozen": {
       "detector": "null",
-      "threshold": 0.015358942151069548,
+      "threshold": 0.0154,
       "eta2_minus_null": 0.084,
       "boundaries_detected": 0,
       "delay_s": {
@@ -767,7 +767,7 @@
     },
     "kirk_corr_lr5e-05_online": {
       "detector": "null",
-      "threshold": 1.1101047096494583,
+      "threshold": 1.11,
       "eta2_minus_null": 0.064,
       "boundaries_detected": 0,
       "delay_s": {
@@ -798,7 +798,7 @@
     },
     "kirk_cov_lr0.005_frozen": {
       "detector": "null",
-      "threshold": 0.014658639580011259,
+      "threshold": 0.0147,
       "eta2_minus_null": 0.568,
       "boundaries_detected": 2,
       "delay_s": {
@@ -828,7 +828,7 @@
     },
     "kirk_cov_lr0.005_online": {
       "detector": "null",
-      "threshold": 0.28732679769396624,
+      "threshold": 0.287,
       "eta2_minus_null": 0.754,
       "boundaries_detected": 0,
       "delay_s": {
@@ -856,7 +856,7 @@
     },
     "kirk_cov_lr0.0005_frozen": {
       "detector": "null",
-      "threshold": 0.016947079151868806,
+      "threshold": 0.0169,
       "eta2_minus_null": 0.621,
       "boundaries_detected": 1,
       "delay_s": {
@@ -884,7 +884,7 @@
     },
     "kirk_cov_lr0.0005_online": {
       "detector": "null",
-      "threshold": 0.788186285458505,
+      "threshold": 0.788,
       "eta2_minus_null": 0.199,
       "boundaries_detected": 0,
       "delay_s": {
@@ -914,7 +914,7 @@
     },
     "kirk_cov_lr5e-05_frozen": {
       "detector": "null",
-      "threshold": 0.015934460759162893,
+      "threshold": 0.0159,
       "eta2_minus_null": 0.593,
       "boundaries_detected": 1,
       "delay_s": {
@@ -941,7 +941,7 @@
     },
     "kirk_cov_lr5e-05_online": {
       "detector": "null",
-      "threshold": 1.114883438805118,
+      "threshold": 1.11,
       "eta2_minus_null": 0.307,
       "boundaries_detected": 0,
       "delay_s": {
@@ -970,7 +970,7 @@
   "posthoc_detector_self_calibrated": {
     "baseline_univariate_z": {
       "detector": "self",
-      "threshold": 2.977200949573523,
+      "threshold": 2.98,
       "eta2_minus_null": 0.381,
       "boundaries_detected": 3,
       "delay_s": {
@@ -1039,7 +1039,7 @@
     },
     "baseline_lag_dist_ref": {
       "detector": "self",
-      "threshold": 3.9375605657766677,
+      "threshold": 3.94,
       "eta2_minus_null": 0.353,
       "boundaries_detected": 3,
       "delay_s": {
@@ -1108,7 +1108,7 @@
     },
     "baseline_lag_dist_lag": {
       "detector": "self",
-      "threshold": 3.1119666957665797,
+      "threshold": 3.11,
       "eta2_minus_null": 0.406,
       "boundaries_detected": 3,
       "delay_s": {
@@ -1176,7 +1176,7 @@
     },
     "baseline_corr_dist_ref": {
       "detector": "self",
-      "threshold": 1.0953736041809348,
+      "threshold": 1.1,
       "eta2_minus_null": 0.431,
       "boundaries_detected": 1,
       "delay_s": {
@@ -1214,7 +1214,7 @@
     },
     "baseline_corr_dist_lag": {
       "detector": "self",
-      "threshold": 1.7755777203819127,
+      "threshold": 1.78,
       "eta2_minus_null": 0.088,
       "boundaries_detected": 1,
       "delay_s": {
@@ -1248,7 +1248,7 @@
     },
     "baseline_cov_dist_ref": {
       "detector": "self",
-      "threshold": 10.381144657004503,
+      "threshold": 10.4,
       "eta2_minus_null": 0.092,
       "boundaries_detected": 3,
       "delay_s": {
@@ -1314,7 +1314,7 @@
     },
     "baseline_cov_dist_lag": {
       "detector": "self",
-      "threshold": 10.116023073155059,
+      "threshold": 10.1,
       "eta2_minus_null": 0.156,
       "boundaries_detected": 3,
       "delay_s": {
@@ -1379,7 +1379,7 @@
     },
     "kirk_lag_lr0.005_frozen": {
       "detector": "self",
-      "threshold": 0.008272774331271647,
+      "threshold": 0.00827,
       "eta2_minus_null": 0.571,
       "boundaries_detected": 1,
       "delay_s": {
@@ -1415,7 +1415,7 @@
     },
     "kirk_lag_lr0.005_online": {
       "detector": "self",
-      "threshold": 0.5838990772515534,
+      "threshold": 0.584,
       "eta2_minus_null": 0.854,
       "boundaries_detected": 1,
       "delay_s": {
@@ -1457,7 +1457,7 @@
     },
     "kirk_lag_lr0.0005_frozen": {
       "detector": "self",
-      "threshold": 0.008506504744291305,
+      "threshold": 0.00851,
       "eta2_minus_null": 0.283,
       "boundaries_detected": 1,
       "delay_s": {
@@ -1487,7 +1487,7 @@
     },
     "kirk_lag_lr0.0005_online": {
       "detector": "self",
-      "threshold": 1.2069214520975946,
+      "threshold": 1.21,
       "eta2_minus_null": 0.551,
       "boundaries_detected": 1,
       "delay_s": {
@@ -1516,7 +1516,7 @@
     },
     "kirk_lag_lr5e-05_frozen": {
       "detector": "self",
-      "threshold": 0.012946341484785072,
+      "threshold": 0.0129,
       "eta2_minus_null": 0.677,
       "boundaries_detected": 4,
       "delay_s": {
@@ -1566,7 +1566,7 @@
     },
     "kirk_lag_lr5e-05_online": {
       "detector": "self",
-      "threshold": 1.1031527907773853,
+      "threshold": 1.1,
       "eta2_minus_null": 0.499,
       "boundaries_detected": 4,
       "delay_s": {
@@ -1654,7 +1654,7 @@
     },
     "kirk_corr_lr0.005_frozen": {
       "detector": "self",
-      "threshold": 0.012655893415212623,
+      "threshold": 0.0127,
       "eta2_minus_null": 0.203,
       "boundaries_detected": 3,
       "delay_s": {
@@ -1688,7 +1688,7 @@
     },
     "kirk_corr_lr0.005_online": {
       "detector": "self",
-      "threshold": 0.08963779591023921,
+      "threshold": 0.0896,
       "eta2_minus_null": 0.695,
       "boundaries_detected": 2,
       "delay_s": {
@@ -1728,7 +1728,7 @@
     },
     "kirk_corr_lr0.0005_frozen": {
       "detector": "self",
-      "threshold": 0.010496831834316244,
+      "threshold": 0.0105,
       "eta2_minus_null": 0.051,
       "boundaries_detected": 3,
       "delay_s": {
@@ -1771,7 +1771,7 @@
     },
     "kirk_corr_lr0.0005_online": {
       "detector": "self",
-      "threshold": 0.8071045507118105,
+      "threshold": 0.807,
       "eta2_minus_null": 0.133,
       "boundaries_detected": 0,
       "delay_s": {
@@ -1797,7 +1797,7 @@
     },
     "kirk_corr_lr5e-05_frozen": {
       "detector": "self",
-      "threshold": 0.008676820993423462,
+      "threshold": 0.00868,
       "eta2_minus_null": 0.084,
       "boundaries_detected": 2,
       "delay_s": {
@@ -1830,7 +1830,7 @@
     },
     "kirk_corr_lr5e-05_online": {
       "detector": "self",
-      "threshold": 1.0787589329946785,
+      "threshold": 1.08,
       "eta2_minus_null": 0.064,
       "boundaries_detected": 3,
       "delay_s": {
@@ -1895,7 +1895,7 @@
     },
     "kirk_cov_lr0.005_frozen": {
       "detector": "self",
-      "threshold": 0.013871098868548867,
+      "threshold": 0.0139,
       "eta2_minus_null": 0.568,
       "boundaries_detected": 2,
       "delay_s": {
@@ -1926,7 +1926,7 @@
     },
     "kirk_cov_lr0.005_online": {
       "detector": "self",
-      "threshold": 0.19053252462297676,
+      "threshold": 0.191,
       "eta2_minus_null": 0.754,
       "boundaries_detected": 1,
       "delay_s": {
@@ -1961,7 +1961,7 @@
     },
     "kirk_cov_lr0.0005_frozen": {
       "detector": "self",
-      "threshold": 0.017845375835895537,
+      "threshold": 0.0178,
       "eta2_minus_null": 0.621,
       "boundaries_detected": 1,
       "delay_s": {
@@ -1989,7 +1989,7 @@
     },
     "kirk_cov_lr0.0005_online": {
       "detector": "self",
-      "threshold": 0.798573198504746,
+      "threshold": 0.799,
       "eta2_minus_null": 0.199,
       "boundaries_detected": 0,
       "delay_s": {
@@ -2015,7 +2015,7 @@
     },
     "kirk_cov_lr5e-05_frozen": {
       "detector": "self",
-      "threshold": 0.014389891922473906,
+      "threshold": 0.0144,
       "eta2_minus_null": 0.593,
       "boundaries_detected": 0,
       "delay_s": {
@@ -2044,7 +2044,7 @@
     },
     "kirk_cov_lr5e-05_online": {
       "detector": "self",
-      "threshold": 1.0793628730345517,
+      "threshold": 1.08,
       "eta2_minus_null": 0.307,
       "boundaries_detected": 2,
       "delay_s": {

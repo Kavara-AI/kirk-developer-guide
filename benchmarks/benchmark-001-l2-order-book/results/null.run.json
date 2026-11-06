@@ -7,7 +7,7 @@
   "n_windows": 1235,
   "n_warmup_windows": 1745,
   "constructions": {
-    "lag": "16x16: 10 feature rows (+6 zero rows) x 16 block changes of 16 steps (primary, Ulysses guide)",
+    "lag": "16x16: 10 feature rows (+6 zero rows) x 16 block changes of 16 steps (primary, Kavara usage guide)",
     "corr": "10x10 Pearson correlation over the window",
     "cov": "10x10 covariance of window-demeaned features / warm-up sd"
   },

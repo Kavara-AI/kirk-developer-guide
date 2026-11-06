@@ -7,7 +7,7 @@ kirk-remote 0.1.3+kit4, kavara-preprocess 0.2.1, Uhura render `rms-tanh/1`). Syn
 either read-out we tried (Observed):
 
 - *As a change detector* (alarms at boundaries), simple baselines found more boundaries (14 of 16 vs 10 of 16).
-- *As a regime label* (an unsupervised hidden Markov model on the score, as the Ulysses guide suggests),
+- *As a regime label* (an unsupervised hidden Markov model on the score, as the Kavara usage guide suggests; that guide is Kavara's guidance on using Kirk outputs and is not published in this repository),
   baselines labelled regimes better (adjusted Rand index 0.42–0.50 vs 0.32), and adding Kirk to the best
   baseline changed little (0.51 vs 0.49).
 
@@ -24,8 +24,8 @@ condition ("a simple baseline performs equally well with lower complexity"), Ben
 | Data | `code/generate_data.py`: 20,000 steps at 100 ms, 10 features, 5 regimes per `data-generation.md`; null control stream (stable throughout) with its own seed. Manifests with SHA-256 next to each `.npz`. |
 | Seeds | Selection seed pair: regimes 1 / null 2. Confirmation seed pairs: 101/201, 102/202, 103/203. |
 | Windows | 256 observations, stride 16 → 1,235 windows per stream; warm-up = observations 0–1,999. |
-| Constructions | **lag** (16×16: 10 feature rows + 6 zero rows × 16 columns of 16-step changes; the Ulysses guide's time-series input; pre-declared primary), **corr** (10×10 Pearson), **cov** (10×10 covariance scaled by warm-up sd). All rendered with Uhura. |
-| Kirk | `enforce_purity=True`, `random_state=7`, entropy output. **frozen**: learn the warm-up, then score without learning. **online**: keep learning through the stream; score = entropy returned by learn. Learning rates 0.005 (pre-declared primary, from the kit notebook), 0.0005, 0.00005 (Ulysses guide default). |
+| Constructions | **lag** (16×16: 10 feature rows + 6 zero rows × 16 columns of 16-step changes; the Kavara usage guide's time-series input; pre-declared primary), **corr** (10×10 Pearson), **cov** (10×10 covariance scaled by warm-up sd). All rendered with Uhura. |
+| Kirk | `enforce_purity=True`, `random_state=7`, entropy output. **frozen**: learn the warm-up, then score without learning. **online**: keep learning through the stream; score = entropy returned by learn. Learning rates 0.005 (pre-declared primary, from the kit notebook), 0.0005, 0.00005 (Kavara usage guide default). |
 | Baselines | per-feature z of window means; Frobenius distance of each construction's matrix from the warm-up mean (`dist_ref`) and from the matrix one full window earlier (`dist_lag`). |
 | Detector | `dev_t = s_t − mean(previous 16)`, alarm at the 99.5th percentile of `|dev|`, 16-window refractory, tolerance 768 observations after a boundary. Same for every method. |
 | API | 101 + 92 calls (selection) and 6 × 32 (confirmation), all `200`; no rate limiting. |
@@ -37,7 +37,7 @@ condition ("a simple baseline performs equally well with lower complexity"), Ben
 
 **Observed.** 0/4 boundaries with the pre-registered detector, 1/4 with the post-hoc one. Its entropy
 oscillates between ~2.3 and ~0.23 on alternate samples during warm-up and then climbs steadily on the null
-stream too (≈1.0 → 4.9), so its high raw η² (0.92) is mostly a time trend. The Ulysses guide lists unstable
+stream too (≈1.0 → 4.9), so its high raw η² (0.92) is mostly a time trend. The Kavara usage guide lists unstable
 or runaway outputs as a sign the learning rate is too high; 0.005 is 100× its default.
 
 ### Deviation from the pre-registration (post-hoc, disclosed)
@@ -95,7 +95,7 @@ Full table: `regime_labels_table.md`; per-seed detail: `regime_labels.json`.
 - **Observed.** Online Kirk scores well on the trend control (ARI 0.20–0.31 on a stream with no regimes):
   its labels follow elapsed time, not regimes.
 - **Observed.** Adding Kirk to the best simple baseline raised ARI by 0.02 on average (0.51 vs 0.49), within
-  the seed-to-seed spread. The Ulysses guide's claim that entropy improves HMM classification on financial
+  the seed-to-seed spread. The Kavara usage guide's claim that entropy improves HMM classification on financial
   data is **not reproduced here** on synthetic data.
 - On the selection seed alone, the best Kirk configuration reached ARI 0.44 (`lag`, frozen, lr 0.0005),
   still below the best baseline on that seed.
@@ -137,7 +137,7 @@ The η² columns in the tables above are kept as computed; read them with this c
   example, volatility level) is therefore hidden from Kirk but visible to the baselines.
 - The false-alarm metric counts every alarm inside a volatile regime as false. That penalises baselines whose
   noise rises with volatility; a different alarm policy could change the ranking.
-- Only Kirk's entropy output was used. The array, vector and scalar outputs (the Ulysses guide's
+- Only Kirk's entropy output was used. The array, vector and scalar outputs (the Kavara usage guide's
   reconstruction and expected values) were not tried; they may carry more regime information. **Hypothesis.**
 - The HMM read-out assumes five states and uses the whole series (offline); a causal, filtered read-out
   was not tested.

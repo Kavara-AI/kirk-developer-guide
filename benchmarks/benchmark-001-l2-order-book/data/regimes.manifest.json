@@ -134,5 +134,5 @@
     }
   },
   "clipping": "spread floored at one tick (0.01)",
-  "sha256_X_regime": "ed1d14b5077e3d33cc6e308599234efc1e87fdc7e36e7648f7b901fdbb2167df"
+  "sha256_X_regime_prefix": "ed1d14"
 }

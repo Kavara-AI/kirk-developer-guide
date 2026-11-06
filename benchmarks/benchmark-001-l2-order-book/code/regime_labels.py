@@ -2,7 +2,7 @@
 
     python regime_labels.py            # uses results/{regimes,null}{,_c1,_c2,_c3}.scores.npz
 
-No API calls: it reuses the stored scores. The Ulysses guide suggests passing Kirk's entropy to a
+No API calls: it reuses the stored scores. The Kavara usage guide suggests passing Kirk's entropy to a
 hidden Markov model for state classification; this tests that read-out against the same read-out on
 the baselines.
 

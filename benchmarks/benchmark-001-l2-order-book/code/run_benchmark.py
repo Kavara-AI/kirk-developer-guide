@@ -7,7 +7,7 @@ Writes <out>.scores.npz (one score series per method, aligned to the stride-16 w
 <out>.run.json (run manifest: configuration, API call ledger, service release id).
 
 Matrix constructions (one per window, regime label never used):
-  lag  : 16 x 16, rows = features, columns = 16-step changes (primary; Ulysses guide time-series input).
+  lag  : 16 x 16, rows = features, columns = 16-step changes (primary; Kavara usage guide time-series input).
   corr : Pearson correlation of the 10 features over the window.
   cov  : covariance of the window-demeaned features, each divided by its warm-up standard
          deviation (warm-up = observations 0..1999 only), so variance changes are kept.
@@ -17,7 +17,7 @@ Kirk modes:
   frozen : learn on stride-1 windows inside the warm-up (end < 2000), then score every
            stride-16 window without learning.
   online : a fork of the frozen model keeps learning on every stride-16 window in order;
-           the score is the entropy returned by learn (active inference, scored while learning).
+           the score is the entropy returned by learn (scored while learning).
 """
 from __future__ import annotations
 
@@ -67,7 +67,7 @@ BLOCK, SIDE = 16, 16   # lag construction: 16 columns of 16-step changes, rows p
 
 
 def block_changes(X: np.ndarray) -> np.ndarray:
-    """Per-feature change over each 16-step block (returns-like, directional), per the Ulysses guide.
+    """Per-feature change over each 16-step block (returns-like, directional), per the Kavara usage guide.
     Rate/level features use the block's last value minus its first; mid_return_bps uses the block sum."""
     nb = len(X) // BLOCK
     B = X[:nb * BLOCK].reshape(nb, BLOCK, X.shape[1])
@@ -212,7 +212,7 @@ def main() -> None:
     run = {"data": a.data, "data_manifest": a.data.replace(".npz", ".manifest.json"),
            "window": WIN, "stride": STRIDE, "warmup_end": WARMUP_END,
            "n_windows": int(len(st)), "n_warmup_windows": int(len(st_warm)),
-           "constructions": {"lag": "16x16: 10 feature rows (+6 zero rows) x 16 block changes of 16 steps (primary, Ulysses guide)",
+           "constructions": {"lag": "16x16: 10 feature rows (+6 zero rows) x 16 block changes of 16 steps (primary, Kavara usage guide)",
                              "corr": "10x10 Pearson correlation over the window",
                              "cov": "10x10 covariance of window-demeaned features / warm-up sd"}, "renderer": identity(), "render_recipe": "rms-tanh/1",
            "kirk": {"visible_nodes": {"lag": 16, "corr": 10, "cov": 10}, "learning_rates": a.lrs,
