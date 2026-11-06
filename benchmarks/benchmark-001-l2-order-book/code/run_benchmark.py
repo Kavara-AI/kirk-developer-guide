@@ -152,7 +152,7 @@ def backend() -> RemoteBackend:
 
 def kirk_run(train: np.ndarray, series: np.ndarray, seed: int, be: RemoteBackend, lr: float) -> dict:
     v = train.shape[-1]
-    model = KirkModel(visible_nodes=v, enforce_purity=True, learning_rate=lr, random_state=seed,
+    model = KirkModel(visible_nodes=v, learning_rate=lr, random_state=seed,
                       batch_size=500, backend=be)
     warm = model.learn(train, outputs="entropy").entropy
     frozen = model.score(series, outputs="entropy").entropy
@@ -216,7 +216,7 @@ def main() -> None:
                              "corr": "10x10 Pearson correlation over the window",
                              "cov": "10x10 covariance of window-demeaned features / warm-up sd"}, "renderer": identity(), "render_recipe": "rms-tanh/1",
            "kirk": {"visible_nodes": {"lag": 16, "corr": 10, "cov": 10}, "learning_rates": a.lrs,
-                    "primary_learning_rate": a.lrs[0], "enforce_purity": True,
+                    "primary_learning_rate": a.lrs[0],
                     "random_state": a.seed, "outputs": "entropy", "modes": ["frozen", "online"]},
            "service_release_id": health.get("release_id"), "contract_release_id": contract.get("release_id"),
            "api_calls": len(CALLS), "non_200": [c for c in CALLS if c["status"] != 200],
