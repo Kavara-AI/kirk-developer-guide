@@ -93,8 +93,7 @@ def evaluate(s, s0, starts, ends, calib="null"):
     for k in range(5):
         reg[(starts >= EDGES[k]) & (ends < EDGES[k + 1]) & ev] = k
     groups = [s[reg == k] for k in range(5)]
-    allp = s[reg >= 0]
-    eta2 = float(sum(len(g) * (g.mean() - allp.mean()) ** 2 for g in groups) / (((allp - allp.mean()) ** 2).sum() + 1e-300))
+    eta2 = eta_sq(s, starts, ends)
     dd = []
     for k in range(4):
         g1, g2 = groups[k], groups[k + 1]

@@ -53,9 +53,11 @@ def fit_hmm(Z):
             m.fit(Z)
             ll = m.score(Z)
         except Exception:
-            continue
+            continue  # try next restart
         if np.isfinite(ll) and ll > bl:
             best, bl = m, ll
+    if best is None:
+        raise RuntimeError("all HMM restarts failed")
     return best.predict(Z)
 
 
